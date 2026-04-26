@@ -168,9 +168,13 @@
     <button class="sel-btn" onclick="setWord(1)">bonus</button>
     <button class="sel-btn" onclick="setWord(2)">malus</button>
     <button class="sel-btn" onclick="setWord(3)">multus</button>
+    <button class="sel-btn" onclick="setWord(4)">filius</button>
+    <button class="sel-btn" onclick="setWord(5)">puer</button>
+    <button class="sel-btn" onclick="setWord(6)">ager</button>
   </div>
   <div class="word-display" id="wordDisplay">magnus / magna / magnum</div>
   <div class="meaning" id="wordMeaning">great, large</div>
+  <div id="declNote" style="display:none; background:#fff8e8; border:1px solid #c9a96e; border-radius:4px; padding:10px 14px; margin-bottom:12px; font-size:0.88rem; color:#333; line-height:1.5;"></div>
   <table id="declTable"></table>
   <div class="buttons">
     <button class="primary"   onclick="checkDecl()">Check Answers</button>
@@ -325,6 +329,28 @@ const words = [
     s:{Nominative:['multus','multa','multum'],Genitive:['multi','multae','multi'],Dative:['multo','multae','multo'],Accusative:['multum','multam','multum'],Ablative:['multo','multa','multo'],Vocative:['multe','multa','multum']},
     p:{Nominative:['multi','multae','multa'],Genitive:['multorum','multarum','multorum'],Dative:['multis','multis','multis'],Accusative:['multos','multas','multa'],Ablative:['multis','multis','multis'],Vocative:['multi','multae','multa']}
   }},
+  // ── Noun exceptions ──────────────────────────────────────────
+  { display:'filius, filii', meaning:'son (m) — 2nd declension', noun:true,
+    note:'Exception: -ius nouns contract the vocative singular to -i (not -ie). All other endings are standard.',
+    data:{
+      s:{Nominative:'filius',Genitive:'filii',Dative:'filio',Accusative:'filium',Ablative:'filio',Vocative:'fili'},
+      p:{Nominative:'filii',Genitive:'filiorum',Dative:'filiis',Accusative:'filios',Ablative:'filiis',Vocative:'filii'}
+    }
+  },
+  { display:'puer, pueri', meaning:'boy (m) — 2nd declension -er (stem keeps -e-)', noun:true,
+    note:'Exception: -er nouns look irregular in the nominative but follow standard 2nd declension endings. Puer keeps the -e- throughout — check the genitive (pueri) to find the true stem.',
+    data:{
+      s:{Nominative:'puer',Genitive:'pueri',Dative:'puero',Accusative:'puerum',Ablative:'puero',Vocative:'puer'},
+      p:{Nominative:'pueri',Genitive:'puerorum',Dative:'pueris',Accusative:'pueros',Ablative:'pueris',Vocative:'pueri'}
+    }
+  },
+  { display:'ager, agri', meaning:'field (m) — 2nd declension -er (stem drops -e-)', noun:true,
+    note:'Exception: like puer, but ager drops the -e- after the nominative — the stem is agr-, not ager-. Always check the genitive to identify the true stem.',
+    data:{
+      s:{Nominative:'ager',Genitive:'agri',Dative:'agro',Accusative:'agrum',Ablative:'agro',Vocative:'ager'},
+      p:{Nominative:'agri',Genitive:'agrorum',Dative:'agris',Accusative:'agros',Ablative:'agris',Vocative:'agri'}
+    }
+  },
 ];
 
 const ALL_CASES   = ['Nominative','Genitive','Dative','Accusative','Ablative','Vocative'];
@@ -336,30 +362,46 @@ function setWord(idx){
   document.querySelectorAll('#panel-decl .sel-btn').forEach((b,i)=>b.classList.toggle('active',i===idx));
   document.getElementById('wordDisplay').textContent=words[idx].display;
   document.getElementById('wordMeaning').textContent=words[idx].meaning;
+  const noteEl=document.getElementById('declNote');
+  if(words[idx].note){ noteEl.textContent=words[idx].note; noteEl.style.display='block'; }
+  else { noteEl.style.display='none'; noteEl.textContent=''; }
   declCases=shuffle(ALL_CASES); declGenders=shuffle(ALL_GENDERS);
   buildDeclTable(); document.getElementById('declScore').textContent='';
 }
 
 function buildDeclTable(){
   const table=document.getElementById('declTable'); table.innerHTML='';
+  const w=words[currentWord];
+  const isNoun=!!w.noun;
   const thead=document.createElement('thead'), hr=document.createElement('tr');
   const th0=document.createElement('th'); th0.textContent='Case'; hr.appendChild(th0);
-  declGenders.forEach(g=>{const th=document.createElement('th');th.textContent=g.label;hr.appendChild(th);});
+  if(isNoun){
+    const th=document.createElement('th');th.textContent='Form';hr.appendChild(th);
+  } else {
+    declGenders.forEach(g=>{const th=document.createElement('th');th.textContent=g.label;hr.appendChild(th);});
+  }
   thead.appendChild(hr); table.appendChild(thead);
   const tbody=document.createElement('tbody');
   ['s','p'].forEach(num=>{
     const sr=document.createElement('tr'),st=document.createElement('td');
-    st.className='section';st.colSpan=4;st.textContent=num==='s'?'Singular':'Plural';
+    st.className='section';st.colSpan=isNoun?2:4;st.textContent=num==='s'?'Singular':'Plural';
     sr.appendChild(st);tbody.appendChild(sr);
     declCases.forEach(c=>{
       const tr=document.createElement('tr');
       const td0=document.createElement('td');td0.className='label';td0.textContent=c;tr.appendChild(td0);
-      declGenders.forEach(g=>{
+      if(isNoun){
         const td=document.createElement('td'),inp=document.createElement('input');
         inp.type='text';inp.autocomplete='off';inp.spellcheck=false;
-        inp.dataset.num=num;inp.dataset.case=c;inp.dataset.gi=g.idx;
+        inp.dataset.num=num;inp.dataset.case=c;inp.dataset.gi='noun';
         td.appendChild(inp);tr.appendChild(td);
-      });
+      } else {
+        declGenders.forEach(g=>{
+          const td=document.createElement('td'),inp=document.createElement('input');
+          inp.type='text';inp.autocomplete='off';inp.spellcheck=false;
+          inp.dataset.num=num;inp.dataset.case=c;inp.dataset.gi=g.idx;
+          td.appendChild(inp);tr.appendChild(td);
+        });
+      }
       tbody.appendChild(tr);
     });
   });
@@ -370,7 +412,8 @@ function checkDecl(){
   const inputs=document.querySelectorAll('#declTable input');
   let correct=0,total=0; const w=words[currentWord];
   inputs.forEach(inp=>{
-    const ans=w.data[inp.dataset.num][inp.dataset.case][parseInt(inp.dataset.gi)];
+    const raw=w.data[inp.dataset.num][inp.dataset.case];
+    const ans=inp.dataset.gi==='noun'?raw:raw[parseInt(inp.dataset.gi)];
     inp.classList.remove('correct','wrong'); total++;
     if(norm(inp.value)===norm(ans)){inp.classList.add('correct');correct++;}
     else{inp.classList.add('wrong');inp.title='Expected: '+ans;}
@@ -383,7 +426,8 @@ function checkDecl(){
 function revealDecl(){
   const w=words[currentWord];
   document.querySelectorAll('#declTable input').forEach(inp=>{
-    inp.value=w.data[inp.dataset.num][inp.dataset.case][parseInt(inp.dataset.gi)];
+    const raw=w.data[inp.dataset.num][inp.dataset.case];
+    inp.value=inp.dataset.gi==='noun'?raw:raw[parseInt(inp.dataset.gi)];
     inp.classList.remove('wrong');inp.classList.add('correct');
   });
   document.getElementById('declScore').textContent='';
