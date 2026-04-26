@@ -14,7 +14,9 @@
   .tab:last-child { border-radius: 0 4px 4px 0; }
   .tab.active { background: #8b2e0f; color: white; }
 
-  .selector { display: flex; gap: 8px; justify-content: center; margin-bottom: 10px; flex-wrap: wrap; }
+  .selector-group { margin-bottom: 6px; }
+  .selector-label { text-align: center; font-size: 0.72rem; font-weight: bold; letter-spacing: 0.07em; text-transform: uppercase; color: #8b2e0f; margin-bottom: 5px; }
+  .selector { display: flex; gap: 8px; justify-content: center; margin-bottom: 4px; flex-wrap: wrap; }
   .sel-btn { padding: 5px 14px; font-family: Tahoma, Arial, sans-serif; font-size: 0.8rem; border: 2px solid #c9a96e; background: white; color: #444; cursor: pointer; border-radius: 3px; transition: all 0.2s; }
   .sel-btn.active { background: #8b2e0f; border-color: #8b2e0f; color: white; }
 
@@ -164,14 +166,25 @@
 
 <!-- ── DECLENSION PANEL ──────────────────────────────────────── -->
 <div class="panel active" id="panel-decl">
-  <div class="selector">
-    <button class="sel-btn active" onclick="setWord(0)">magnus</button>
-    <button class="sel-btn" onclick="setWord(1)">bonus</button>
-    <button class="sel-btn" onclick="setWord(2)">malus</button>
-    <button class="sel-btn" onclick="setWord(3)">multus</button>
-    <button class="sel-btn" onclick="setWord(4)">filius</button>
-    <button class="sel-btn" onclick="setWord(5)">puer</button>
-    <button class="sel-btn" onclick="setWord(6)">ager</button>
+  <div class="selector-group">
+    <div class="selector-label">Standard forms</div>
+    <div class="selector">
+      <button class="sel-btn active" onclick="setWord(0)">magnus</button>
+      <button class="sel-btn" onclick="setWord(1)">bonus</button>
+      <button class="sel-btn" onclick="setWord(2)">malus</button>
+      <button class="sel-btn" onclick="setWord(3)">multus</button>
+    </div>
+  </div>
+  <div class="selector-group">
+    <div class="selector-label">Exceptions</div>
+    <div class="selector">
+      <button class="sel-btn" onclick="setWord(4)">filius</button>
+      <button class="sel-btn" onclick="setWord(5)">puer</button>
+      <button class="sel-btn" onclick="setWord(6)">ager</button>
+      <button class="sel-btn" onclick="setWord(7)">poeta</button>
+      <button class="sel-btn" onclick="setWord(8)">nauta</button>
+      <button class="sel-btn" onclick="setWord(9)">agricola</button>
+    </div>
   </div>
   <div class="panel-subtitle">1st &amp; 2nd Declension</div>
   <div class="word-display" id="wordDisplay">magnus / magna / magnum</div>
@@ -352,6 +365,28 @@ const words = [
     data:{
       s:{Nominative:'ager',Genitive:'agri',Dative:'agro',Accusative:'agrum',Ablative:'agro',Vocative:'ager'},
       p:{Nominative:'agri',Genitive:'agrorum',Dative:'agris',Accusative:'agros',Ablative:'agris',Vocative:'agri'}
+    }
+  },
+  // ── 1st declension masculines ─────────────────────────────────
+  { display:'poeta, poetae', meaning:'n. (m) — poet; 1st declension', noun:true,
+    note:'Exception: poeta follows 1st declension endings (like puella) but is grammatically masculine. Its adjectives must take masculine forms — e.g. poeta magnus, not poeta magna. Other common nouns in this group: nauta (sailor), agricola (farmer).',
+    data:{
+      s:{Nominative:'poeta',Genitive:'poetae',Dative:'poetae',Accusative:'poetam',Ablative:'poeta',Vocative:'poeta'},
+      p:{Nominative:'poetae',Genitive:'poetarum',Dative:'poetis',Accusative:'poetas',Ablative:'poetis',Vocative:'poetae'}
+    }
+  },
+  { display:'nauta, nautae', meaning:'n. (m) — sailor; 1st declension', noun:true,
+    note:'Exception: nauta follows 1st declension endings but is grammatically masculine — adjectives agree in masculine forms. Same pattern as poeta and agricola.',
+    data:{
+      s:{Nominative:'nauta',Genitive:'nautae',Dative:'nautae',Accusative:'nautam',Ablative:'nauta',Vocative:'nauta'},
+      p:{Nominative:'nautae',Genitive:'nautarum',Dative:'nautis',Accusative:'nautas',Ablative:'nautis',Vocative:'nautae'}
+    }
+  },
+  { display:'agricola, agricolae', meaning:'n. (m) — farmer; 1st declension', noun:true,
+    note:'Exception: agricola follows 1st declension endings but is grammatically masculine — adjectives agree in masculine forms. Same pattern as poeta and nauta.',
+    data:{
+      s:{Nominative:'agricola',Genitive:'agricolae',Dative:'agricolae',Accusative:'agricolam',Ablative:'agricola',Vocative:'agricola'},
+      p:{Nominative:'agricolae',Genitive:'agricolarum',Dative:'agricolis',Accusative:'agricolas',Ablative:'agricolis',Vocative:'agricolae'}
     }
   },
 ];
@@ -597,13 +632,13 @@ const agreePhrases = [
   {phrase:'animus malus',        translation:'"bad spirit" (subject)',       caseVal:'nominative', gender:'masculine', number:'singular'},
   {phrase:'vita bona',           translation:'"good life" (subject)',        caseVal:'nominative', gender:'feminine',  number:'singular'},
   {phrase:'fama magna',          translation:'"great fame" (subject)',       caseVal:'nominative', gender:'feminine',  number:'singular'},
-  {phrase:'poeta magnus',        translation:'"great poet" (subject)',       caseVal:'nominative', gender:'masculine', number:'singular'},
+  {phrase:'poeta magnus',        translation:'"great poet" (subject) — poeta is 1st decl. but masculine; adjective takes masculine form',       caseVal:'nominative', gender:'masculine', number:'singular'},
   {phrase:'puellam magnam',      translation:'"great girl" (object)',        caseVal:'accusative', gender:'feminine',  number:'singular'},
   {phrase:'amicum bonum',        translation:'"good friend" (object)',       caseVal:'accusative', gender:'masculine', number:'singular'},
   {phrase:'vitam malam',         translation:'"bad life" (object)',          caseVal:'accusative', gender:'feminine',  number:'singular'},
   {phrase:'animum magnum',       translation:'"great spirit" (object)',      caseVal:'accusative', gender:'masculine', number:'singular'},
   {phrase:'famam bonam',         translation:'"good reputation" (object)',   caseVal:'accusative', gender:'feminine',  number:'singular'},
-  {phrase:'poetam malum',        translation:'"bad poet" (object)',          caseVal:'accusative', gender:'masculine', number:'singular'},
+  {phrase:'poetam malum',        translation:'"bad poet" (object) — poeta is 1st decl. but masculine; adjective takes masculine form',          caseVal:'accusative', gender:'masculine', number:'singular'},
   {phrase:'amici boni',          translation:'of a good friend',             caseVal:'genitive',   gender:'masculine', number:'singular'},
   {phrase:'animi magni',         translation:'of a great spirit',            caseVal:'genitive',   gender:'masculine', number:'singular'},
   {phrase:'amice bone',          translation:'"O good friend!" (address)',   caseVal:'vocative',   gender:'masculine', number:'singular'},
@@ -611,7 +646,7 @@ const agreePhrases = [
   {phrase:'amicos bonos',        translation:'"good friends" (object)',      caseVal:'accusative', gender:'masculine', number:'plural'},
   {phrase:'animos malos',        translation:'"bad spirits" (object)',       caseVal:'accusative', gender:'masculine', number:'plural'},
   {phrase:'vitas bonas',         translation:'"good lives" (object)',        caseVal:'accusative', gender:'feminine',  number:'plural'},
-  {phrase:'poetas magnos',       translation:'"great poets" (object)',       caseVal:'accusative', gender:'masculine', number:'plural'},
+  {phrase:'poetas magnos',       translation:'"great poets" (object) — poeta is 1st decl. but masculine; adjective takes masculine form',       caseVal:'accusative', gender:'masculine', number:'plural'},
   {phrase:'puellarum magnarum',  translation:'of great girls',               caseVal:'genitive',   gender:'feminine',  number:'plural'},
   {phrase:'amicorum bonorum',    translation:'of good friends',              caseVal:'genitive',   gender:'masculine', number:'plural'},
   {phrase:'animorum malorum',    translation:'of bad spirits',               caseVal:'genitive',   gender:'masculine', number:'plural'},
