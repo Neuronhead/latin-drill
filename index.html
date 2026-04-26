@@ -303,7 +303,7 @@
 
       <!-- Exception phrases -->
       <div class="agree-subsection">
-        <div class="agree-subsection-title">Exceptions — 1st Declension Masculines</div>
+        <div class="agree-subsection-title">Exceptions</div>
         <div class="agree-counter" id="agreeExCounter"></div>
         <div class="agree-phrase" id="agreeExPhrase"></div>
         <div class="agree-phrase-meaning" id="agreeExMeaning"></div>
@@ -733,15 +733,15 @@ const agreePhrases = [
 
 // 1st declension masculine exceptions — endings look feminine but gender is masculine
 const agreeExceptions = [
-  {phrase:'poeta magnus',        translation:'"great poet" (subject) — 1st decl. but masculine; adjective takes masculine form',        caseVal:'nominative', gender:'masculine', number:'singular'},
-  {phrase:'poetam malum',        translation:'"bad poet" (object) — 1st decl. but masculine; adjective takes masculine form',           caseVal:'accusative', gender:'masculine', number:'singular'},
-  {phrase:'poetas magnos',       translation:'"great poets" (object) — 1st decl. but masculine; adjective takes masculine form',        caseVal:'accusative', gender:'masculine', number:'plural'},
-  {phrase:'nauta bonus',         translation:'"good sailor" (subject) — 1st decl. but masculine; adjective takes masculine form',       caseVal:'nominative', gender:'masculine', number:'singular'},
-  {phrase:'nautam bonum',        translation:'"good sailor" (object) — 1st decl. but masculine; adjective takes masculine form',        caseVal:'accusative', gender:'masculine', number:'singular'},
-  {phrase:'nautas bonos',        translation:'"good sailors" (object) — 1st decl. but masculine; adjective takes masculine form',       caseVal:'accusative', gender:'masculine', number:'plural'},
-  {phrase:'agricola magnus',     translation:'"great farmer" (subject) — 1st decl. but masculine; adjective takes masculine form',      caseVal:'nominative', gender:'masculine', number:'singular'},
-  {phrase:'agricolam magnum',    translation:'"great farmer" (object) — 1st decl. but masculine; adjective takes masculine form',       caseVal:'accusative', gender:'masculine', number:'singular'},
-  {phrase:'agricolas magnos',    translation:'"great farmers" (object) — 1st decl. but masculine; adjective takes masculine form',      caseVal:'accusative', gender:'masculine', number:'plural'},
+  {phrase:'poeta magnus',        translation:'"great poet" (subject)',        caseVal:'nominative', gender:'masculine', number:'singular'},
+  {phrase:'poetam malum',        translation:'"bad poet" (object)',           caseVal:'accusative', gender:'masculine', number:'singular'},
+  {phrase:'poetas magnos',       translation:'"great poets" (object)',        caseVal:'accusative', gender:'masculine', number:'plural'},
+  {phrase:'nauta bonus',         translation:'"good sailor" (subject)',       caseVal:'nominative', gender:'masculine', number:'singular'},
+  {phrase:'nautam bonum',        translation:'"good sailor" (object)',        caseVal:'accusative', gender:'masculine', number:'singular'},
+  {phrase:'nautas bonos',        translation:'"good sailors" (object)',       caseVal:'accusative', gender:'masculine', number:'plural'},
+  {phrase:'agricola magnus',     translation:'"great farmer" (subject)',      caseVal:'nominative', gender:'masculine', number:'singular'},
+  {phrase:'agricolam magnum',    translation:'"great farmer" (object)',       caseVal:'accusative', gender:'masculine', number:'singular'},
+  {phrase:'agricolas magnos',    translation:'"great farmers" (object)',      caseVal:'accusative', gender:'masculine', number:'plural'},
 ];
 
 let agreeQueue=[], agreeIndex=0;
