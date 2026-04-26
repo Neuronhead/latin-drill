@@ -201,14 +201,30 @@
 
 <!-- ── VERB PANEL ────────────────────────────────────────────── -->
 <div class="panel" id="panel-verb">
-  <div class="selector">
-    <button class="sel-btn active" onclick="setVerb(0)">esse</button>
-    <button class="sel-btn" onclick="setVerb(1)">amare</button>
-    <button class="sel-btn" onclick="setVerb(2)">laudare</button>
-    <button class="sel-btn" onclick="setVerb(3)">portare</button>
-    <button class="sel-btn" onclick="setVerb(4)">dare</button>
+  <div class="selector-group">
+    <div class="selector-label">Irregular</div>
+    <div class="selector">
+      <button class="sel-btn active" onclick="setVerb(0)">esse</button>
+    </div>
   </div>
-  <div class="panel-subtitle">1st Conjugation &amp; esse — Present &amp; Future Active Indicative</div>
+  <div class="selector-group">
+    <div class="selector-label">1st Conjugation (-āre)</div>
+    <div class="selector">
+      <button class="sel-btn" onclick="setVerb(1)">amare</button>
+      <button class="sel-btn" onclick="setVerb(2)">laudare</button>
+      <button class="sel-btn" onclick="setVerb(3)">portare</button>
+      <button class="sel-btn" onclick="setVerb(4)">dare</button>
+    </div>
+  </div>
+  <div class="selector-group">
+    <div class="selector-label">2nd Conjugation (-ēre)</div>
+    <div class="selector">
+      <button class="sel-btn" onclick="setVerb(5)">monere</button>
+      <button class="sel-btn" onclick="setVerb(6)">videre</button>
+      <button class="sel-btn" onclick="setVerb(7)">habere</button>
+    </div>
+  </div>
+  <div class="panel-subtitle">1st &amp; 2nd Conjugation — Present &amp; Future Active Indicative, Imperative</div>
   <div class="word-display" id="verbDisplay">esse</div>
   <div class="meaning" id="verbMeaning">to be</div>
   <table id="verbTable"></table>
@@ -479,15 +495,42 @@ function resetDecl(){
 // ── VERB DATA ────────────────────────────────────────────────────────────────
 
 const verbs=[
-  {display:'esse',meaning:'to be',conj:'(irregular)',pres:['sum','es','est','sumus','estis','sunt'],fut:['ero','eris','erit','erimus','eritis','erunt']},
-  {display:'amare',meaning:'to love',conj:'1st conjugation',pres:['amo','amas','amat','amamus','amatis','amant'],fut:['amabo','amabis','amabit','amabimus','amabitis','amabunt']},
-  {display:'laudare',meaning:'to praise',conj:'1st conjugation',pres:['laudo','laudas','laudat','laudamus','laudatis','laudant'],fut:['laudabo','laudabis','laudabit','laudabimus','laudabitis','laudabunt']},
-  {display:'portare',meaning:'to carry',conj:'1st conjugation',pres:['porto','portas','portat','portamus','portatis','portant'],fut:['portabo','portabis','portabit','portabimus','portabitis','portabunt']},
-  {display:'dare',meaning:'to give',conj:'1st conj. (irregular stem)',pres:['do','das','dat','damus','datis','dant'],fut:['dabo','dabis','dabit','dabimus','dabitis','dabunt']},
+  {display:'esse',meaning:'to be',conj:'(irregular)',
+    pres:['sum','es','est','sumus','estis','sunt'],
+    fut:['ero','eris','erit','erimus','eritis','erunt'],
+    imp:['es','este']},
+  {display:'amare',meaning:'to love',conj:'1st conjugation',
+    pres:['amo','amas','amat','amamus','amatis','amant'],
+    fut:['amabo','amabis','amabit','amabimus','amabitis','amabunt'],
+    imp:['ama','amate']},
+  {display:'laudare',meaning:'to praise',conj:'1st conjugation',
+    pres:['laudo','laudas','laudat','laudamus','laudatis','laudant'],
+    fut:['laudabo','laudabis','laudabit','laudabimus','laudabitis','laudabunt'],
+    imp:['lauda','laudate']},
+  {display:'portare',meaning:'to carry',conj:'1st conjugation',
+    pres:['porto','portas','portat','portamus','portatis','portant'],
+    fut:['portabo','portabis','portabit','portabimus','portabitis','portabunt'],
+    imp:['porta','portate']},
+  {display:'dare',meaning:'to give',conj:'1st conj. (irregular stem)',
+    pres:['do','das','dat','damus','datis','dant'],
+    fut:['dabo','dabis','dabit','dabimus','dabitis','dabunt'],
+    imp:['da','date']},
+  {display:'monere',meaning:'to warn, advise',conj:'2nd conjugation',
+    pres:['moneo','mones','monet','monemus','monetis','monent'],
+    fut:['monebo','monebis','monebit','monebimus','monebitis','monebunt'],
+    imp:['mone','monete']},
+  {display:'videre',meaning:'to see',conj:'2nd conjugation',
+    pres:['video','vides','videt','videmus','videtis','vident'],
+    fut:['videbo','videbis','videbit','videbimus','videbitis','videbunt'],
+    imp:['vide','videte']},
+  {display:'habere',meaning:'to have',conj:'2nd conjugation',
+    pres:['habeo','habes','habet','habemus','habetis','habent'],
+    fut:['habebo','habebis','habebit','habebimus','habebitis','habebunt'],
+    imp:['habe','habete']},
 ];
 
 const ALL_PERSONS=[{label:'1st',idx:0},{label:'2nd',idx:1},{label:'3rd',idx:2}];
-const ALL_TENSES=[{label:'Present',key:'pres'},{label:'Future',key:'fut'}];
+const ALL_TENSES=[{label:'Present',key:'pres'},{label:'Future',key:'fut'},{label:'Imperative',key:'imp',imperative:true}];
 let currentVerb=0, verbPersons=shuffle(ALL_PERSONS), verbTenses=shuffle(ALL_TENSES);
 
 function setVerb(idx){
@@ -502,29 +545,46 @@ function setVerb(idx){
 function buildVerbTable(){
   const table=document.getElementById('verbTable'); table.innerHTML='';
   const thead=document.createElement('thead'),hr=document.createElement('tr');
-  ['Person','Singular','Plural'].forEach(h=>{const th=document.createElement('th');th.textContent=h;hr.appendChild(th);});
+  ['Person / Form','Singular','Plural'].forEach(h=>{const th=document.createElement('th');th.textContent=h;hr.appendChild(th);});
   thead.appendChild(hr); table.appendChild(thead);
   const tbody=document.createElement('tbody');
   verbTenses.forEach(t=>{
     const sr=document.createElement('tr'),st=document.createElement('td');
-    st.className='section';st.colSpan=3;st.textContent=t.label+' Tense';
+    st.className='section';st.colSpan=3;
+    st.textContent=t.imperative?'Imperative (2nd person)':t.label+' Tense';
     sr.appendChild(st);tbody.appendChild(sr);
-    verbPersons.forEach(p=>{
+    if(t.imperative){
+      // Imperative: just one row, singular and plural
       const tr=document.createElement('tr');
-      const td0=document.createElement('td');td0.className='label';td0.textContent=p.label;tr.appendChild(td0);
-      ['s','p'].forEach(num=>{
+      const td0=document.createElement('td');td0.className='label';td0.textContent='—';tr.appendChild(td0);
+      ['s','p'].forEach((num,ni)=>{
         const td=document.createElement('td'),inp=document.createElement('input');
         inp.type='text';inp.autocomplete='off';inp.spellcheck=false;
-        inp.dataset.tense=t.key;inp.dataset.num=num;inp.dataset.person=p.idx;
+        inp.dataset.tense='imp';inp.dataset.num=num;inp.dataset.person='imp';
         td.appendChild(inp);tr.appendChild(td);
       });
       tbody.appendChild(tr);
-    });
+    } else {
+      verbPersons.forEach(p=>{
+        const tr=document.createElement('tr');
+        const td0=document.createElement('td');td0.className='label';td0.textContent=p.label;tr.appendChild(td0);
+        ['s','p'].forEach(num=>{
+          const td=document.createElement('td'),inp=document.createElement('input');
+          inp.type='text';inp.autocomplete='off';inp.spellcheck=false;
+          inp.dataset.tense=t.key;inp.dataset.num=num;inp.dataset.person=p.idx;
+          td.appendChild(inp);tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+    }
   });
   table.appendChild(tbody);
 }
 
 function getVerbAnswer(tense,num,pi){
+  if(tense==='imp'){
+    return num==='s'?verbs[currentVerb].imp[0]:verbs[currentVerb].imp[1];
+  }
   const arr=tense==='pres'?verbs[currentVerb].pres:verbs[currentVerb].fut;
   return num==='s'?arr[pi]:arr[pi+3];
 }
