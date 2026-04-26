@@ -129,6 +129,8 @@
     margin-bottom: 16px;
   }
 
+  .agree-subsection { border: 1px solid #e8d9b8; border-radius: 4px; padding: 14px; margin-bottom: 16px; background: #fffdf7; }
+  .agree-subsection-title { font-family: Tahoma, Arial, sans-serif; font-size: 0.72rem; font-weight: bold; letter-spacing: 0.07em; text-transform: uppercase; color: #8b2e0f; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid #e8d9b8; }
   .agree-locked {
     text-align: center;
     color: #aaa;
@@ -275,33 +277,50 @@
     </div>
 
     <div id="q2Content" style="display:none;">
-      <div class="agree-counter" id="agreeCounter"></div>
       <div class="agree-question">
         Identify the case, gender, and number of the noun-adjective phrase below.
       </div>
-      <div class="agree-phrase" id="agreePhrase"></div>
-      <div class="agree-phrase-meaning" id="agreeMeaning"></div>
-      <div class="agree-boxes">
-        <div class="agree-box">
-          <label id="labelCase">Case</label>
-          <input type="text" id="q2case" autocomplete="off" spellcheck="false">
+
+      <!-- Standard phrases -->
+      <div class="agree-subsection">
+        <div class="agree-subsection-title">Standard Phrases</div>
+        <div class="agree-counter" id="agreeCounter"></div>
+        <div class="agree-phrase" id="agreePhrase"></div>
+        <div class="agree-phrase-meaning" id="agreeMeaning"></div>
+        <div class="agree-boxes">
+          <div class="agree-box"><label>Case</label><input type="text" id="q2case" autocomplete="off" spellcheck="false"></div>
+          <div class="agree-box"><label>Gender</label><input type="text" id="q2gender" autocomplete="off" spellcheck="false"></div>
+          <div class="agree-box"><label>Number</label><input type="text" id="q2number" autocomplete="off" spellcheck="false"></div>
         </div>
-        <div class="agree-box">
-          <label id="labelGender">Gender</label>
-          <input type="text" id="q2gender" autocomplete="off" spellcheck="false">
+        <div class="buttons">
+          <button class="primary"   onclick="checkQ2('std')">Check Answers</button>
+          <button class="secondary" onclick="revealQ2('std')">Show Answers</button>
+          <button class="secondary" onclick="nextAgree('std')">Next Phrase</button>
+          <button class="secondary" onclick="resetQ2('std')">Clear</button>
         </div>
-        <div class="agree-box">
-          <label id="labelNumber">Number</label>
-          <input type="text" id="q2number" autocomplete="off" spellcheck="false">
-        </div>
+        <div class="score" id="q2Score"></div>
       </div>
-      <div class="buttons">
-        <button class="primary"   onclick="checkQ2()">Check Answers</button>
-        <button class="secondary" onclick="revealQ2()">Show Answers</button>
-        <button class="secondary" onclick="nextAgree()">Next Phrase</button>
-        <button class="secondary" onclick="resetQ2()">Clear</button>
+
+      <!-- Exception phrases -->
+      <div class="agree-subsection">
+        <div class="agree-subsection-title">Exceptions — 1st Declension Masculines</div>
+        <div class="agree-counter" id="agreeExCounter"></div>
+        <div class="agree-phrase" id="agreeExPhrase"></div>
+        <div class="agree-phrase-meaning" id="agreeExMeaning"></div>
+        <div class="agree-boxes">
+          <div class="agree-box"><label>Case</label><input type="text" id="q2excase" autocomplete="off" spellcheck="false"></div>
+          <div class="agree-box"><label>Gender</label><input type="text" id="q2exgender" autocomplete="off" spellcheck="false"></div>
+          <div class="agree-box"><label>Number</label><input type="text" id="q2exnumber" autocomplete="off" spellcheck="false"></div>
+        </div>
+        <div class="buttons">
+          <button class="primary"   onclick="checkQ2('ex')">Check Answers</button>
+          <button class="secondary" onclick="revealQ2('ex')">Show Answers</button>
+          <button class="secondary" onclick="nextAgree('ex')">Next Phrase</button>
+          <button class="secondary" onclick="resetQ2('ex')">Clear</button>
+        </div>
+        <div class="score" id="q2ExScore"></div>
       </div>
-      <div class="score" id="q2Score"></div>
+
     </div>
 
   </div>
@@ -681,7 +700,9 @@ function unlockQ2(){
   q1Unlocked=true;
   document.getElementById('q2Locked').style.display='none';
   document.getElementById('q2Content').style.display='block';
-  loadAgreePhrase();
+  initAgreeExQueue();
+  loadAgreePhraseType('std');
+  loadAgreePhraseType('ex');
 }
 
 // ── AGREEMENT — QUESTION 2 ───────────────────────────────────────────────────
@@ -692,13 +713,11 @@ const agreePhrases = [
   {phrase:'animus malus',        translation:'"bad spirit" (subject)',       caseVal:'nominative', gender:'masculine', number:'singular'},
   {phrase:'vita bona',           translation:'"good life" (subject)',        caseVal:'nominative', gender:'feminine',  number:'singular'},
   {phrase:'fama magna',          translation:'"great fame" (subject)',       caseVal:'nominative', gender:'feminine',  number:'singular'},
-  {phrase:'poeta magnus',        translation:'"great poet" (subject) — poeta is 1st decl. but masculine; adjective takes masculine form',       caseVal:'nominative', gender:'masculine', number:'singular'},
   {phrase:'puellam magnam',      translation:'"great girl" (object)',        caseVal:'accusative', gender:'feminine',  number:'singular'},
   {phrase:'amicum bonum',        translation:'"good friend" (object)',       caseVal:'accusative', gender:'masculine', number:'singular'},
   {phrase:'vitam malam',         translation:'"bad life" (object)',          caseVal:'accusative', gender:'feminine',  number:'singular'},
   {phrase:'animum magnum',       translation:'"great spirit" (object)',      caseVal:'accusative', gender:'masculine', number:'singular'},
   {phrase:'famam bonam',         translation:'"good reputation" (object)',   caseVal:'accusative', gender:'feminine',  number:'singular'},
-  {phrase:'poetam malum',        translation:'"bad poet" (object) — poeta is 1st decl. but masculine; adjective takes masculine form',          caseVal:'accusative', gender:'masculine', number:'singular'},
   {phrase:'amici boni',          translation:'of a good friend',             caseVal:'genitive',   gender:'masculine', number:'singular'},
   {phrase:'animi magni',         translation:'of a great spirit',            caseVal:'genitive',   gender:'masculine', number:'singular'},
   {phrase:'amice bone',          translation:'"O good friend!" (address)',   caseVal:'vocative',   gender:'masculine', number:'singular'},
@@ -706,39 +725,78 @@ const agreePhrases = [
   {phrase:'amicos bonos',        translation:'"good friends" (object)',      caseVal:'accusative', gender:'masculine', number:'plural'},
   {phrase:'animos malos',        translation:'"bad spirits" (object)',       caseVal:'accusative', gender:'masculine', number:'plural'},
   {phrase:'vitas bonas',         translation:'"good lives" (object)',        caseVal:'accusative', gender:'feminine',  number:'plural'},
-  {phrase:'poetas magnos',       translation:'"great poets" (object) — poeta is 1st decl. but masculine; adjective takes masculine form',       caseVal:'accusative', gender:'masculine', number:'plural'},
   {phrase:'puellarum magnarum',  translation:'of great girls',               caseVal:'genitive',   gender:'feminine',  number:'plural'},
   {phrase:'amicorum bonorum',    translation:'of good friends',              caseVal:'genitive',   gender:'masculine', number:'plural'},
   {phrase:'animorum malorum',    translation:'of bad spirits',               caseVal:'genitive',   gender:'masculine', number:'plural'},
   {phrase:'vitarum bonarum',     translation:'of good lives',                caseVal:'genitive',   gender:'feminine',  number:'plural'},
 ];
 
+// 1st declension masculine exceptions — endings look feminine but gender is masculine
+const agreeExceptions = [
+  {phrase:'poeta magnus',        translation:'"great poet" (subject) — 1st decl. but masculine; adjective takes masculine form',        caseVal:'nominative', gender:'masculine', number:'singular'},
+  {phrase:'poetam malum',        translation:'"bad poet" (object) — 1st decl. but masculine; adjective takes masculine form',           caseVal:'accusative', gender:'masculine', number:'singular'},
+  {phrase:'poetas magnos',       translation:'"great poets" (object) — 1st decl. but masculine; adjective takes masculine form',        caseVal:'accusative', gender:'masculine', number:'plural'},
+  {phrase:'nauta bonus',         translation:'"good sailor" (subject) — 1st decl. but masculine; adjective takes masculine form',       caseVal:'nominative', gender:'masculine', number:'singular'},
+  {phrase:'nautam bonum',        translation:'"good sailor" (object) — 1st decl. but masculine; adjective takes masculine form',        caseVal:'accusative', gender:'masculine', number:'singular'},
+  {phrase:'nautas bonos',        translation:'"good sailors" (object) — 1st decl. but masculine; adjective takes masculine form',       caseVal:'accusative', gender:'masculine', number:'plural'},
+  {phrase:'agricola magnus',     translation:'"great farmer" (subject) — 1st decl. but masculine; adjective takes masculine form',      caseVal:'nominative', gender:'masculine', number:'singular'},
+  {phrase:'agricolam magnum',    translation:'"great farmer" (object) — 1st decl. but masculine; adjective takes masculine form',       caseVal:'accusative', gender:'masculine', number:'singular'},
+  {phrase:'agricolas magnos',    translation:'"great farmers" (object) — 1st decl. but masculine; adjective takes masculine form',      caseVal:'accusative', gender:'masculine', number:'plural'},
+];
+
 let agreeQueue=[], agreeIndex=0;
+let agreeExQueue=[], agreeExIndex=0;
 
 function initAgreeQueue(){
   agreeQueue=shuffle([...Array(agreePhrases.length).keys()]);
   agreeIndex=0;
 }
 
-function loadAgreePhrase(){
-  if(agreeIndex>=agreeQueue.length) initAgreeQueue();
-  const item=agreePhrases[agreeQueue[agreeIndex]];
-  document.getElementById('agreePhrase').textContent=item.phrase;
-  document.getElementById('agreeMeaning').textContent=item.translation;
-  document.getElementById('agreeCounter').textContent='Phrase '+(agreeIndex+1)+' of '+agreeQueue.length;
-  ['q2case','q2gender','q2number'].forEach(id=>{
+function initAgreeExQueue(){
+  agreeExQueue=shuffle([...Array(agreeExceptions.length).keys()]);
+  agreeExIndex=0;
+}
+
+// Generic helpers — type is 'std' or 'ex'
+function getAgreeItem(type){
+  if(type==='ex') return agreeExceptions[agreeExQueue[agreeExIndex]];
+  return agreePhrases[agreeQueue[agreeIndex]];
+}
+
+function getAgreeIds(type){
+  if(type==='ex') return {phrase:'agreeExPhrase',meaning:'agreeExMeaning',counter:'agreeExCounter',case:'q2excase',gender:'q2exgender',number:'q2exnumber',score:'q2ExScore'};
+  return {phrase:'agreePhrase',meaning:'agreeMeaning',counter:'agreeCounter',case:'q2case',gender:'q2gender',number:'q2number',score:'q2Score'};
+}
+
+function loadAgreePhraseType(type){
+  if(type==='ex'){
+    if(agreeExIndex>=agreeExQueue.length) initAgreeExQueue();
+  } else {
+    if(agreeIndex>=agreeQueue.length) initAgreeQueue();
+  }
+  const item=getAgreeItem(type);
+  const ids=getAgreeIds(type);
+  const total=type==='ex'?agreeExceptions.length:agreePhrases.length;
+  const idx=type==='ex'?agreeExIndex:agreeIndex;
+  document.getElementById(ids.phrase).textContent=item.phrase;
+  document.getElementById(ids.meaning).textContent=item.translation;
+  document.getElementById(ids.counter).textContent='Phrase '+(idx+1)+' of '+total;
+  [ids.case,ids.gender,ids.number].forEach(id=>{
     const el=document.getElementById(id);
     el.value='';el.classList.remove('correct','wrong');el.title='';
   });
-  document.getElementById('q2Score').textContent='';
+  document.getElementById(ids.score).textContent='';
 }
 
-function checkQ2(){
-  const item=agreePhrases[agreeQueue[agreeIndex]];
+function loadAgreePhrase(){ loadAgreePhraseType('std'); }
+
+function checkQ2(type){
+  const item=getAgreeItem(type);
+  const ids=getAgreeIds(type);
   const fields=[
-    {id:'q2case',   expected:item.caseVal},
-    {id:'q2gender', expected:item.gender},
-    {id:'q2number', expected:item.number},
+    {id:ids.case,   expected:item.caseVal},
+    {id:ids.gender, expected:item.gender},
+    {id:ids.number, expected:item.number},
   ];
   let correct=0;
   fields.forEach(f=>{
@@ -751,33 +809,34 @@ function checkQ2(){
       el.title='Expected: '+f.expected;
     }
   });
-  const s=document.getElementById('q2Score');
+  const s=document.getElementById(ids.score);
   s.style.color=correct===3?'green':'red';
   s.textContent=correct===3?'Optime! All correct.':correct+'/3 — hover red boxes to see the expected answer.';
 }
 
-function revealQ2(){
-  const item=agreePhrases[agreeQueue[agreeIndex]];
-  const fields=[{id:'q2case',v:item.caseVal},{id:'q2gender',v:item.gender},{id:'q2number',v:item.number}];
+function revealQ2(type){
+  const item=getAgreeItem(type);
+  const ids=getAgreeIds(type);
+  const fields=[{id:ids.case,v:item.caseVal},{id:ids.gender,v:item.gender},{id:ids.number,v:item.number}];
   fields.forEach(f=>{
     const el=document.getElementById(f.id);
     el.value=f.v; el.classList.remove('wrong'); el.classList.add('correct');
   });
-  document.getElementById('q2Score').textContent='';
+  document.getElementById(ids.score).textContent='';
 }
 
-function nextAgree(){
-  agreeIndex++;
-  if(agreeIndex>=agreeQueue.length) initAgreeQueue();
-  loadAgreePhrase();
+function nextAgree(type){
+  if(type==='ex'){ agreeExIndex++; } else { agreeIndex++; }
+  loadAgreePhraseType(type);
 }
 
-function resetQ2(){
-  ['q2case','q2gender','q2number'].forEach(id=>{
+function resetQ2(type){
+  const ids=getAgreeIds(type);
+  [ids.case,ids.gender,ids.number].forEach(id=>{
     const el=document.getElementById(id);
     el.value='';el.classList.remove('correct','wrong');el.title='';
   });
-  document.getElementById('q2Score').textContent='';
+  document.getElementById(ids.score).textContent='';
 }
 
 // ── TAB SWITCHING ─────────────────────────────────────────────────────────────
@@ -796,6 +855,7 @@ function switchTab(tab){
 buildDeclTable();
 buildVerbTable();
 initAgreeQueue();
+initAgreeExQueue();
 // Q2 stays locked until Q1 is answered correctly
 </script>
 </body>
