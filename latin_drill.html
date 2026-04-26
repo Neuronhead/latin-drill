@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Latin Drill</title>
+<style>
+  body { font-family: Georgia, serif; background: #f5edd6; padding: 20px; max-width: 720px; margin: auto; }
+  h2 { text-align: center; color: #8b2e0f; margin-bottom: 4px; }
+  p.sub { text-align: center; font-style: italic; color: #888; margin-bottom: 12px; font-size: 0.95rem; }
+
+  .tabs { display: flex; justify-content: center; gap: 0; margin-bottom: 20px; flex-wrap: wrap; }
+  .tab { padding: 10px 24px; font-family: Georgia; font-size: 0.9rem; border: 2px solid #8b2e0f; cursor: pointer; background: white; color: #8b2e0f; transition: all 0.2s; border-left: none; }
+  .tab:first-child { border-radius: 4px 0 0 4px; border-left: 2px solid #8b2e0f; }
+  .tab:last-child { border-radius: 0 4px 4px 0; }
+  .tab.active { background: #8b2e0f; color: white; }
+
+  .selector { display: flex; gap: 8px; justify-content: center; margin-bottom: 10px; flex-wrap: wrap; }
+  .sel-btn { padding: 5px 14px; font-family: Georgia; font-size: 0.8rem; border: 2px solid #c9a96e; background: white; color: #6b5c3e; cursor: pointer; border-radius: 3px; transition: all 0.2s; }
+  .sel-btn.active { background: #8b2e0f; border-color: #8b2e0f; color: white; }
+
+  .word-display { text-align: center; font-size: 1.3rem; color: #8b2e0f; font-weight: bold; margin-bottom: 2px; }
+  .meaning { text-align: center; font-style: italic; color: #666; margin-bottom: 14px; font-size: 0.9rem; }
+
+  table { width: 100%; border-collapse: collapse; background: white; margin-bottom: 16px; }
+  th { background: #8b2e0f; color: white; padding: 9px; font-family: Georgia; text-align: center; font-size: 0.9rem; border: 1px solid #6b1e08; }
+  td { border: 1px solid #c9a96e; padding: 5px 6px; text-align: center; vertical-align: middle; }
+  td.label { background: #e8d9b8; font-weight: bold; font-size: 0.82rem; color: #5a4a2e; text-align: left; padding-left: 10px; white-space: nowrap; }
+  td.section { background: #d4c098; font-weight: bold; font-size: 0.8rem; color: #8b2e0f; text-align: left; padding-left: 8px; letter-spacing: 0.05em; }
+
+  input { width: 95%; padding: 5px; font-size: 0.95rem; border: 2px solid #c9a96e; border-radius: 3px; font-family: Georgia; text-align: center; background: #fffdf5; }
+  input:focus { outline: none; border-color: #8b2e0f; background: white; }
+  input.correct { background: #d4edda; border-color: green; color: green; font-weight: bold; }
+  input.wrong { background: #f8d7da; border-color: red; color: red; }
+
+  .buttons { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  button.primary { background: #8b2e0f; color: white; border: 2px solid #8b2e0f; padding: 9px 22px; font-family: Georgia; font-size: 0.85rem; border-radius: 3px; cursor: pointer; }
+  button.secondary { background: white; color: #8b2e0f; border: 2px solid #8b2e0f; padding: 9px 22px; font-family: Georgia; font-size: 0.85rem; border-radius: 3px; cursor: pointer; }
+  button.primary:hover { background: #6b1e08; }
+  button.secondary:hover { background: #8b2e0f; color: white; }
+
+  .score { text-align: center; margin-top: 14px; font-size: 1.1rem; font-style: italic; min-height: 1.5rem; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* ── Agreement drill ─────────────────────────────── */
+
+  .agree-section {
+    background: white;
+    border: 1px solid #c9a96e;
+    border-radius: 5px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  .agree-section-title {
+    font-family: Georgia, serif;
+    font-size: 0.75rem;
+    font-weight: bold;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #8b2e0f;
+    margin-bottom: 12px;
+    border-bottom: 1px solid #e8d9b8;
+    padding-bottom: 8px;
+  }
+
+  .agree-question {
+    font-size: 1rem;
+    color: #2a1a08;
+    margin-bottom: 16px;
+    line-height: 1.5;
+  }
+
+  .agree-boxes {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+
+  .agree-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .agree-box label {
+    font-family: Georgia;
+    font-size: 0.8rem;
+    color: #7a6040;
+    font-style: italic;
+    min-height: 1.2em;
+  }
+
+  .agree-box input {
+    width: 150px;
+    padding: 8px 10px;
+    font-size: 1rem;
+    border: 2px solid #c9a96e;
+    border-radius: 4px;
+    font-family: Georgia;
+    text-align: center;
+    background: #fffdf5;
+    transition: background 0.2s, border-color 0.2s;
+  }
+
+  .agree-box input:focus { outline: none; border-color: #8b2e0f; background: white; }
+  .agree-box input.correct { background: #d4edda; border-color: green; color: green; font-weight: bold; }
+  .agree-box input.wrong   { background: #f8d7da; border-color: red;   color: red; }
+  .agree-box input:disabled { background: #f0e8d0; color: #aaa; border-color: #ddd; cursor: not-allowed; }
+
+  .agree-phrase {
+    text-align: center;
+    font-size: 1.5rem;
+    color: #8b2e0f;
+    font-weight: bold;
+    margin: 8px 0 4px;
+    letter-spacing: 0.03em;
+  }
+
+  .agree-phrase-meaning {
+    text-align: center;
+    font-style: italic;
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 16px;
+  }
+
+  .agree-locked {
+    text-align: center;
+    font-style: italic;
+    color: #aaa;
+    font-size: 0.9rem;
+    padding: 16px 0;
+  }
+
+  .agree-counter {
+    text-align: right;
+    font-size: 0.78rem;
+    color: #9a845a;
+    font-style: italic;
+    margin-bottom: 6px;
+  }
+
+  footer {
+    margin-top: 32px;
+    padding-top: 14px;
+    border-top: 1px solid #c9a96e;
+    text-align: center;
+    font-size: 0.8rem;
+    color: #9a845a;
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+
+<h2>Latin Drill</h2>
+<p class="sub">Fill in all forms, then click Check Answers. Clear &amp; Shuffle randomises the order.</p>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('decl')">Declensions</div>
+  <div class="tab"        onclick="switchTab('verb')">Verb Conjugations</div>
+  <div class="tab"        onclick="switchTab('agree')">Agreement</div>
+</div>
+
+<!-- ── DECLENSION PANEL ──────────────────────────────────────── -->
+<div class="panel active" id="panel-decl">
+  <div class="selector">
+    <button class="sel-btn active" onclick="setWord(0)">magnus</button>
+    <button class="sel-btn" onclick="setWord(1)">bonus</button>
+    <button class="sel-btn" onclick="setWord(2)">malus</button>
+    <button class="sel-btn" onclick="setWord(3)">multus</button>
+  </div>
+  <div class="word-display" id="wordDisplay">magnus / magna / magnum</div>
+  <div class="meaning" id="wordMeaning">great, large</div>
+  <table id="declTable"></table>
+  <div class="buttons">
+    <button class="primary"   onclick="checkDecl()">Check Answers</button>
+    <button class="secondary" onclick="revealDecl()">Show Answers</button>
+    <button class="secondary" onclick="resetDecl()">Clear &amp; Shuffle</button>
+  </div>
+  <div class="score" id="declScore"></div>
+</div>
+
+<!-- ── VERB PANEL ────────────────────────────────────────────── -->
+<div class="panel" id="panel-verb">
+  <div class="selector">
+    <button class="sel-btn active" onclick="setVerb(0)">esse</button>
+    <button class="sel-btn" onclick="setVerb(1)">amare</button>
+    <button class="sel-btn" onclick="setVerb(2)">laudare</button>
+    <button class="sel-btn" onclick="setVerb(3)">portare</button>
+    <button class="sel-btn" onclick="setVerb(4)">dare</button>
+  </div>
+  <div class="word-display" id="verbDisplay">esse</div>
+  <div class="meaning" id="verbMeaning">to be</div>
+  <table id="verbTable"></table>
+  <div class="buttons">
+    <button class="primary"   onclick="checkVerb()">Check Answers</button>
+    <button class="secondary" onclick="revealVerb()">Show Answers</button>
+    <button class="secondary" onclick="resetVerb()">Clear &amp; Shuffle</button>
+  </div>
+  <div class="score" id="verbScore"></div>
+</div>
+
+<!-- ── AGREEMENT PANEL ──────────────────────────────────────── -->
+<div class="panel" id="panel-agree">
+
+  <!-- Question 1: what are the three properties? -->
+  <div class="agree-section">
+    <div class="agree-section-title">Question 1</div>
+    <div class="agree-question">
+      What three properties must a Latin adjective share with the noun it modifies?
+    </div>
+    <div class="agree-boxes">
+      <div class="agree-box">
+        <label>&nbsp;</label>
+        <input type="text" id="q1a" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="agree-box">
+        <label>&nbsp;</label>
+        <input type="text" id="q1b" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="agree-box">
+        <label>&nbsp;</label>
+        <input type="text" id="q1c" autocomplete="off" spellcheck="false">
+      </div>
+    </div>
+    <div class="buttons">
+      <button class="primary"   onclick="checkQ1()">Check</button>
+      <button class="secondary" onclick="resetQ1()">Clear</button>
+    </div>
+    <div class="score" id="q1Score"></div>
+  </div>
+
+  <!-- Question 2: identify properties of a phrase (locked until Q1 correct) -->
+  <div class="agree-section">
+    <div class="agree-section-title">Question 2</div>
+
+    <div id="q2Locked" class="agree-locked">
+      Complete Question 1 correctly to unlock this question.
+    </div>
+
+    <div id="q2Content" style="display:none;">
+      <div class="agree-counter" id="agreeCounter"></div>
+      <div class="agree-question">
+        Identify the case, gender, and number of the noun-adjective phrase below.
+      </div>
+      <div class="agree-phrase" id="agreePhrase"></div>
+      <div class="agree-phrase-meaning" id="agreeMeaning"></div>
+      <div class="agree-boxes">
+        <div class="agree-box">
+          <label id="labelCase">Case</label>
+          <input type="text" id="q2case" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="agree-box">
+          <label id="labelGender">Gender</label>
+          <input type="text" id="q2gender" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="agree-box">
+          <label id="labelNumber">Number</label>
+          <input type="text" id="q2number" autocomplete="off" spellcheck="false">
+        </div>
+      </div>
+      <div class="buttons">
+        <button class="primary"   onclick="checkQ2()">Check Answers</button>
+        <button class="secondary" onclick="revealQ2()">Show Answers</button>
+        <button class="secondary" onclick="nextAgree()">Next Phrase</button>
+        <button class="secondary" onclick="resetQ2()">Clear</button>
+      </div>
+      <div class="score" id="q2Score"></div>
+    </div>
+
+  </div>
+</div><!-- end panel-agree -->
+
+<footer>
+  Created by Dan Berge &mdash; 24th April 2026 &mdash; v1.2<br>
+</footer>
+
+<script>
+
+// ── UTILITIES ────────────────────────────────────────────────────────────────
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length-1; i > 0; i--) {
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+function norm(s) {
+  return s.trim().toLowerCase()
+    .replace(/ā/g,'a').replace(/ē/g,'e').replace(/ī/g,'i').replace(/ō/g,'o').replace(/ū/g,'u');
+}
+
+function normAgree(s) {
+  const v = norm(s);
+  const map = {
+    'nom':'nominative','gen':'genitive','dat':'dative',
+    'acc':'accusative','abl':'ablative','voc':'vocative',
+    'male':'masculine','m':'masculine',
+    'female':'feminine','fem':'feminine','f':'feminine',
+    'neut':'neuter','n':'neuter',
+    'sing':'singular','sg':'singular','pl':'plural',
+  };
+  return map[v] || v;
+}
+
+// ── DECLENSION DATA ──────────────────────────────────────────────────────────
+
+const words = [
+  { display:'magnus / magna / magnum', meaning:'great, large', data:{
+    s:{Nominative:['magnus','magna','magnum'],Genitive:['magni','magnae','magni'],Dative:['magno','magnae','magno'],Accusative:['magnum','magnam','magnum'],Ablative:['magno','magna','magno'],Vocative:['magne','magna','magnum']},
+    p:{Nominative:['magni','magnae','magna'],Genitive:['magnorum','magnarum','magnorum'],Dative:['magnis','magnis','magnis'],Accusative:['magnos','magnas','magna'],Ablative:['magnis','magnis','magnis'],Vocative:['magni','magnae','magna']}
+  }},
+  { display:'bonus / bona / bonum', meaning:'good', data:{
+    s:{Nominative:['bonus','bona','bonum'],Genitive:['boni','bonae','boni'],Dative:['bono','bonae','bono'],Accusative:['bonum','bonam','bonum'],Ablative:['bono','bona','bono'],Vocative:['bone','bona','bonum']},
+    p:{Nominative:['boni','bonae','bona'],Genitive:['bonorum','bonarum','bonorum'],Dative:['bonis','bonis','bonis'],Accusative:['bonos','bonas','bona'],Ablative:['bonis','bonis','bonis'],Vocative:['boni','bonae','bona']}
+  }},
+  { display:'malus / mala / malum', meaning:'bad, evil', data:{
+    s:{Nominative:['malus','mala','malum'],Genitive:['mali','malae','mali'],Dative:['malo','malae','malo'],Accusative:['malum','malam','malum'],Ablative:['malo','mala','malo'],Vocative:['male','mala','malum']},
+    p:{Nominative:['mali','malae','mala'],Genitive:['malorum','malarum','malorum'],Dative:['malis','malis','malis'],Accusative:['malos','malas','mala'],Ablative:['malis','malis','malis'],Vocative:['mali','malae','mala']}
+  }},
+  { display:'multus / multa / multum', meaning:'much, many', data:{
+    s:{Nominative:['multus','multa','multum'],Genitive:['multi','multae','multi'],Dative:['multo','multae','multo'],Accusative:['multum','multam','multum'],Ablative:['multo','multa','multo'],Vocative:['multe','multa','multum']},
+    p:{Nominative:['multi','multae','multa'],Genitive:['multorum','multarum','multorum'],Dative:['multis','multis','multis'],Accusative:['multos','multas','multa'],Ablative:['multis','multis','multis'],Vocative:['multi','multae','multa']}
+  }},
+];
+
+const ALL_CASES   = ['Nominative','Genitive','Dative','Accusative','Ablative','Vocative'];
+const ALL_GENDERS = [{label:'Male',idx:0},{label:'Female',idx:1},{label:'Neuter',idx:2}];
+let currentWord=0, declCases=shuffle(ALL_CASES), declGenders=shuffle(ALL_GENDERS);
+
+function setWord(idx){
+  currentWord=idx;
+  document.querySelectorAll('#panel-decl .sel-btn').forEach((b,i)=>b.classList.toggle('active',i===idx));
+  document.getElementById('wordDisplay').textContent=words[idx].display;
+  document.getElementById('wordMeaning').textContent=words[idx].meaning;
+  declCases=shuffle(ALL_CASES); declGenders=shuffle(ALL_GENDERS);
+  buildDeclTable(); document.getElementById('declScore').textContent='';
+}
+
+function buildDeclTable(){
+  const table=document.getElementById('declTable'); table.innerHTML='';
+  const thead=document.createElement('thead'), hr=document.createElement('tr');
+  const th0=document.createElement('th'); th0.textContent='Case'; hr.appendChild(th0);
+  declGenders.forEach(g=>{const th=document.createElement('th');th.textContent=g.label;hr.appendChild(th);});
+  thead.appendChild(hr); table.appendChild(thead);
+  const tbody=document.createElement('tbody');
+  ['s','p'].forEach(num=>{
+    const sr=document.createElement('tr'),st=document.createElement('td');
+    st.className='section';st.colSpan=4;st.textContent=num==='s'?'Singular':'Plural';
+    sr.appendChild(st);tbody.appendChild(sr);
+    declCases.forEach(c=>{
+      const tr=document.createElement('tr');
+      const td0=document.createElement('td');td0.className='label';td0.textContent=c;tr.appendChild(td0);
+      declGenders.forEach(g=>{
+        const td=document.createElement('td'),inp=document.createElement('input');
+        inp.type='text';inp.autocomplete='off';inp.spellcheck=false;
+        inp.dataset.num=num;inp.dataset.case=c;inp.dataset.gi=g.idx;
+        td.appendChild(inp);tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+  });
+  table.appendChild(tbody);
+}
+
+function checkDecl(){
+  const inputs=document.querySelectorAll('#declTable input');
+  let correct=0,total=0; const w=words[currentWord];
+  inputs.forEach(inp=>{
+    const ans=w.data[inp.dataset.num][inp.dataset.case][parseInt(inp.dataset.gi)];
+    inp.classList.remove('correct','wrong'); total++;
+    if(norm(inp.value)===norm(ans)){inp.classList.add('correct');correct++;}
+    else{inp.classList.add('wrong');inp.title='Expected: '+ans;}
+  });
+  const s=document.getElementById('declScore');
+  s.style.color=correct===total?'green':'red';
+  s.textContent=correct===total?'Optime! '+correct+'/'+total+' — perfect.':correct+'/'+total+' — hover red cells to see the expected answer.';
+}
+
+function revealDecl(){
+  const w=words[currentWord];
+  document.querySelectorAll('#declTable input').forEach(inp=>{
+    inp.value=w.data[inp.dataset.num][inp.dataset.case][parseInt(inp.dataset.gi)];
+    inp.classList.remove('wrong');inp.classList.add('correct');
+  });
+  document.getElementById('declScore').textContent='';
+}
+
+function resetDecl(){
+  declCases=shuffle(ALL_CASES); declGenders=shuffle(ALL_GENDERS);
+  buildDeclTable(); document.getElementById('declScore').textContent='';
+}
+
+// ── VERB DATA ────────────────────────────────────────────────────────────────
+
+const verbs=[
+  {display:'esse',meaning:'to be',conj:'(irregular)',pres:['sum','es','est','sumus','estis','sunt'],fut:['ero','eris','erit','erimus','eritis','erunt']},
+  {display:'amare',meaning:'to love',conj:'1st conjugation',pres:['amo','amas','amat','amamus','amatis','amant'],fut:['amabo','amabis','amabit','amabimus','amabitis','amabunt']},
+  {display:'laudare',meaning:'to praise',conj:'1st conjugation',pres:['laudo','laudas','laudat','laudamus','laudatis','laudant'],fut:['laudabo','laudabis','laudabit','laudabimus','laudabitis','laudabunt']},
+  {display:'portare',meaning:'to carry',conj:'1st conjugation',pres:['porto','portas','portat','portamus','portatis','portant'],fut:['portabo','portabis','portabit','portabimus','portabitis','portabunt']},
+  {display:'dare',meaning:'to give',conj:'1st conj. (irregular stem)',pres:['do','das','dat','damus','datis','dant'],fut:['dabo','dabis','dabit','dabimus','dabitis','dabunt']},
+];
+
+const ALL_PERSONS=[{label:'1st',idx:0},{label:'2nd',idx:1},{label:'3rd',idx:2}];
+const ALL_TENSES=[{label:'Present',key:'pres'},{label:'Future',key:'fut'}];
+let currentVerb=0, verbPersons=shuffle(ALL_PERSONS), verbTenses=shuffle(ALL_TENSES);
+
+function setVerb(idx){
+  currentVerb=idx;
+  document.querySelectorAll('#panel-verb .sel-btn').forEach((b,i)=>b.classList.toggle('active',i===idx));
+  document.getElementById('verbDisplay').textContent=verbs[idx].display;
+  document.getElementById('verbMeaning').textContent=verbs[idx].meaning+' — '+verbs[idx].conj;
+  verbPersons=shuffle(ALL_PERSONS); verbTenses=shuffle(ALL_TENSES);
+  buildVerbTable(); document.getElementById('verbScore').textContent='';
+}
+
+function buildVerbTable(){
+  const table=document.getElementById('verbTable'); table.innerHTML='';
+  const thead=document.createElement('thead'),hr=document.createElement('tr');
+  ['Person','Singular','Plural'].forEach(h=>{const th=document.createElement('th');th.textContent=h;hr.appendChild(th);});
+  thead.appendChild(hr); table.appendChild(thead);
+  const tbody=document.createElement('tbody');
+  verbTenses.forEach(t=>{
+    const sr=document.createElement('tr'),st=document.createElement('td');
+    st.className='section';st.colSpan=3;st.textContent=t.label+' Tense';
+    sr.appendChild(st);tbody.appendChild(sr);
+    verbPersons.forEach(p=>{
+      const tr=document.createElement('tr');
+      const td0=document.createElement('td');td0.className='label';td0.textContent=p.label;tr.appendChild(td0);
+      ['s','p'].forEach(num=>{
+        const td=document.createElement('td'),inp=document.createElement('input');
+        inp.type='text';inp.autocomplete='off';inp.spellcheck=false;
+        inp.dataset.tense=t.key;inp.dataset.num=num;inp.dataset.person=p.idx;
+        td.appendChild(inp);tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+  });
+  table.appendChild(tbody);
+}
+
+function getVerbAnswer(tense,num,pi){
+  const arr=tense==='pres'?verbs[currentVerb].pres:verbs[currentVerb].fut;
+  return num==='s'?arr[pi]:arr[pi+3];
+}
+
+function checkVerb(){
+  const inputs=document.querySelectorAll('#verbTable input');
+  let correct=0,total=0;
+  inputs.forEach(inp=>{
+    const ans=getVerbAnswer(inp.dataset.tense,inp.dataset.num,parseInt(inp.dataset.person));
+    inp.classList.remove('correct','wrong'); total++;
+    if(norm(inp.value)===norm(ans)){inp.classList.add('correct');correct++;}
+    else{inp.classList.add('wrong');inp.title='Expected: '+ans;}
+  });
+  const s=document.getElementById('verbScore');
+  s.style.color=correct===total?'green':'red';
+  s.textContent=correct===total?'Optime! '+correct+'/'+total+' — perfect.':correct+'/'+total+' — hover red cells to see the expected answer.';
+}
+
+function revealVerb(){
+  document.querySelectorAll('#verbTable input').forEach(inp=>{
+    inp.value=getVerbAnswer(inp.dataset.tense,inp.dataset.num,parseInt(inp.dataset.person));
+    inp.classList.remove('wrong');inp.classList.add('correct');
+  });
+  document.getElementById('verbScore').textContent='';
+}
+
+function resetVerb(){
+  verbPersons=shuffle(ALL_PERSONS); verbTenses=shuffle(ALL_TENSES);
+  buildVerbTable(); document.getElementById('verbScore').textContent='';
+}
+
+// ── AGREEMENT — QUESTION 1 ───────────────────────────────────────────────────
+
+const Q1_ANSWERS = ['case','gender','number'];
+let q1Unlocked = false;
+
+function checkQ1(){
+  const ids = ['q1a','q1b','q1c'];
+  const userVals = ids.map(id => normAgree(document.getElementById(id).value));
+  const correct  = [...Q1_ANSWERS];  // ['case','gender','number']
+  const claimed  = [false,false,false];
+
+  // Greedy match (order-independent, no duplicates)
+  const matched = userVals.map(uv=>{
+    if(!uv) return false;
+    for(let ci=0;ci<correct.length;ci++){
+      if(!claimed[ci] && uv===correct[ci]){ claimed[ci]=true; return true; }
+    }
+    return false;
+  });
+
+  const seen={};
+  const dup = userVals.map(uv=>{ if(!uv) return false; if(seen[uv]) return true; seen[uv]=true; return false; });
+
+  let countCorrect=0;
+  ids.forEach((id,i)=>{
+    const el=document.getElementById(id);
+    el.classList.remove('correct','wrong');
+    if(!userVals[i])           { el.classList.add('wrong'); el.title='Enter one of: case, gender, number'; }
+    else if(dup[i])            { el.classList.add('wrong'); el.title='Duplicate — each property can only appear once'; }
+    else if(matched[i])        { el.classList.add('correct'); countCorrect++; }
+    else                       { el.classList.add('wrong'); el.title='Not one of the three required properties'; }
+  });
+
+  const s=document.getElementById('q1Score');
+  if(countCorrect===3){
+    s.style.color='green';
+    s.textContent='Correct! Now identify those properties in the phrase below.';
+    unlockQ2();
+  } else {
+    s.style.color='red';
+    s.textContent=countCorrect+'/3 — hover red boxes for hints.';
+  }
+}
+
+function resetQ1(){
+  ['q1a','q1b','q1c'].forEach(id=>{
+    const el=document.getElementById(id);
+    el.value='';el.classList.remove('correct','wrong');el.title='';
+  });
+  document.getElementById('q1Score').textContent='';
+}
+
+function resetAgreeTab(){
+  q1Unlocked=false;
+  resetQ1();
+  resetQ2();
+  document.getElementById('q2Locked').style.display='block';
+  document.getElementById('q2Content').style.display='none';
+}
+
+function unlockQ2(){
+  if(q1Unlocked) return;
+  q1Unlocked=true;
+  document.getElementById('q2Locked').style.display='none';
+  document.getElementById('q2Content').style.display='block';
+  loadAgreePhrase();
+}
+
+// ── AGREEMENT — QUESTION 2 ───────────────────────────────────────────────────
+
+const agreePhrases = [
+  {phrase:'puella magna',        translation:'"great girl" (subject)',       caseVal:'nominative', gender:'feminine',  number:'singular'},
+  {phrase:'amicus bonus',        translation:'"good friend" (subject)',      caseVal:'nominative', gender:'masculine', number:'singular'},
+  {phrase:'animus malus',        translation:'"bad spirit" (subject)',       caseVal:'nominative', gender:'masculine', number:'singular'},
+  {phrase:'vita bona',           translation:'"good life" (subject)',        caseVal:'nominative', gender:'feminine',  number:'singular'},
+  {phrase:'fama magna',          translation:'"great fame" (subject)',       caseVal:'nominative', gender:'feminine',  number:'singular'},
+  {phrase:'poeta magnus',        translation:'"great poet" (subject)',       caseVal:'nominative', gender:'masculine', number:'singular'},
+  {phrase:'puellam magnam',      translation:'"great girl" (object)',        caseVal:'accusative', gender:'feminine',  number:'singular'},
+  {phrase:'amicum bonum',        translation:'"good friend" (object)',       caseVal:'accusative', gender:'masculine', number:'singular'},
+  {phrase:'vitam malam',         translation:'"bad life" (object)',          caseVal:'accusative', gender:'feminine',  number:'singular'},
+  {phrase:'animum magnum',       translation:'"great spirit" (object)',      caseVal:'accusative', gender:'masculine', number:'singular'},
+  {phrase:'famam bonam',         translation:'"good reputation" (object)',   caseVal:'accusative', gender:'feminine',  number:'singular'},
+  {phrase:'poetam malum',        translation:'"bad poet" (object)',          caseVal:'accusative', gender:'masculine', number:'singular'},
+  {phrase:'amici boni',          translation:'of a good friend',             caseVal:'genitive',   gender:'masculine', number:'singular'},
+  {phrase:'animi magni',         translation:'of a great spirit',            caseVal:'genitive',   gender:'masculine', number:'singular'},
+  {phrase:'amice bone',          translation:'"O good friend!" (address)',   caseVal:'vocative',   gender:'masculine', number:'singular'},
+  {phrase:'puellas magnas',      translation:'"great girls" (object)',       caseVal:'accusative', gender:'feminine',  number:'plural'},
+  {phrase:'amicos bonos',        translation:'"good friends" (object)',      caseVal:'accusative', gender:'masculine', number:'plural'},
+  {phrase:'animos malos',        translation:'"bad spirits" (object)',       caseVal:'accusative', gender:'masculine', number:'plural'},
+  {phrase:'vitas bonas',         translation:'"good lives" (object)',        caseVal:'accusative', gender:'feminine',  number:'plural'},
+  {phrase:'poetas magnos',       translation:'"great poets" (object)',       caseVal:'accusative', gender:'masculine', number:'plural'},
+  {phrase:'puellarum magnarum',  translation:'of great girls',               caseVal:'genitive',   gender:'feminine',  number:'plural'},
+  {phrase:'amicorum bonorum',    translation:'of good friends',              caseVal:'genitive',   gender:'masculine', number:'plural'},
+  {phrase:'animorum malorum',    translation:'of bad spirits',               caseVal:'genitive',   gender:'masculine', number:'plural'},
+  {phrase:'vitarum bonarum',     translation:'of good lives',                caseVal:'genitive',   gender:'feminine',  number:'plural'},
+];
+
+let agreeQueue=[], agreeIndex=0;
+
+function initAgreeQueue(){
+  agreeQueue=shuffle([...Array(agreePhrases.length).keys()]);
+  agreeIndex=0;
+}
+
+function loadAgreePhrase(){
+  if(agreeIndex>=agreeQueue.length) initAgreeQueue();
+  const item=agreePhrases[agreeQueue[agreeIndex]];
+  document.getElementById('agreePhrase').textContent=item.phrase;
+  document.getElementById('agreeMeaning').textContent=item.translation;
+  document.getElementById('agreeCounter').textContent='Phrase '+(agreeIndex+1)+' of '+agreeQueue.length;
+  ['q2case','q2gender','q2number'].forEach(id=>{
+    const el=document.getElementById(id);
+    el.value='';el.classList.remove('correct','wrong');el.title='';
+  });
+  document.getElementById('q2Score').textContent='';
+}
+
+function checkQ2(){
+  const item=agreePhrases[agreeQueue[agreeIndex]];
+  const fields=[
+    {id:'q2case',   expected:item.caseVal},
+    {id:'q2gender', expected:item.gender},
+    {id:'q2number', expected:item.number},
+  ];
+  let correct=0;
+  fields.forEach(f=>{
+    const el=document.getElementById(f.id);
+    el.classList.remove('correct','wrong');
+    if(normAgree(el.value)===normAgree(f.expected)){
+      el.classList.add('correct'); correct++;
+    } else {
+      el.classList.add('wrong');
+      el.title='Expected: '+f.expected;
+    }
+  });
+  const s=document.getElementById('q2Score');
+  s.style.color=correct===3?'green':'red';
+  s.textContent=correct===3?'Optime! All correct.':correct+'/3 — hover red boxes to see the expected answer.';
+}
+
+function revealQ2(){
+  const item=agreePhrases[agreeQueue[agreeIndex]];
+  const fields=[{id:'q2case',v:item.caseVal},{id:'q2gender',v:item.gender},{id:'q2number',v:item.number}];
+  fields.forEach(f=>{
+    const el=document.getElementById(f.id);
+    el.value=f.v; el.classList.remove('wrong'); el.classList.add('correct');
+  });
+  document.getElementById('q2Score').textContent='';
+}
+
+function nextAgree(){
+  agreeIndex++;
+  if(agreeIndex>=agreeQueue.length) initAgreeQueue();
+  loadAgreePhrase();
+}
+
+function resetQ2(){
+  ['q2case','q2gender','q2number'].forEach(id=>{
+    const el=document.getElementById(id);
+    el.value='';el.classList.remove('correct','wrong');el.title='';
+  });
+  document.getElementById('q2Score').textContent='';
+}
+
+// ── TAB SWITCHING ─────────────────────────────────────────────────────────────
+
+function switchTab(tab){
+  const panels=['decl','verb','agree'];
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',panels[i]===tab));
+  panels.forEach(p=>document.getElementById('panel-'+p).classList.toggle('active',p===tab));
+  // Clear everything on every tab switch
+  resetDecl();
+  resetVerb();
+  resetAgreeTab();
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+buildDeclTable();
+buildVerbTable();
+initAgreeQueue();
+// Q2 stays locked until Q1 is answered correctly
+</script>
+</body>
+</html>
