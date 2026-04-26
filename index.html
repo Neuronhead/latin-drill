@@ -313,38 +313,38 @@ function normAgree(s) {
 // ── DECLENSION DATA ──────────────────────────────────────────────────────────
 
 const words = [
-  { display:'magnus / magna / magnum', meaning:'great, large', data:{
+  { display:'magnus / magna / magnum', meaning:'Adj. — great, large', data:{
     s:{Nominative:['magnus','magna','magnum'],Genitive:['magni','magnae','magni'],Dative:['magno','magnae','magno'],Accusative:['magnum','magnam','magnum'],Ablative:['magno','magna','magno'],Vocative:['magne','magna','magnum']},
     p:{Nominative:['magni','magnae','magna'],Genitive:['magnorum','magnarum','magnorum'],Dative:['magnis','magnis','magnis'],Accusative:['magnos','magnas','magna'],Ablative:['magnis','magnis','magnis'],Vocative:['magni','magnae','magna']}
   }},
-  { display:'bonus / bona / bonum', meaning:'good', data:{
+  { display:'bonus / bona / bonum', meaning:'Adj. — good', data:{
     s:{Nominative:['bonus','bona','bonum'],Genitive:['boni','bonae','boni'],Dative:['bono','bonae','bono'],Accusative:['bonum','bonam','bonum'],Ablative:['bono','bona','bono'],Vocative:['bone','bona','bonum']},
     p:{Nominative:['boni','bonae','bona'],Genitive:['bonorum','bonarum','bonorum'],Dative:['bonis','bonis','bonis'],Accusative:['bonos','bonas','bona'],Ablative:['bonis','bonis','bonis'],Vocative:['boni','bonae','bona']}
   }},
-  { display:'malus / mala / malum', meaning:'bad, evil', data:{
+  { display:'malus / mala / malum', meaning:'Adj. — bad, evil', data:{
     s:{Nominative:['malus','mala','malum'],Genitive:['mali','malae','mali'],Dative:['malo','malae','malo'],Accusative:['malum','malam','malum'],Ablative:['malo','mala','malo'],Vocative:['male','mala','malum']},
     p:{Nominative:['mali','malae','mala'],Genitive:['malorum','malarum','malorum'],Dative:['malis','malis','malis'],Accusative:['malos','malas','mala'],Ablative:['malis','malis','malis'],Vocative:['mali','malae','mala']}
   }},
-  { display:'multus / multa / multum', meaning:'much, many', data:{
+  { display:'multus / multa / multum', meaning:'Adj. — much, many', data:{
     s:{Nominative:['multus','multa','multum'],Genitive:['multi','multae','multi'],Dative:['multo','multae','multo'],Accusative:['multum','multam','multum'],Ablative:['multo','multa','multo'],Vocative:['multe','multa','multum']},
     p:{Nominative:['multi','multae','multa'],Genitive:['multorum','multarum','multorum'],Dative:['multis','multis','multis'],Accusative:['multos','multas','multa'],Ablative:['multis','multis','multis'],Vocative:['multi','multae','multa']}
   }},
   // ── Noun exceptions ──────────────────────────────────────────
-  { display:'filius, filii', meaning:'son (m) — 2nd declension', noun:true,
+  { display:'filius, filii', meaning:'n. (m) — son; 2nd declension', noun:true,
     note:'Exception: -ius nouns contract the vocative singular to -i (not -ie). All other endings are standard.',
     data:{
       s:{Nominative:'filius',Genitive:'filii',Dative:'filio',Accusative:'filium',Ablative:'filio',Vocative:'fili'},
       p:{Nominative:'filii',Genitive:'filiorum',Dative:'filiis',Accusative:'filios',Ablative:'filiis',Vocative:'filii'}
     }
   },
-  { display:'puer, pueri', meaning:'boy (m) — 2nd declension -er (stem keeps -e-)', noun:true,
+  { display:'puer, pueri', meaning:'n. (m) — boy; 2nd declension -er (stem keeps -e-)', noun:true,
     note:'Exception: -er nouns look irregular in the nominative but follow standard 2nd declension endings. Puer keeps the -e- throughout — check the genitive (pueri) to find the true stem.',
     data:{
       s:{Nominative:'puer',Genitive:'pueri',Dative:'puero',Accusative:'puerum',Ablative:'puero',Vocative:'puer'},
       p:{Nominative:'pueri',Genitive:'puerorum',Dative:'pueris',Accusative:'pueros',Ablative:'pueris',Vocative:'pueri'}
     }
   },
-  { display:'ager, agri', meaning:'field (m) — 2nd declension -er (stem drops -e-)', noun:true,
+  { display:'ager, agri', meaning:'n. (m) — field; 2nd declension -er (stem drops -e-)', noun:true,
     note:'Exception: like puer, but ager drops the -e- after the nominative — the stem is agr-, not ager-. Always check the genitive to identify the true stem.',
     data:{
       s:{Nominative:'ager',Genitive:'agri',Dative:'agro',Accusative:'agrum',Ablative:'agro',Vocative:'ager'},
