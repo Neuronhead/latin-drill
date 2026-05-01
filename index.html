@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Latina Exercitia</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   body { font-family: Tahoma, Arial, sans-serif; background: #f5edd6; padding: 20px; max-width: 720px; margin: auto; }
   h2 { text-align: center; color: #8b2e0f; margin-bottom: 4px; }
@@ -153,9 +154,200 @@
     font-size: 0.8rem;
     color: #555;
   }
+
+  /* ── Auth bar ───────────────────────────────────────── */
+  #authBar {
+    position: fixed;
+    top: 12px;
+    right: 16px;
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  #authUserName {
+    font-size: 0.8rem;
+    color: #555;
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  button.auth-btn {
+    background: white;
+    color: #8b2e0f;
+    border: 2px solid #8b2e0f;
+    padding: 5px 14px;
+    font-family: Tahoma, Arial, sans-serif;
+    font-size: 0.8rem;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+  button.auth-btn:hover { background: #8b2e0f; color: white; }
+
+  /* ── Auth modal ─────────────────────────────────────── */
+  #authOverlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 300;
+    align-items: center;
+    justify-content: center;
+  }
+  #authOverlay.open { display: flex; }
+  #authModal {
+    background: #f5edd6;
+    border: 2px solid #c9a96e;
+    border-radius: 6px;
+    padding: 28px 32px;
+    width: 340px;
+    max-width: 95vw;
+    position: relative;
+  }
+  #authModal h3 {
+    text-align: center;
+    color: #8b2e0f;
+    margin: 0 0 4px 0;
+    font-size: 1.1rem;
+  }
+  #authModal p.auth-sub {
+    text-align: center;
+    color: #555;
+    font-size: 0.82rem;
+    margin: 0 0 18px 0;
+  }
+  .auth-field { margin-bottom: 12px; }
+  .auth-field label {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: bold;
+    color: #8b2e0f;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 4px;
+  }
+  .auth-field input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 7px 10px;
+    font-size: 0.9rem;
+    border: 2px solid #c9a96e;
+    border-radius: 3px;
+    font-family: Tahoma, Arial, sans-serif;
+    background: #fffdf5;
+    text-align: left;
+  }
+  .auth-field input:focus { outline: none; border-color: #8b2e0f; background: white; }
+  #authMsg {
+    text-align: center;
+    font-size: 0.85rem;
+    min-height: 1.2em;
+    margin-bottom: 10px;
+    color: red;
+  }
+  #authMsg.ok { color: green; }
+  .auth-switch {
+    text-align: center;
+    font-size: 0.8rem;
+    color: #555;
+    margin-top: 12px;
+  }
+  .auth-switch a {
+    color: #8b2e0f;
+    cursor: pointer;
+    text-decoration: underline;
+  }
+  #authClose {
+    position: absolute;
+    top: 10px;
+    right: 14px;
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: #8b2e0f;
+    line-height: 1;
+  }
+
+  /* ── Saved score notice ─────────────────────────────── */
+  .saved-notice {
+    font-size: 0.78rem;
+    color: #555;
+    text-align: center;
+    margin-top: 4px;
+  }
 </style>
 </head>
 <body>
+
+<!-- ── AUTH BAR (top-right) ─────────────────────────────── -->
+<div id="authBar">
+  <div id="authLoggedOut">
+    <button class="auth-btn" onclick="showAuthModal('login')">Sign in</button>
+  </div>
+  <div id="authLoggedIn" style="display:none; align-items:center; gap:8px; display:none;">
+    <span id="authUserName"></span>
+    <button class="auth-btn" onclick="signOut()">Sign out</button>
+  </div>
+</div>
+
+<!-- ── AUTH MODAL ───────────────────────────────────────── -->
+<div id="authOverlay" onclick="overlayClick(event)">
+  <div id="authModal">
+    <button id="authClose" onclick="hideAuthModal()" title="Close">&times;</button>
+
+    <!-- Login view -->
+    <div id="viewLogin">
+      <h3>Latina Exercitia</h3>
+      <p class="auth-sub">Sign in to save your progress</p>
+      <div class="auth-field"><label>Email</label><input type="email" id="loginEmail" autocomplete="email" spellcheck="false"></div>
+      <div class="auth-field"><label>Password</label><input type="password" id="loginPassword" autocomplete="current-password"></div>
+      <div id="authMsg"></div>
+      <div class="buttons">
+        <button class="primary" onclick="doLogin()" style="width:100%;">Sign in</button>
+      </div>
+      <div class="auth-switch">No account? <a onclick="showView('register')">Register</a> &nbsp;·&nbsp; <a onclick="showView('forgot')">Forgot password?</a></div>
+      <div class="auth-switch" style="margin-top:8px;"><a onclick="hideAuthModal()">Continue without signing in</a></div>
+    </div>
+
+    <!-- Register view -->
+    <div id="viewRegister" style="display:none;">
+      <h3>Create account</h3>
+      <p class="auth-sub">Free to use &mdash; sign up to save progress</p>
+      <div class="auth-field"><label>Display name</label><input type="text" id="regName" autocomplete="name" spellcheck="false" placeholder="e.g. Dan"></div>
+      <div class="auth-field"><label>Email</label><input type="email" id="regEmail" autocomplete="email" spellcheck="false"></div>
+      <div class="auth-field"><label>Password</label><input type="password" id="regPassword" autocomplete="new-password"></div>
+      <div id="authMsg"></div>
+      <div class="buttons">
+        <button class="primary" onclick="doRegister()" style="width:100%;">Create account</button>
+      </div>
+      <div class="auth-switch">Already have an account? <a onclick="showView('login')">Sign in</a></div>
+    </div>
+
+    <!-- Forgot password view -->
+    <div id="viewForgot" style="display:none;">
+      <h3>Reset password</h3>
+      <p class="auth-sub">We'll send a reset link to your email</p>
+      <div class="auth-field"><label>Email</label><input type="email" id="forgotEmail" autocomplete="email" spellcheck="false"></div>
+      <div id="authMsg"></div>
+      <div class="buttons">
+        <button class="primary" onclick="doForgot()" style="width:100%;">Send reset link</button>
+      </div>
+      <div class="auth-switch"><a onclick="showView('login')">Back to sign in</a></div>
+    </div>
+
+    <!-- Confirm email view -->
+    <div id="viewConfirm" style="display:none;">
+      <h3>Check your email</h3>
+      <p class="auth-sub">We've sent a confirmation link to your email address. Click it to activate your account, then sign in.</p>
+      <div class="buttons">
+        <button class="primary" onclick="showView('login')" style="width:100%;">Back to sign in</button>
+      </div>
+    </div>
+
+  </div>
+</div>
 
 <h2>Latina Exercitia</h2>
 <p class="sub">Fill in all forms, then click Check Answers. Clear &amp; Shuffle randomises the order.</p>
@@ -494,6 +686,7 @@ function checkDecl(){
   const s=document.getElementById('declScore');
   s.style.color=correct===total?'green':'red';
   s.textContent=correct===total?'Optime! '+correct+'/'+total+' — perfect.':correct+'/'+total+' — hover red cells to see the expected answer.';
+  saveScore('declensions', words[currentWord].display, correct, total);
 }
 
 function revealDecl(){
@@ -620,6 +813,7 @@ function checkVerb(){
   const s=document.getElementById('verbScore');
   s.style.color=correct===total?'green':'red';
   s.textContent=correct===total?'Optime! '+correct+'/'+total+' — perfect.':correct+'/'+total+' — hover red cells to see the expected answer.';
+  saveScore('verbs', verbs[currentVerb].display, correct, total);
 }
 
 function revealVerb(){
@@ -812,6 +1006,7 @@ function checkQ2(type){
   const s=document.getElementById(ids.score);
   s.style.color=correct===3?'green':'red';
   s.textContent=correct===3?'Optime! All correct.':correct+'/3 — hover red boxes to see the expected answer.';
+  saveScore('agreement', (type==='ex'?'exceptions: ':'standard: ')+item.phrase, correct, 3);
 }
 
 function revealQ2(type){
@@ -857,6 +1052,139 @@ buildVerbTable();
 initAgreeQueue();
 initAgreeExQueue();
 // Q2 stays locked until Q1 is answered correctly
+
+// ── SUPABASE ──────────────────────────────────────────────────────────────────
+
+const SUPA_URL = 'https://khnxvlrmcphunibmldwb.supabase.co';
+const SUPA_KEY = 'sb_publishable_pIoXuk1z2XJZVuzAPll6CA_1WcClgYX';
+const supa = supabase.createClient(SUPA_URL, SUPA_KEY);
+
+let currentUser = null;
+
+// On load — check if already logged in
+supa.auth.getSession().then(({ data: { session } }) => {
+  if (session) handleSession(session);
+});
+
+// Listen for auth state changes (login, logout, token refresh)
+supa.auth.onAuthStateChange((_event, session) => {
+  if (session) { handleSession(session); }
+  else         { handleSignOut(); }
+});
+
+function handleSession(session) {
+  currentUser = session.user;
+  const name = currentUser.user_metadata?.display_name || currentUser.email;
+  document.getElementById('authLoggedOut').style.display = 'none';
+  document.getElementById('authLoggedIn').style.display  = 'flex';
+  document.getElementById('authUserName').textContent     = name;
+  hideAuthModal();
+}
+
+function handleSignOut() {
+  currentUser = null;
+  document.getElementById('authLoggedOut').style.display = 'flex';
+  document.getElementById('authLoggedIn').style.display  = 'none';
+  document.getElementById('authUserName').textContent     = '';
+}
+
+// ── AUTH MODAL HELPERS ────────────────────────────────────────────────────────
+
+function showAuthModal(view) {
+  showView(view || 'login');
+  document.getElementById('authOverlay').classList.add('open');
+  clearAuthMsg();
+}
+
+function hideAuthModal() {
+  document.getElementById('authOverlay').classList.remove('open');
+}
+
+function overlayClick(e) {
+  if (e.target === document.getElementById('authOverlay')) hideAuthModal();
+}
+
+function showView(v) {
+  ['login','register','forgot','confirm'].forEach(name => {
+    document.getElementById('view'+name.charAt(0).toUpperCase()+name.slice(1)).style.display = (name===v)?'block':'none';
+  });
+  clearAuthMsg();
+}
+
+function setAuthMsg(msg, isOk) {
+  // There's one authMsg element — make sure it's in the active view
+  const el = document.getElementById('authMsg');
+  el.textContent = msg;
+  el.className = isOk ? 'ok' : '';
+}
+
+function clearAuthMsg() {
+  document.getElementById('authMsg').textContent = '';
+  document.getElementById('authMsg').className = '';
+}
+
+// ── AUTH ACTIONS ──────────────────────────────────────────────────────────────
+
+async function doLogin() {
+  const email    = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  if (!email || !password) { setAuthMsg('Please enter your email and password.'); return; }
+  setAuthMsg('Signing in…', true);
+  const { error } = await supa.auth.signInWithPassword({ email, password });
+  if (error) { setAuthMsg(error.message); }
+  // success handled by onAuthStateChange
+}
+
+async function doRegister() {
+  const name     = document.getElementById('regName').value.trim();
+  const email    = document.getElementById('regEmail').value.trim();
+  const password = document.getElementById('regPassword').value;
+  if (!name)     { setAuthMsg('Please enter a display name.'); return; }
+  if (!email)    { setAuthMsg('Please enter your email.'); return; }
+  if (password.length < 6) { setAuthMsg('Password must be at least 6 characters.'); return; }
+  setAuthMsg('Creating account…', true);
+  const { data, error } = await supa.auth.signUp({
+    email, password,
+    options: { data: { display_name: name } }
+  });
+  if (error) { setAuthMsg(error.message); return; }
+  // Create profile row
+  if (data.user) {
+    await supa.from('profiles').upsert({
+      id: data.user.id,
+      display_name: name,
+      role: 'student'
+    });
+  }
+  showView('confirm');
+}
+
+async function doForgot() {
+  const email = document.getElementById('forgotEmail').value.trim();
+  if (!email) { setAuthMsg('Please enter your email.'); return; }
+  setAuthMsg('Sending…', true);
+  const { error } = await supa.auth.resetPasswordForEmail(email);
+  if (error) { setAuthMsg(error.message); return; }
+  setAuthMsg('Reset link sent — check your email.', true);
+}
+
+async function signOut() {
+  await supa.auth.signOut();
+}
+
+// ── SCORE SAVING ──────────────────────────────────────────────────────────────
+
+async function saveScore(tab, drillName, correct, total) {
+  if (!currentUser) return;
+  await supa.from('scores').insert({
+    user_id:    currentUser.id,
+    tab,
+    drill_name: drillName,
+    correct,
+    total
+  });
+}
+
 </script>
 </body>
 </html>
