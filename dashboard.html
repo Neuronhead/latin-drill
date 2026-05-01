@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Latina Exercitia — My Progress</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  body { font-family: Tahoma, Arial, sans-serif; background: #f5edd6; padding: 20px; max-width: 820px; margin: auto; }
+  h2 { text-align: center; color: #8b2e0f; margin-bottom: 4px; }
+  p.sub { text-align: center; color: #444; margin-bottom: 20px; font-size: 0.95rem; }
+
+  a.back-link { display: inline-block; margin-bottom: 20px; color: #8b2e0f; font-size: 0.85rem; text-decoration: none; border-bottom: 1px solid #c9a96e; }
+  a.back-link:hover { color: #6b1e08; }
+
+  /* ── Summary cards ── */
+  .summary-cards { display: flex; gap: 14px; margin-bottom: 24px; flex-wrap: wrap; }
+  .card { flex: 1; min-width: 140px; background: white; border: 1px solid #c9a96e; border-radius: 5px; padding: 16px; text-align: center; }
+  .card .card-value { font-size: 2rem; font-weight: bold; color: #8b2e0f; line-height: 1; }
+  .card .card-label { font-size: 0.75rem; color: #555; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 4px; }
+
+  /* ── Section headers ── */
+  .section-header { font-size: 0.72rem; font-weight: bold; letter-spacing: 0.08em; text-transform: uppercase; color: #8b2e0f; margin: 24px 0 10px; border-bottom: 1px solid #c9a96e; padding-bottom: 6px; }
+
+  /* ── Drill breakdown table ── */
+  table { width: 100%; border-collapse: collapse; background: white; margin-bottom: 16px; }
+  th { background: #8b2e0f; color: white; padding: 9px 12px; text-align: left; font-size: 0.85rem; border: 1px solid #6b1e08; }
+  th.right { text-align: right; }
+  td { border: 1px solid #c9a96e; padding: 7px 12px; font-size: 0.88rem; vertical-align: middle; }
+  td.right { text-align: right; }
+  td.drill-name { color: #333; }
+  td.tab-label { background: #e8d9b8; font-size: 0.78rem; font-weight: bold; color: #8b2e0f; text-transform: uppercase; letter-spacing: 0.05em; }
+
+  /* ── Score bar ── */
+  .bar-wrap { display: flex; align-items: center; gap: 8px; }
+  .bar-bg { flex: 1; background: #e8d9b8; border-radius: 3px; height: 10px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 3px; background: #8b2e0f; }
+  .bar-fill.good { background: #2d7a3a; }
+  .bar-fill.ok   { background: #c9840a; }
+  .bar-fill.poor { background: #b03020; }
+  .bar-pct { font-size: 0.8rem; color: #555; min-width: 36px; text-align: right; }
+
+  /* ── Recent activity ── */
+  .activity-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: white; border: 1px solid #c9a96e; border-radius: 3px; margin-bottom: 6px; font-size: 0.85rem; }
+  .activity-row .act-name { color: #333; }
+  .activity-row .act-score { font-weight: bold; color: #8b2e0f; }
+  .activity-row .act-score.perfect { color: #2d7a3a; }
+  .activity-row .act-date { color: #888; font-size: 0.78rem; }
+
+  /* ── States ── */
+  .loading { text-align: center; color: #555; padding: 40px; font-size: 0.95rem; }
+  .not-logged-in { text-align: center; padding: 40px; }
+  .not-logged-in p { color: #555; margin-bottom: 16px; }
+
+  button.primary { background: #8b2e0f; color: white; border: 2px solid #8b2e0f; padding: 9px 22px; font-family: Tahoma, Arial, sans-serif; font-size: 0.85rem; border-radius: 3px; cursor: pointer; }
+  button.primary:hover { background: #6b1e08; }
+
+  footer { margin-top: 32px; padding-top: 14px; border-top: 1px solid #c9a96e; text-align: center; font-size: 0.8rem; color: #555; }
+</style>
+</head>
+<body>
+
+<h2>Latina Exercitia</h2>
+<p class="sub">My Progress</p>
+
+<a class="back-link" href="/">&larr; Back to drills</a>
+
+<div id="notLoggedIn" class="not-logged-in" style="display:none;">
+  <p>You need to be signed in to view your progress.</p>
+  <button class="primary" onclick="window.location='/'">Go to drills &amp; sign in</button>
+</div>
+
+<div id="loadingMsg" class="loading">Loading your progress&hellip;</div>
+
+<div id="dashboard" style="display:none;">
+
+  <!-- Summary cards -->
+  <div class="summary-cards">
+    <div class="card">
+      <div class="card-value" id="statAttempts">—</div>
+      <div class="card-label">Drills attempted</div>
+    </div>
+    <div class="card">
+      <div class="card-value" id="statAvg">—</div>
+      <div class="card-label">Average score</div>
+    </div>
+    <div class="card">
+      <div class="card-value" id="statPerfect">—</div>
+      <div class="card-label">Perfect scores</div>
+    </div>
+    <div class="card">
+      <div class="card-value" id="statWeakTab">—</div>
+      <div class="card-label">Needs most work</div>
+    </div>
+  </div>
+
+  <!-- Drill breakdown -->
+  <div class="section-header">Score by Drill</div>
+  <table id="drillTable">
+    <thead>
+      <tr>
+        <th>Drill</th>
+        <th>Attempts</th>
+        <th>Best</th>
+        <th style="width:220px;">Average score</th>
+      </tr>
+    </thead>
+    <tbody id="drillBody"></tbody>
+  </table>
+
+  <!-- Recent activity -->
+  <div class="section-header">Recent Activity</div>
+  <div id="recentList"></div>
+
+</div>
+
+<footer>&copy; Copyright 2026 Dan Berge. All rights reserved.</footer>
+
+<script>
+const SUPA_URL = 'https://khnxvlrmcphunibmldwb.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtobnh2bHJtY3BodW5pYm1sZHdiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NDg1NDYsImV4cCI6MjA5MzAyNDU0Nn0.iAWaYsb8TmLk5hempPxIX6Rinr6hLOwyaWu6_TONd24';
+const supa = supabase.createClient(SUPA_URL, SUPA_KEY);
+
+async function init() {
+  const { data: { session } } = await supa.auth.getSession();
+  if (!session) {
+    document.getElementById('loadingMsg').style.display = 'none';
+    document.getElementById('notLoggedIn').style.display = 'block';
+    return;
+  }
+  await loadDashboard(session.user.id);
+}
+
+async function loadDashboard(userId) {
+  const { data: scores, error } = await supa
+    .from('scores')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+
+  document.getElementById('loadingMsg').style.display = 'none';
+
+  if (error || !scores || scores.length === 0) {
+    document.getElementById('dashboard').style.display = 'block';
+    document.getElementById('statAttempts').textContent = '0';
+    document.getElementById('statAvg').textContent = '—';
+    document.getElementById('statPerfect').textContent = '0';
+    document.getElementById('statWeakTab').textContent = '—';
+    document.getElementById('drillBody').innerHTML = '<tr><td colspan="4" style="text-align:center;color:#888;padding:20px;">No drills completed yet. Go do some Latin!</td></tr>';
+    return;
+  }
+
+  // ── Summary stats ──────────────────────────────────────
+  const attempts = scores.length;
+  const avgPct = Math.round(scores.reduce((s, r) => s + (r.correct / r.total), 0) / attempts * 100);
+  const perfect = scores.filter(r => r.correct === r.total).length;
+
+  // Weakest tab by average score
+  const tabScores = {};
+  scores.forEach(r => {
+    if (!tabScores[r.tab]) tabScores[r.tab] = [];
+    tabScores[r.tab].push(r.correct / r.total);
+  });
+  let weakTab = '—', weakPct = 1;
+  Object.entries(tabScores).forEach(([tab, vals]) => {
+    const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
+    if (avg < weakPct) { weakPct = avg; weakTab = tab; }
+  });
+
+  document.getElementById('statAttempts').textContent = attempts;
+  document.getElementById('statAvg').textContent = avgPct + '%';
+  document.getElementById('statPerfect').textContent = perfect;
+  document.getElementById('statWeakTab').textContent = weakTab.charAt(0).toUpperCase() + weakTab.slice(1);
+
+  // ── Drill breakdown ────────────────────────────────────
+  const drillMap = {};
+  scores.forEach(r => {
+    const key = r.tab + '||' + r.drill_name;
+    if (!drillMap[key]) drillMap[key] = { tab: r.tab, name: r.drill_name, attempts: 0, totalPct: 0, best: 0 };
+    const pct = r.correct / r.total;
+    drillMap[key].attempts++;
+    drillMap[key].totalPct += pct;
+    if (pct > drillMap[key].best) drillMap[key].best = pct;
+  });
+
+  // Group by tab
+  const tabs = { declensions: [], verbs: [], agreement: [] };
+  Object.values(drillMap).forEach(d => {
+    const tab = d.tab in tabs ? d.tab : 'other';
+    if (!tabs[tab]) tabs[tab] = [];
+    tabs[tab].push(d);
+  });
+
+  const tabLabels = { declensions: 'Declensions', verbs: 'Verb Conjugations', agreement: 'Adjective/Noun Agreement' };
+  const tbody = document.getElementById('drillBody');
+  tbody.innerHTML = '';
+
+  Object.entries(tabs).forEach(([tab, drills]) => {
+    if (!drills.length) return;
+    const sr = document.createElement('tr');
+    sr.innerHTML = `<td colspan="4" class="tab-label">${tabLabels[tab] || tab}</td>`;
+    tbody.appendChild(sr);
+    drills.sort((a, b) => (a.totalPct/a.attempts) - (b.totalPct/b.attempts));
+    drills.forEach(d => {
+      const avg = Math.round(d.totalPct / d.attempts * 100);
+      const best = Math.round(d.best * 100);
+      const cls = avg >= 90 ? 'good' : avg >= 70 ? 'ok' : 'poor';
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="drill-name">${d.name}</td>
+        <td class="right">${d.attempts}</td>
+        <td class="right">${best}%</td>
+        <td>
+          <div class="bar-wrap">
+            <div class="bar-bg"><div class="bar-fill ${cls}" style="width:${avg}%"></div></div>
+            <span class="bar-pct">${avg}%</span>
+          </div>
+        </td>`;
+      tbody.appendChild(tr);
+    });
+  });
+
+  // ── Recent activity ────────────────────────────────────
+  const recentList = document.getElementById('recentList');
+  recentList.innerHTML = '';
+  scores.slice(0, 15).forEach(r => {
+    const pct = Math.round(r.correct / r.total * 100);
+    const isPerfect = r.correct === r.total;
+    const date = new Date(r.created_at).toLocaleDateString('en-AU', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' });
+    const div = document.createElement('div');
+    div.className = 'activity-row';
+    div.innerHTML = `
+      <span class="act-name">${r.drill_name} <span style="color:#888;font-size:0.78rem;">(${r.tab})</span></span>
+      <span class="act-date">${date}</span>
+      <span class="act-score${isPerfect ? ' perfect' : ''}">${r.correct}/${r.total} &mdash; ${pct}%${isPerfect ? ' ✓' : ''}</span>`;
+    recentList.appendChild(div);
+  });
+
+  document.getElementById('dashboard').style.display = 'block';
+}
+
+init();
+</script>
+</body>
+</html>
