@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Latina Exercitia — Educator Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  body { font-family: Tahoma, Arial, sans-serif; background: #f5edd6; padding: 20px; max-width: 900px; margin: auto; }
+  h2 { text-align: center; color: #8b2e0f; margin-bottom: 4px; }
+  p.sub { text-align: center; color: #444; margin-bottom: 20px; font-size: 0.95rem; }
+
+  a.back-link { display: inline-block; margin-bottom: 20px; color: #8b2e0f; font-size: 0.85rem; text-decoration: none; border-bottom: 1px solid #c9a96e; }
+  a.back-link:hover { color: #6b1e08; }
+
+  /* ── Summary cards ── */
+  .summary-cards { display: flex; gap: 14px; margin-bottom: 24px; flex-wrap: wrap; }
+  .card { flex: 1; min-width: 140px; background: white; border: 1px solid #c9a96e; border-radius: 5px; padding: 16px; text-align: center; }
+  .card .card-value { font-size: 2rem; font-weight: bold; color: #8b2e0f; line-height: 1; }
+  .card .card-label { font-size: 0.75rem; color: #555; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 4px; }
+
+  /* ── Section headers ── */
+  .section-header { font-size: 0.72rem; font-weight: bold; letter-spacing: 0.08em; text-transform: uppercase; color: #8b2e0f; margin: 24px 0 10px; border-bottom: 1px solid #c9a96e; padding-bottom: 6px; }
+
+  /* ── Tables ── */
+  table { width: 100%; border-collapse: collapse; background: white; margin-bottom: 16px; }
+  th { background: #8b2e0f; color: white; padding: 9px 12px; text-align: left; font-size: 0.85rem; border: 1px solid #6b1e08; }
+  th.right { text-align: right; }
+  td { border: 1px solid #c9a96e; padding: 7px 12px; font-size: 0.88rem; vertical-align: middle; }
+  td.right { text-align: right; }
+  td.student-name { font-weight: bold; color: #333; }
+
+  /* ── Score bar ── */
+  .bar-wrap { display: flex; align-items: center; gap: 8px; }
+  .bar-bg { flex: 1; background: #e8d9b8; border-radius: 3px; height: 10px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 3px; }
+  .bar-fill.good { background: #2d7a3a; }
+  .bar-fill.ok   { background: #c9840a; }
+  .bar-fill.poor { background: #b03020; }
+  .bar-pct { font-size: 0.8rem; color: #555; min-width: 36px; text-align: right; }
+
+  /* ── Student detail section ── */
+  .student-row { cursor: pointer; }
+  .student-row:hover td { background: #fdf6e3; }
+  .student-detail { display: none; background: #fffdf5; }
+  .student-detail td { padding: 0; }
+  .student-detail-inner { padding: 12px 16px; border-top: 1px solid #e8d9b8; }
+  .detail-drill { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px solid #f0e8d0; font-size: 0.84rem; }
+  .detail-drill:last-child { border-bottom: none; }
+  .detail-drill-name { color: #333; }
+  .detail-drill-score { color: #8b2e0f; font-weight: bold; }
+
+  /* ── Access control ── */
+  .not-educator { text-align: center; padding: 40px; }
+  .not-educator p { color: #555; margin-bottom: 16px; }
+  .loading { text-align: center; color: #555; padding: 40px; font-size: 0.95rem; }
+
+  button.primary { background: #8b2e0f; color: white; border: 2px solid #8b2e0f; padding: 9px 22px; font-family: Tahoma, Arial, sans-serif; font-size: 0.85rem; border-radius: 3px; cursor: pointer; }
+  button.primary:hover { background: #6b1e08; }
+  button.small { background: white; color: #8b2e0f; border: 1px solid #c9a96e; padding: 3px 10px; font-family: Tahoma, Arial, sans-serif; font-size: 0.78rem; border-radius: 3px; cursor: pointer; }
+  button.small:hover { background: #8b2e0f; color: white; }
+
+  .hint { font-size: 0.8rem; color: #777; text-align: center; margin-bottom: 16px; }
+
+  footer { margin-top: 32px; padding-top: 14px; border-top: 1px solid #c9a96e; text-align: center; font-size: 0.8rem; color: #555; }
+</style>
+</head>
+<body>
+
+<h2>Latina Exercitia</h2>
+<p class="sub">Educator Dashboard</p>
+
+<a class="back-link" href="/">&larr; Back to drills</a>
+
+<div id="loadingMsg" class="loading">Loading&hellip;</div>
+
+<div id="notEducator" class="not-educator" style="display:none;">
+  <p>This page is for educators only. Your account does not have educator access.</p>
+  <p style="font-size:0.85rem;">If you believe this is an error, please contact your administrator.</p>
+  <button class="primary" onclick="window.location='/'">Back to drills</button>
+</div>
+
+<div id="dashboard" style="display:none;">
+
+  <!-- Summary cards -->
+  <div class="summary-cards">
+    <div class="card">
+      <div class="card-value" id="statStudents">—</div>
+      <div class="card-label">Students</div>
+    </div>
+    <div class="card">
+      <div class="card-value" id="statAttempts">—</div>
+      <div class="card-label">Total attempts</div>
+    </div>
+    <div class="card">
+      <div class="card-value" id="statClassAvg">—</div>
+      <div class="card-label">Class average</div>
+    </div>
+    <div class="card">
+      <div class="card-value" id="statWeakArea">—</div>
+      <div class="card-label">Weakest area</div>
+    </div>
+  </div>
+
+  <!-- Student overview -->
+  <div class="section-header">Student Progress</div>
+  <p class="hint">Click a student row to see their drill breakdown.</p>
+  <table>
+    <thead>
+      <tr>
+        <th>Student</th>
+        <th class="right">Attempts</th>
+        <th class="right">Perfect</th>
+        <th style="width:220px;">Average score</th>
+        <th class="right">Last active</th>
+      </tr>
+    </thead>
+    <tbody id="studentBody"></tbody>
+  </table>
+
+  <!-- Class weak spots -->
+  <div class="section-header">Class Weak Spots</div>
+  <table>
+    <thead>
+      <tr>
+        <th>Drill</th>
+        <th>Tab</th>
+        <th class="right">Attempts</th>
+        <th style="width:220px;">Class average</th>
+      </tr>
+    </thead>
+    <tbody id="weakBody"></tbody>
+  </table>
+
+</div>
+
+<footer>&copy; Copyright 2026 Dan Berge. All rights reserved.</footer>
+
+<script>
+const SUPA_URL = 'https://khnxvlrmcphunibmldwb.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtobnh2bHJtY3BodW5pYm1sZHdiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NDg1NDYsImV4cCI6MjA5MzAyNDU0Nn0.iAWaYsb8TmLk5hempPxIX6Rinr6hLOwyaWu6_TONd24';
+const supa = supabase.createClient(SUPA_URL, SUPA_KEY);
+
+async function init() {
+  const { data: { session } } = await supa.auth.getSession();
+  if (!session) {
+    document.getElementById('loadingMsg').style.display = 'none';
+    document.getElementById('notEducator').style.display = 'block';
+    document.getElementById('notEducator').querySelector('p').textContent = 'You need to be signed in to view this page.';
+    return;
+  }
+
+  // Check role
+  const { data: profile } = await supa
+    .from('profiles')
+    .select('role')
+    .eq('id', session.user.id)
+    .single();
+
+  if (!profile || profile.role !== 'educator') {
+    document.getElementById('loadingMsg').style.display = 'none';
+    document.getElementById('notEducator').style.display = 'block';
+    return;
+  }
+
+  await loadDashboard();
+}
+
+async function loadDashboard() {
+  // Fetch all profiles and all scores
+  const [{ data: profiles }, { data: scores }] = await Promise.all([
+    supa.from('profiles').select('id, display_name, role').eq('role', 'student'),
+    supa.from('scores').select('*').order('created_at', { ascending: false })
+  ]);
+
+  document.getElementById('loadingMsg').style.display = 'none';
+
+  if (!profiles || profiles.length === 0) {
+    document.getElementById('dashboard').style.display = 'block';
+    document.getElementById('statStudents').textContent = '0';
+    document.getElementById('statAttempts').textContent = '0';
+    document.getElementById('statClassAvg').textContent = '—';
+    document.getElementById('statWeakArea').textContent = '—';
+    document.getElementById('studentBody').innerHTML = '<tr><td colspan="5" style="text-align:center;color:#888;padding:20px;">No students have registered yet.</td></tr>';
+    document.getElementById('weakBody').innerHTML = '<tr><td colspan="4" style="text-align:center;color:#888;padding:20px;">No drill data yet.</td></tr>';
+    return;
+  }
+
+  const allScores = scores || [];
+
+  // Build profile map
+  const profileMap = {};
+  profiles.forEach(p => { profileMap[p.id] = p; });
+
+  // ── Summary stats ──────────────────────────────────────
+  const totalAttempts = allScores.length;
+  const classAvg = totalAttempts > 0
+    ? Math.round(allScores.reduce((s, r) => s + r.correct / r.total, 0) / totalAttempts * 100)
+    : 0;
+
+  // Weakest tab class-wide
+  const tabScores = {};
+  allScores.forEach(r => {
+    if (!tabScores[r.tab]) tabScores[r.tab] = [];
+    tabScores[r.tab].push(r.correct / r.total);
+  });
+  let weakTab = '—', weakPct = 1;
+  Object.entries(tabScores).forEach(([tab, vals]) => {
+    const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
+    if (avg < weakPct) { weakPct = avg; weakTab = tab; }
+  });
+
+  document.getElementById('statStudents').textContent = profiles.length;
+  document.getElementById('statAttempts').textContent = totalAttempts;
+  document.getElementById('statClassAvg').textContent = totalAttempts > 0 ? classAvg + '%' : '—';
+  document.getElementById('statWeakArea').textContent = weakTab.charAt(0).toUpperCase() + weakTab.slice(1);
+
+  // ── Student table ──────────────────────────────────────
+  // Group scores by student
+  const studentScores = {};
+  allScores.forEach(r => {
+    if (!studentScores[r.user_id]) studentScores[r.user_id] = [];
+    studentScores[r.user_id].push(r);
+  });
+
+  const tbody = document.getElementById('studentBody');
+  tbody.innerHTML = '';
+
+  profiles.sort((a, b) => {
+    const aAvg = studentScores[a.id] ? studentScores[a.id].reduce((s, r) => s + r.correct / r.total, 0) / studentScores[a.id].length : 0;
+    const bAvg = studentScores[b.id] ? studentScores[b.id].reduce((s, r) => s + r.correct / r.total, 0) / studentScores[b.id].length : 0;
+    return aAvg - bAvg; // worst first
+  });
+
+  profiles.forEach(p => {
+    const ss = studentScores[p.id] || [];
+    const attempts = ss.length;
+    const avg = attempts > 0 ? Math.round(ss.reduce((s, r) => s + r.correct / r.total, 0) / attempts * 100) : 0;
+    const perfect = ss.filter(r => r.correct === r.total).length;
+    const lastActive = attempts > 0 ? new Date(ss[0].created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' }) : '—';
+    const cls = avg >= 90 ? 'good' : avg >= 70 ? 'ok' : 'poor';
+
+    // Main row
+    const tr = document.createElement('tr');
+    tr.className = 'student-row';
+    tr.onclick = () => toggleDetail(p.id);
+    tr.innerHTML = `
+      <td class="student-name">${p.display_name || 'Unknown'}</td>
+      <td class="right">${attempts}</td>
+      <td class="right">${perfect}</td>
+      <td>
+        ${attempts > 0 ? `<div class="bar-wrap">
+          <div class="bar-bg"><div class="bar-fill ${cls}" style="width:${avg}%"></div></div>
+          <span class="bar-pct">${avg}%</span>
+        </div>` : '<span style="color:#aaa;font-size:0.82rem;">No activity</span>'}
+      </td>
+      <td class="right">${lastActive}</td>`;
+    tbody.appendChild(tr);
+
+    // Detail row (hidden)
+    const detailTr = document.createElement('tr');
+    detailTr.className = 'student-detail';
+    detailTr.id = 'detail-' + p.id;
+    const detailTd = document.createElement('td');
+    detailTd.colSpan = 5;
+
+    if (ss.length === 0) {
+      detailTd.innerHTML = '<div class="student-detail-inner" style="color:#888;font-size:0.85rem;">No drills completed yet.</div>';
+    } else {
+      // Group by drill
+      const drillMap = {};
+      ss.forEach(r => {
+        const key = r.tab + '||' + r.drill_name;
+        if (!drillMap[key]) drillMap[key] = { name: r.drill_name, tab: r.tab, attempts: 0, totalPct: 0 };
+        drillMap[key].attempts++;
+        drillMap[key].totalPct += r.correct / r.total;
+      });
+      const drills = Object.values(drillMap).sort((a, b) => (a.totalPct / a.attempts) - (b.totalPct / b.attempts));
+      let html = '<div class="student-detail-inner">';
+      drills.forEach(d => {
+        const avg = Math.round(d.totalPct / d.attempts * 100);
+        const cls2 = avg >= 90 ? 'good' : avg >= 70 ? 'ok' : 'poor';
+        html += `<div class="detail-drill">
+          <span class="detail-drill-name">${d.name} <span style="color:#aaa;font-size:0.78rem;">(${d.tab})</span></span>
+          <span class="detail-drill-score" style="color:${cls2==='good'?'#2d7a3a':cls2==='ok'?'#c9840a':'#b03020'}">${avg}% avg over ${d.attempts} attempt${d.attempts>1?'s':''}</span>
+        </div>`;
+      });
+      html += '</div>';
+      detailTd.innerHTML = html;
+    }
+    detailTr.appendChild(detailTd);
+    tbody.appendChild(detailTr);
+  });
+
+  // ── Class weak spots ───────────────────────────────────
+  const drillMap = {};
+  allScores.forEach(r => {
+    const key = r.tab + '||' + r.drill_name;
+    if (!drillMap[key]) drillMap[key] = { name: r.drill_name, tab: r.tab, attempts: 0, totalPct: 0 };
+    drillMap[key].attempts++;
+    drillMap[key].totalPct += r.correct / r.total;
+  });
+
+  const weakDrills = Object.values(drillMap)
+    .map(d => ({ ...d, avg: d.totalPct / d.attempts }))
+    .sort((a, b) => a.avg - b.avg)
+    .slice(0, 10);
+
+  const weakBody = document.getElementById('weakBody');
+  weakBody.innerHTML = '';
+  if (weakDrills.length === 0) {
+    weakBody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#888;padding:20px;">No drill data yet.</td></tr>';
+  } else {
+    weakDrills.forEach(d => {
+      const avg = Math.round(d.avg * 100);
+      const cls = avg >= 90 ? 'good' : avg >= 70 ? 'ok' : 'poor';
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${d.name}</td>
+        <td>${d.tab}</td>
+        <td class="right">${d.attempts}</td>
+        <td><div class="bar-wrap">
+          <div class="bar-bg"><div class="bar-fill ${cls}" style="width:${avg}%"></div></div>
+          <span class="bar-pct">${avg}%</span>
+        </div></td>`;
+      weakBody.appendChild(tr);
+    });
+  }
+
+  document.getElementById('dashboard').style.display = 'block';
+}
+
+function toggleDetail(userId) {
+  const row = document.getElementById('detail-' + userId);
+  row.style.display = row.style.display === 'table-row' ? 'none' : 'table-row';
+}
+
+init();
+</script>
+</body>
+</html>
