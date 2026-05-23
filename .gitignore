@@ -1,0 +1,20 @@
+# Mac system files
+.DS_Store
+.DS_Store?
+._*
+
+# Word temp files
+~$*
+
+# Claude Code
+.claude/
+
+# Google Docs local files
+*.gdoc
+*.gsheet
+*.gslides
+
+# Word/Office files (keep these out of Git — use Google Drive for docs)
+*.docx
+*.xlsx
+*.pptx
