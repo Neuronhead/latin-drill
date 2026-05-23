@@ -46,237 +46,67 @@
   .panel { display: none; }
   .panel.active { display: block; }
 
-  /* ── Agreement drill ─────────────────────────────── */
-
-  .agree-section {
-    background: white;
-    border: 1px solid #c9a96e;
-    border-radius: 5px;
-    padding: 20px;
-    margin-bottom: 20px;
-  }
-
-  .agree-section-title {
-    font-family: Tahoma, Arial, sans-serif;
-    font-size: 0.75rem;
-    font-weight: bold;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: #8b2e0f;
-    margin-bottom: 12px;
-    border-bottom: 1px solid #e8d9b8;
-    padding-bottom: 8px;
-  }
-
-  .agree-question {
-    font-size: 1rem;
-    color: #2a1a08;
-    margin-bottom: 16px;
-    line-height: 1.5;
-  }
-
-  .agree-boxes {
-    display: flex;
-    gap: 12px;
-    justify-content: center;
-    margin-bottom: 16px;
-    flex-wrap: wrap;
-  }
-
-  .agree-box {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .agree-box label {
-    font-family: Tahoma, Arial, sans-serif;
-    font-size: 0.8rem;
-    color: #444;
-    min-height: 1.2em;
-  }
-
-  .agree-box input {
-    width: 150px;
-    padding: 8px 10px;
-    font-size: 1rem;
-    border: 2px solid #c9a96e;
-    border-radius: 4px;
-    font-family: Tahoma, Arial, sans-serif;
+  /* ── Loading screen ──────────────────────────────── */
+  #loadingScreen {
     text-align: center;
-    background: #fffdf5;
-    transition: background 0.2s, border-color 0.2s;
+    padding: 60px 20px;
+    color: #8b2e0f;
+    font-size: 1rem;
   }
+  #loadingScreen .spinner {
+    display: inline-block;
+    width: 28px; height: 28px;
+    border: 3px solid #c9a96e;
+    border-top-color: #8b2e0f;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 14px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #appContent { display: none; }
 
+  /* ── Agreement drill ─────────────────────────────── */
+  .agree-section { background: white; border: 1px solid #c9a96e; border-radius: 5px; padding: 20px; margin-bottom: 20px; }
+  .agree-section-title { font-family: Tahoma, Arial, sans-serif; font-size: 0.75rem; font-weight: bold; letter-spacing: 0.1em; text-transform: uppercase; color: #8b2e0f; margin-bottom: 12px; border-bottom: 1px solid #e8d9b8; padding-bottom: 8px; }
+  .agree-question { font-size: 1rem; color: #2a1a08; margin-bottom: 16px; line-height: 1.5; }
+  .agree-boxes { display: flex; gap: 12px; justify-content: center; margin-bottom: 16px; flex-wrap: wrap; }
+  .agree-box { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .agree-box label { font-family: Tahoma, Arial, sans-serif; font-size: 0.8rem; color: #444; min-height: 1.2em; }
+  .agree-box input { width: 150px; padding: 8px 10px; font-size: 1rem; border: 2px solid #c9a96e; border-radius: 4px; font-family: Tahoma, Arial, sans-serif; text-align: center; background: #fffdf5; transition: background 0.2s, border-color 0.2s; }
   .agree-box input:focus { outline: none; border-color: #8b2e0f; background: white; }
   .agree-box input.correct { background: #d4edda; border-color: green; color: green; font-weight: bold; }
   .agree-box input.wrong   { background: #f8d7da; border-color: red;   color: red; }
   .agree-box input:disabled { background: #f0e8d0; color: #aaa; border-color: #ddd; cursor: not-allowed; }
-
-  .agree-phrase {
-    text-align: center;
-    font-size: 1.5rem;
-    color: #8b2e0f;
-    font-weight: bold;
-    margin: 8px 0 4px;
-    letter-spacing: 0.03em;
-  }
-
-  .agree-phrase-meaning {
-    text-align: center;
-    color: #444;
-    font-size: 0.9rem;
-    margin-bottom: 16px;
-  }
-
+  .agree-phrase { text-align: center; font-size: 1.5rem; color: #8b2e0f; font-weight: bold; margin: 8px 0 4px; letter-spacing: 0.03em; }
+  .agree-phrase-meaning { text-align: center; color: #444; font-size: 0.9rem; margin-bottom: 16px; }
   .agree-subsection { border: 1px solid #e8d9b8; border-radius: 4px; padding: 14px; margin-bottom: 16px; background: #fffdf7; }
   .agree-subsection-title { font-family: Tahoma, Arial, sans-serif; font-size: 0.72rem; font-weight: bold; letter-spacing: 0.07em; text-transform: uppercase; color: #8b2e0f; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid #e8d9b8; }
-  .agree-locked {
-    text-align: center;
-    color: #aaa;
-    font-size: 0.9rem;
-    padding: 16px 0;
-  }
-
-  .agree-counter {
-    text-align: right;
-    font-size: 0.78rem;
-    color: #555;
-    margin-bottom: 6px;
-  }
-
-  footer {
-    margin-top: 32px;
-    padding-top: 14px;
-    border-top: 1px solid #c9a96e;
-    text-align: center;
-    font-size: 0.8rem;
-    color: #555;
-  }
+  .agree-locked { text-align: center; color: #aaa; font-size: 0.9rem; padding: 16px 0; }
+  .agree-counter { text-align: right; font-size: 0.78rem; color: #555; margin-bottom: 6px; }
 
   /* ── Auth bar ───────────────────────────────────────── */
-  #authBar {
-    position: fixed;
-    top: 12px;
-    right: 16px;
-    z-index: 200;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  #authUserName {
-    font-size: 0.8rem;
-    color: #555;
-    max-width: 140px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  button.auth-btn {
-    background: white;
-    color: #8b2e0f;
-    border: 2px solid #8b2e0f;
-    padding: 5px 14px;
-    font-family: Tahoma, Arial, sans-serif;
-    font-size: 0.8rem;
-    border-radius: 3px;
-    cursor: pointer;
-  }
+  #authBar { position: fixed; top: 12px; right: 16px; z-index: 200; display: flex; align-items: center; gap: 8px; }
+  #authUserName { font-size: 0.8rem; color: #555; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  button.auth-btn { background: white; color: #8b2e0f; border: 2px solid #8b2e0f; padding: 5px 14px; font-family: Tahoma, Arial, sans-serif; font-size: 0.8rem; border-radius: 3px; cursor: pointer; }
   button.auth-btn:hover { background: #8b2e0f; color: white; }
 
   /* ── Auth modal ─────────────────────────────────────── */
-  #authOverlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.45);
-    z-index: 300;
-    align-items: center;
-    justify-content: center;
-  }
+  #authOverlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 300; align-items: center; justify-content: center; }
   #authOverlay.open { display: flex; }
-  #authModal {
-    background: #f5edd6;
-    border: 2px solid #c9a96e;
-    border-radius: 6px;
-    padding: 28px 32px;
-    width: 340px;
-    max-width: 95vw;
-    position: relative;
-  }
-  #authModal h3 {
-    text-align: center;
-    color: #8b2e0f;
-    margin: 0 0 4px 0;
-    font-size: 1.1rem;
-  }
-  #authModal p.auth-sub {
-    text-align: center;
-    color: #555;
-    font-size: 0.82rem;
-    margin: 0 0 18px 0;
-  }
+  #authModal { background: #f5edd6; border: 2px solid #c9a96e; border-radius: 6px; padding: 28px 32px; width: 340px; max-width: 95vw; position: relative; }
+  #authModal h3 { text-align: center; color: #8b2e0f; margin: 0 0 4px 0; font-size: 1.1rem; }
+  #authModal p.auth-sub { text-align: center; color: #555; font-size: 0.82rem; margin: 0 0 18px 0; }
   .auth-field { margin-bottom: 12px; }
-  .auth-field label {
-    display: block;
-    font-size: 0.78rem;
-    font-weight: bold;
-    color: #8b2e0f;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    margin-bottom: 4px;
-  }
-  .auth-field input {
-    width: 100%;
-    box-sizing: border-box;
-    padding: 7px 10px;
-    font-size: 0.9rem;
-    border: 2px solid #c9a96e;
-    border-radius: 3px;
-    font-family: Tahoma, Arial, sans-serif;
-    background: #fffdf5;
-    text-align: left;
-  }
+  .auth-field label { display: block; font-size: 0.78rem; font-weight: bold; color: #8b2e0f; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+  .auth-field input { width: 100%; box-sizing: border-box; padding: 7px 10px; font-size: 0.9rem; border: 2px solid #c9a96e; border-radius: 3px; font-family: Tahoma, Arial, sans-serif; background: #fffdf5; text-align: left; }
   .auth-field input:focus { outline: none; border-color: #8b2e0f; background: white; }
-  #authMsg {
-    text-align: center;
-    font-size: 0.85rem;
-    min-height: 1.2em;
-    margin-bottom: 10px;
-    color: red;
-  }
+  #authMsg { text-align: center; font-size: 0.85rem; min-height: 1.2em; margin-bottom: 10px; color: red; }
   #authMsg.ok { color: green; }
-  .auth-switch {
-    text-align: center;
-    font-size: 0.8rem;
-    color: #555;
-    margin-top: 12px;
-  }
-  .auth-switch a {
-    color: #8b2e0f;
-    cursor: pointer;
-    text-decoration: underline;
-  }
-  #authClose {
-    position: absolute;
-    top: 10px;
-    right: 14px;
-    background: none;
-    border: none;
-    font-size: 1.2rem;
-    cursor: pointer;
-    color: #8b2e0f;
-    line-height: 1;
-  }
+  .auth-switch { text-align: center; font-size: 0.8rem; color: #555; margin-top: 12px; }
+  .auth-switch a { color: #8b2e0f; cursor: pointer; text-decoration: underline; }
+  #authClose { position: absolute; top: 10px; right: 14px; background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #8b2e0f; line-height: 1; }
 
-  /* ── Saved score notice ─────────────────────────────── */
-  .saved-notice {
-    font-size: 0.78rem;
-    color: #555;
-    text-align: center;
-    margin-top: 4px;
-  }
+  footer { margin-top: 32px; padding-top: 14px; border-top: 1px solid #c9a96e; text-align: center; font-size: 0.8rem; color: #555; }
 </style>
 </head>
 <body>
@@ -297,22 +127,16 @@
 <div id="authOverlay" onclick="overlayClick(event)">
   <div id="authModal">
     <button id="authClose" onclick="hideAuthModal()" title="Close">&times;</button>
-
-    <!-- Login view -->
     <div id="viewLogin">
       <h3>Latina Exercitia</h3>
       <p class="auth-sub">Sign in to save your progress</p>
       <div class="auth-field"><label>Email</label><input type="email" id="loginEmail" autocomplete="email" spellcheck="false"></div>
       <div class="auth-field"><label>Password</label><input type="password" id="loginPassword" autocomplete="current-password"></div>
       <div id="authMsg"></div>
-      <div class="buttons">
-        <button class="primary" onclick="doLogin()" style="width:100%;">Sign in</button>
-      </div>
-      <div class="auth-switch">No account? <a onclick="showView('register')">Register</a> &nbsp;·&nbsp; <a onclick="showView('forgot')">Forgot password?</a></div>
+      <div class="buttons"><button class="primary" onclick="doLogin()" style="width:100%;">Sign in</button></div>
+      <div class="auth-switch">No account? <a onclick="showView('register')">Register</a> &nbsp;&middot;&nbsp; <a onclick="showView('forgot')">Forgot password?</a></div>
       <div class="auth-switch" style="margin-top:8px;"><a onclick="hideAuthModal()">Continue without signing in</a></div>
     </div>
-
-    <!-- Register view -->
     <div id="viewRegister" style="display:none;">
       <h3>Create account</h3>
       <p class="auth-sub">Free to use &mdash; sign up to save progress</p>
@@ -320,35 +144,33 @@
       <div class="auth-field"><label>Email</label><input type="email" id="regEmail" autocomplete="email" spellcheck="false"></div>
       <div class="auth-field"><label>Password</label><input type="password" id="regPassword" autocomplete="new-password"></div>
       <div id="authMsg"></div>
-      <div class="buttons">
-        <button class="primary" onclick="doRegister()" style="width:100%;">Create account</button>
-      </div>
+      <div class="buttons"><button class="primary" onclick="doRegister()" style="width:100%;">Create account</button></div>
       <div class="auth-switch">Already have an account? <a onclick="showView('login')">Sign in</a></div>
     </div>
-
-    <!-- Forgot password view -->
     <div id="viewForgot" style="display:none;">
       <h3>Reset password</h3>
       <p class="auth-sub">We'll send a reset link to your email</p>
       <div class="auth-field"><label>Email</label><input type="email" id="forgotEmail" autocomplete="email" spellcheck="false"></div>
       <div id="authMsg"></div>
-      <div class="buttons">
-        <button class="primary" onclick="doForgot()" style="width:100%;">Send reset link</button>
-      </div>
+      <div class="buttons"><button class="primary" onclick="doForgot()" style="width:100%;">Send reset link</button></div>
       <div class="auth-switch"><a onclick="showView('login')">Back to sign in</a></div>
     </div>
-
-    <!-- Confirm email view -->
     <div id="viewConfirm" style="display:none;">
       <h3>Check your email</h3>
       <p class="auth-sub">We've sent a confirmation link to your email address. Click it to activate your account, then sign in.</p>
-      <div class="buttons">
-        <button class="primary" onclick="showView('login')" style="width:100%;">Back to sign in</button>
-      </div>
+      <div class="buttons"><button class="primary" onclick="showView('login')" style="width:100%;">Back to sign in</button></div>
     </div>
-
   </div>
 </div>
+
+<!-- ── LOADING SCREEN ────────────────────────────────────── -->
+<div id="loadingScreen">
+  <div class="spinner"></div>
+  <div>Loading drills&hellip;</div>
+</div>
+
+<!-- ── APP CONTENT (shown after data loads) ──────────────── -->
+<div id="appContent">
 
 <h2>Latina Exercitia</h2>
 <p class="sub">Fill in all forms, then click Check Answers. Clear &amp; Shuffle randomises the order.</p>
@@ -361,29 +183,10 @@
 
 <!-- ── DECLENSION PANEL ──────────────────────────────────────── -->
 <div class="panel active" id="panel-decl">
-  <div class="selector-group">
-    <div class="selector-label">Standard forms</div>
-    <div class="selector">
-      <button class="sel-btn active" onclick="setWord(0)">magnus</button>
-      <button class="sel-btn" onclick="setWord(1)">bonus</button>
-      <button class="sel-btn" onclick="setWord(2)">malus</button>
-      <button class="sel-btn" onclick="setWord(3)">multus</button>
-    </div>
-  </div>
-  <div class="selector-group">
-    <div class="selector-label">Exceptions</div>
-    <div class="selector">
-      <button class="sel-btn" onclick="setWord(4)">filius</button>
-      <button class="sel-btn" onclick="setWord(5)">puer</button>
-      <button class="sel-btn" onclick="setWord(6)">ager</button>
-      <button class="sel-btn" onclick="setWord(7)">poeta</button>
-      <button class="sel-btn" onclick="setWord(8)">nauta</button>
-      <button class="sel-btn" onclick="setWord(9)">agricola</button>
-    </div>
-  </div>
+  <div id="declSelectors"></div>
   <div class="panel-subtitle">1st &amp; 2nd Declension</div>
-  <div class="word-display" id="wordDisplay">magnus / magna / magnum</div>
-  <div class="meaning" id="wordMeaning">great, large</div>
+  <div class="word-display" id="wordDisplay"></div>
+  <div class="meaning" id="wordMeaning"></div>
   <div id="declNote" style="display:none; background:#fff8e8; border:1px solid #c9a96e; border-radius:4px; padding:10px 14px; margin-bottom:12px; font-size:0.88rem; color:#333; line-height:1.5;"></div>
   <table id="declTable"></table>
   <div class="buttons">
@@ -396,32 +199,10 @@
 
 <!-- ── VERB PANEL ────────────────────────────────────────────── -->
 <div class="panel" id="panel-verb">
-  <div class="selector-group">
-    <div class="selector-label">Irregular</div>
-    <div class="selector">
-      <button class="sel-btn active" onclick="setVerb(0)">esse</button>
-    </div>
-  </div>
-  <div class="selector-group">
-    <div class="selector-label">1st Conjugation (-āre)</div>
-    <div class="selector">
-      <button class="sel-btn" onclick="setVerb(1)">amare</button>
-      <button class="sel-btn" onclick="setVerb(2)">laudare</button>
-      <button class="sel-btn" onclick="setVerb(3)">portare</button>
-      <button class="sel-btn" onclick="setVerb(4)">dare</button>
-    </div>
-  </div>
-  <div class="selector-group">
-    <div class="selector-label">2nd Conjugation (-ēre)</div>
-    <div class="selector">
-      <button class="sel-btn" onclick="setVerb(5)">monere</button>
-      <button class="sel-btn" onclick="setVerb(6)">videre</button>
-      <button class="sel-btn" onclick="setVerb(7)">habere</button>
-    </div>
-  </div>
-  <div class="panel-subtitle">1st &amp; 2nd Conjugation — Present &amp; Future Active Indicative, Imperative</div>
-  <div class="word-display" id="verbDisplay">esse</div>
-  <div class="meaning" id="verbMeaning">to be</div>
+  <div id="verbSelectors"></div>
+  <div class="panel-subtitle">1st &amp; 2nd Conjugation &mdash; Present &amp; Future Active Indicative, Imperative</div>
+  <div class="word-display" id="verbDisplay"></div>
+  <div class="meaning" id="verbMeaning"></div>
   <table id="verbTable"></table>
   <div class="buttons">
     <button class="primary"   onclick="checkVerb()">Check Answers</button>
@@ -433,26 +214,13 @@
 
 <!-- ── AGREEMENT PANEL ──────────────────────────────────────── -->
 <div class="panel" id="panel-agree">
-
-  <!-- Question 1: what are the three properties? -->
   <div class="agree-section">
     <div class="agree-section-title">Question 1</div>
-    <div class="agree-question">
-      What three properties must a Latin adjective share with the noun it modifies?
-    </div>
+    <div class="agree-question">What three properties must a Latin adjective share with the noun it modifies?</div>
     <div class="agree-boxes">
-      <div class="agree-box">
-        <label>&nbsp;</label>
-        <input type="text" id="q1a" autocomplete="off" spellcheck="false">
-      </div>
-      <div class="agree-box">
-        <label>&nbsp;</label>
-        <input type="text" id="q1b" autocomplete="off" spellcheck="false">
-      </div>
-      <div class="agree-box">
-        <label>&nbsp;</label>
-        <input type="text" id="q1c" autocomplete="off" spellcheck="false">
-      </div>
+      <div class="agree-box"><label>&nbsp;</label><input type="text" id="q1a" autocomplete="off" spellcheck="false"></div>
+      <div class="agree-box"><label>&nbsp;</label><input type="text" id="q1b" autocomplete="off" spellcheck="false"></div>
+      <div class="agree-box"><label>&nbsp;</label><input type="text" id="q1c" autocomplete="off" spellcheck="false"></div>
     </div>
     <div class="buttons">
       <button class="primary"   onclick="checkQ1()">Check</button>
@@ -460,21 +228,11 @@
     </div>
     <div class="score" id="q1Score"></div>
   </div>
-
-  <!-- Question 2: identify properties of a phrase (locked until Q1 correct) -->
   <div class="agree-section">
     <div class="agree-section-title">Question 2</div>
-
-    <div id="q2Locked" class="agree-locked">
-      Complete Question 1 correctly to unlock this question.
-    </div>
-
+    <div id="q2Locked" class="agree-locked">Complete Question 1 correctly to unlock this question.</div>
     <div id="q2Content" style="display:none;">
-      <div class="agree-question">
-        Identify the case, gender, and number of the noun-adjective phrase below.
-      </div>
-
-      <!-- Standard phrases -->
+      <div class="agree-question">Identify the case, gender, and number of the noun-adjective phrase below.</div>
       <div class="agree-subsection">
         <div class="agree-subsection-title">Standard Phrases</div>
         <div class="agree-counter" id="agreeCounter"></div>
@@ -493,8 +251,6 @@
         </div>
         <div class="score" id="q2Score"></div>
       </div>
-
-      <!-- Exception phrases -->
       <div class="agree-subsection">
         <div class="agree-subsection-title">Exceptions</div>
         <div class="agree-counter" id="agreeExCounter"></div>
@@ -513,19 +269,34 @@
         </div>
         <div class="score" id="q2ExScore"></div>
       </div>
-
     </div>
-
   </div>
 </div><!-- end panel-agree -->
 
 <footer>
-  &copy; Copyright 2026 Dan Berge. All rights reserved. &mdash; v1.4
+  &copy; Copyright 2026 Dan Berge. All rights reserved. &mdash; v1.5
 </footer>
+
+</div><!-- end appContent -->
 
 <script>
 
-// ── UTILITIES ────────────────────────────────────────────────────────────────
+// ── SUPABASE ──────────────────────────────────────────────────────────────────
+
+const SUPA_URL = 'https://khnxvlrmcphunibmldwb.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtobnh2bHJtY3BodW5pYm1sZHdiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NDg1NDYsImV4cCI6MjA5MzAyNDU0Nn0.iAWaYsb8TmLk5hempPxIX6Rinr6hLOwyaWu6_TONd24';
+const supa = supabase.createClient(SUPA_URL, SUPA_KEY);
+
+let currentUser = null;
+
+// ── DRILL DATA (populated from Supabase) ──────────────────────────────────────
+
+let words = [];
+let verbs = [];
+let agreePhrases = [];
+let agreeExceptions = [];
+
+// ── UTILITIES ─────────────────────────────────────────────────────────────────
 
 function shuffle(arr) {
   const a = [...arr];
@@ -538,7 +309,8 @@ function shuffle(arr) {
 
 function norm(s) {
   return s.trim().toLowerCase()
-    .replace(/ā/g,'a').replace(/ē/g,'e').replace(/ī/g,'i').replace(/ō/g,'o').replace(/ū/g,'u');
+    .replace(/\u0101/g,'a').replace(/\u0113/g,'e').replace(/\u012b/g,'i').replace(/\u014d/g,'o').replace(/\u016b/g,'u')
+    .replace(/\u0103/g,'a').replace(/\u0115/g,'e').replace(/\u012d/g,'i').replace(/\u014f/g,'o').replace(/\u016d/g,'u');
 }
 
 function normAgree(s) {
@@ -554,70 +326,148 @@ function normAgree(s) {
   return map[v] || v;
 }
 
-// ── DECLENSION DATA ──────────────────────────────────────────────────────────
+// ── DATA LOADING ──────────────────────────────────────────────────────────────
 
-const words = [
-  { display:'magnus / magna / magnum', meaning:'Adj. — great, large', data:{
-    s:{Nominative:['magnus','magna','magnum'],Genitive:['magni','magnae','magni'],Dative:['magno','magnae','magno'],Accusative:['magnum','magnam','magnum'],Ablative:['magno','magna','magno'],Vocative:['magne','magna','magnum']},
-    p:{Nominative:['magni','magnae','magna'],Genitive:['magnorum','magnarum','magnorum'],Dative:['magnis','magnis','magnis'],Accusative:['magnos','magnas','magna'],Ablative:['magnis','magnis','magnis'],Vocative:['magni','magnae','magna']}
-  }},
-  { display:'bonus / bona / bonum', meaning:'Adj. — good', data:{
-    s:{Nominative:['bonus','bona','bonum'],Genitive:['boni','bonae','boni'],Dative:['bono','bonae','bono'],Accusative:['bonum','bonam','bonum'],Ablative:['bono','bona','bono'],Vocative:['bone','bona','bonum']},
-    p:{Nominative:['boni','bonae','bona'],Genitive:['bonorum','bonarum','bonorum'],Dative:['bonis','bonis','bonis'],Accusative:['bonos','bonas','bona'],Ablative:['bonis','bonis','bonis'],Vocative:['boni','bonae','bona']}
-  }},
-  { display:'malus / mala / malum', meaning:'Adj. — bad, evil', data:{
-    s:{Nominative:['malus','mala','malum'],Genitive:['mali','malae','mali'],Dative:['malo','malae','malo'],Accusative:['malum','malam','malum'],Ablative:['malo','mala','malo'],Vocative:['male','mala','malum']},
-    p:{Nominative:['mali','malae','mala'],Genitive:['malorum','malarum','malorum'],Dative:['malis','malis','malis'],Accusative:['malos','malas','mala'],Ablative:['malis','malis','malis'],Vocative:['mali','malae','mala']}
-  }},
-  { display:'multus / multa / multum', meaning:'Adj. — much, many', data:{
-    s:{Nominative:['multus','multa','multum'],Genitive:['multi','multae','multi'],Dative:['multo','multae','multo'],Accusative:['multum','multam','multum'],Ablative:['multo','multa','multo'],Vocative:['multe','multa','multum']},
-    p:{Nominative:['multi','multae','multa'],Genitive:['multorum','multarum','multorum'],Dative:['multis','multis','multis'],Accusative:['multos','multas','multa'],Ablative:['multis','multis','multis'],Vocative:['multi','multae','multa']}
-  }},
-  // ── Noun exceptions ──────────────────────────────────────────
-  { display:'filius, filii', meaning:'n. (m) — son; 2nd declension', noun:true,
-    note:'Exception: -ius nouns contract the vocative singular to -i (not -ie). All other endings are standard.',
-    data:{
-      s:{Nominative:'filius',Genitive:'filii',Dative:'filio',Accusative:'filium',Ablative:'filio',Vocative:'fili'},
-      p:{Nominative:'filii',Genitive:'filiorum',Dative:'filiis',Accusative:'filios',Ablative:'filiis',Vocative:'filii'}
-    }
-  },
-  { display:'puer, pueri', meaning:'n. (m) — boy; 2nd declension -er (stem keeps -e-)', noun:true,
-    note:'Exception: -er nouns look irregular in the nominative but follow standard 2nd declension endings. Puer keeps the -e- throughout — check the genitive (pueri) to find the true stem.',
-    data:{
-      s:{Nominative:'puer',Genitive:'pueri',Dative:'puero',Accusative:'puerum',Ablative:'puero',Vocative:'puer'},
-      p:{Nominative:'pueri',Genitive:'puerorum',Dative:'pueris',Accusative:'pueros',Ablative:'pueris',Vocative:'pueri'}
-    }
-  },
-  { display:'ager, agri', meaning:'n. (m) — field; 2nd declension -er (stem drops -e-)', noun:true,
-    note:'Exception: like puer, but ager drops the -e- after the nominative — the stem is agr-, not ager-. Always check the genitive to identify the true stem.',
-    data:{
-      s:{Nominative:'ager',Genitive:'agri',Dative:'agro',Accusative:'agrum',Ablative:'agro',Vocative:'ager'},
-      p:{Nominative:'agri',Genitive:'agrorum',Dative:'agris',Accusative:'agros',Ablative:'agris',Vocative:'agri'}
-    }
-  },
-  // ── 1st declension masculines ─────────────────────────────────
-  { display:'poeta, poetae', meaning:'n. (m) — poet; 1st declension', noun:true,
-    note:'Exception: poeta follows 1st declension endings (like puella) but is grammatically masculine. Its adjectives must take masculine forms — e.g. poeta magnus, not poeta magna. Other common nouns in this group: nauta (sailor), agricola (farmer).',
-    data:{
-      s:{Nominative:'poeta',Genitive:'poetae',Dative:'poetae',Accusative:'poetam',Ablative:'poeta',Vocative:'poeta'},
-      p:{Nominative:'poetae',Genitive:'poetarum',Dative:'poetis',Accusative:'poetas',Ablative:'poetis',Vocative:'poetae'}
-    }
-  },
-  { display:'nauta, nautae', meaning:'n. (m) — sailor; 1st declension', noun:true,
-    note:'Exception: nauta follows 1st declension endings but is grammatically masculine — adjectives agree in masculine forms. Same pattern as poeta and agricola.',
-    data:{
-      s:{Nominative:'nauta',Genitive:'nautae',Dative:'nautae',Accusative:'nautam',Ablative:'nauta',Vocative:'nauta'},
-      p:{Nominative:'nautae',Genitive:'nautarum',Dative:'nautis',Accusative:'nautas',Ablative:'nautis',Vocative:'nautae'}
-    }
-  },
-  { display:'agricola, agricolae', meaning:'n. (m) — farmer; 1st declension', noun:true,
-    note:'Exception: agricola follows 1st declension endings but is grammatically masculine — adjectives agree in masculine forms. Same pattern as poeta and nauta.',
-    data:{
-      s:{Nominative:'agricola',Genitive:'agricolae',Dative:'agricolae',Accusative:'agricolam',Ablative:'agricola',Vocative:'agricola'},
-      p:{Nominative:'agricolae',Genitive:'agricolarum',Dative:'agricolis',Accusative:'agricolas',Ablative:'agricolis',Vocative:'agricolae'}
-    }
-  },
-];
+async function loadDrillData() {
+  const { data, error } = await supa
+    .from('drills')
+    .select('*')
+    .order('id');
+
+  if (error || !data) {
+    document.getElementById('loadingScreen').innerHTML =
+      '<p style="color:red;">Failed to load drill data. Please refresh the page.</p>';
+    return;
+  }
+
+  // Separate by type
+  const declRows  = data.filter(d => d.type === 'declension');
+  const verbRows  = data.filter(d => d.type === 'conjugation');
+  const agreeRows = data.filter(d => d.type === 'agreement');
+
+  // Map to the shape the existing drill functions expect
+  words = declRows.map(d => ({
+    id:      d.id,
+    display: d.content.display,
+    meaning: d.content.meaning,
+    noun:    d.content.is_noun || false,
+    note:    d.content.note || null,
+    data:    d.content.paradigm,
+  }));
+
+  verbs = verbRows.map(d => ({
+    id:      d.id,
+    display: d.content.display,
+    meaning: d.content.meaning,
+    conj:    d.content.conjugation_class,
+    pres:    d.content.forms.present,
+    fut:     d.content.forms.future,
+    imp:     d.content.forms.imperative,
+  }));
+
+  agreePhrases   = agreeRows.filter(d => !d.content.is_exception).map(d => ({
+    id:          d.id,
+    phrase:      d.content.phrase,
+    translation: d.content.translation,
+    caseVal:     d.content.case,
+    gender:      d.content.gender,
+    number:      d.content.number,
+  }));
+
+  agreeExceptions = agreeRows.filter(d => d.content.is_exception).map(d => ({
+    id:          d.id,
+    phrase:      d.content.phrase,
+    translation: d.content.translation,
+    caseVal:     d.content.case,
+    gender:      d.content.gender,
+    number:      d.content.number,
+  }));
+
+  // Build selector buttons dynamically
+  buildDeclSelectors();
+  buildVerbSelectors();
+
+  // Initialise drills
+  buildDeclTable();
+  buildVerbTable();
+  initAgreeQueue();
+  initAgreeExQueue();
+
+  // Show app
+  document.getElementById('loadingScreen').style.display = 'none';
+  document.getElementById('appContent').style.display = 'block';
+}
+
+// ── SELECTOR BUILDERS ─────────────────────────────────────────────────────────
+
+function buildDeclSelectors() {
+  const container = document.getElementById('declSelectors');
+  container.innerHTML = '';
+
+  const standardWords  = words.filter(w => !w.noun);
+  const exceptionWords = words.filter(w =>  w.noun);
+
+  if (standardWords.length) {
+    const g = document.createElement('div'); g.className = 'selector-group';
+    g.innerHTML = '<div class="selector-label">Standard forms</div>';
+    const s = document.createElement('div'); s.className = 'selector';
+    standardWords.forEach((w, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'sel-btn' + (i === 0 ? ' active' : '');
+      btn.textContent = w.display.split('/')[0].trim().split(',')[0].trim();
+      btn.onclick = () => setWord(words.indexOf(w));
+      s.appendChild(btn);
+    });
+    g.appendChild(s); container.appendChild(g);
+  }
+
+  if (exceptionWords.length) {
+    const g = document.createElement('div'); g.className = 'selector-group';
+    g.innerHTML = '<div class="selector-label">Exceptions</div>';
+    const s = document.createElement('div'); s.className = 'selector';
+    exceptionWords.forEach(w => {
+      const btn = document.createElement('button');
+      btn.className = 'sel-btn';
+      btn.textContent = w.display.split(',')[0].trim();
+      btn.onclick = () => setWord(words.indexOf(w));
+      s.appendChild(btn);
+    });
+    g.appendChild(s); container.appendChild(g);
+  }
+}
+
+function buildVerbSelectors() {
+  const container = document.getElementById('verbSelectors');
+  container.innerHTML = '';
+
+  // Group by conjugation class
+  const groups = {};
+  verbs.forEach(v => {
+    const key = v.conj;
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(v);
+  });
+
+  Object.entries(groups).forEach(([label, groupVerbs]) => {
+    const g = document.createElement('div'); g.className = 'selector-group';
+    g.innerHTML = '<div class="selector-label">' + label + '</div>';
+    const s = document.createElement('div'); s.className = 'selector';
+    groupVerbs.forEach(v => {
+      const btn = document.createElement('button');
+      btn.className = 'sel-btn';
+      btn.textContent = v.display;
+      btn.onclick = () => setVerb(verbs.indexOf(v));
+      s.appendChild(btn);
+    });
+    g.appendChild(s); container.appendChild(g);
+  });
+
+  // Mark first verb active
+  const firstBtn = container.querySelector('.sel-btn');
+  if (firstBtn) firstBtn.classList.add('active');
+}
+
+// ── DECLENSION LOGIC ──────────────────────────────────────────────────────────
 
 const ALL_CASES   = ['Nominative','Genitive','Dative','Accusative','Ablative','Vocative'];
 const ALL_GENDERS = [{label:'Male',idx:0},{label:'Female',idx:1},{label:'Neuter',idx:2}];
@@ -625,7 +475,11 @@ let currentWord=0, declCases=shuffle(ALL_CASES), declGenders=shuffle(ALL_GENDERS
 
 function setWord(idx){
   currentWord=idx;
-  document.querySelectorAll('#panel-decl .sel-btn').forEach((b,i)=>b.classList.toggle('active',i===idx));
+  document.querySelectorAll('#declSelectors .sel-btn').forEach(b => b.classList.remove('active'));
+  // Find and activate the right button
+  const allBtns = document.querySelectorAll('#declSelectors .sel-btn');
+  const standardCount = words.filter(w => !w.noun).length;
+  allBtns[idx] && allBtns[idx].classList.add('active');
   document.getElementById('wordDisplay').textContent=words[idx].display;
   document.getElementById('wordMeaning').textContent=words[idx].meaning;
   const noteEl=document.getElementById('declNote');
@@ -636,6 +490,7 @@ function setWord(idx){
 }
 
 function buildDeclTable(){
+  if(!words.length) return;
   const table=document.getElementById('declTable'); table.innerHTML='';
   const w=words[currentWord];
   const isNoun=!!w.noun;
@@ -672,6 +527,11 @@ function buildDeclTable(){
     });
   });
   table.appendChild(tbody);
+  // Set display for first word if just loaded
+  if(!document.getElementById('wordDisplay').textContent){
+    document.getElementById('wordDisplay').textContent=words[0].display;
+    document.getElementById('wordMeaning').textContent=words[0].meaning;
+  }
 }
 
 function checkDecl(){
@@ -705,42 +565,7 @@ function resetDecl(){
   buildDeclTable(); document.getElementById('declScore').textContent='';
 }
 
-// ── VERB DATA ────────────────────────────────────────────────────────────────
-
-const verbs=[
-  {display:'esse',meaning:'to be',conj:'(irregular)',
-    pres:['sum','es','est','sumus','estis','sunt'],
-    fut:['ero','eris','erit','erimus','eritis','erunt'],
-    imp:['es','este']},
-  {display:'amare',meaning:'to love',conj:'1st conjugation',
-    pres:['amo','amas','amat','amamus','amatis','amant'],
-    fut:['amabo','amabis','amabit','amabimus','amabitis','amabunt'],
-    imp:['ama','amate']},
-  {display:'laudare',meaning:'to praise',conj:'1st conjugation',
-    pres:['laudo','laudas','laudat','laudamus','laudatis','laudant'],
-    fut:['laudabo','laudabis','laudabit','laudabimus','laudabitis','laudabunt'],
-    imp:['lauda','laudate']},
-  {display:'portare',meaning:'to carry',conj:'1st conjugation',
-    pres:['porto','portas','portat','portamus','portatis','portant'],
-    fut:['portabo','portabis','portabit','portabimus','portabitis','portabunt'],
-    imp:['porta','portate']},
-  {display:'dare',meaning:'to give',conj:'1st conj. (irregular stem)',
-    pres:['do','das','dat','damus','datis','dant'],
-    fut:['dabo','dabis','dabit','dabimus','dabitis','dabunt'],
-    imp:['da','date']},
-  {display:'monere',meaning:'to warn, advise',conj:'2nd conjugation',
-    pres:['moneo','mones','monet','monemus','monetis','monent'],
-    fut:['monebo','monebis','monebit','monebimus','monebitis','monebunt'],
-    imp:['mone','monete']},
-  {display:'videre',meaning:'to see',conj:'2nd conjugation',
-    pres:['video','vides','videt','videmus','videtis','vident'],
-    fut:['videbo','videbis','videbit','videbimus','videbitis','videbunt'],
-    imp:['vide','videte']},
-  {display:'habere',meaning:'to have',conj:'2nd conjugation',
-    pres:['habeo','habes','habet','habemus','habetis','habent'],
-    fut:['habebo','habebis','habebit','habebimus','habebitis','habebunt'],
-    imp:['habe','habete']},
-];
+// ── VERB LOGIC ────────────────────────────────────────────────────────────────
 
 const ALL_PERSONS=[{label:'1st',idx:0},{label:'2nd',idx:1},{label:'3rd',idx:2}];
 const ALL_TENSES=[{label:'Present',key:'pres'},{label:'Future',key:'fut'},{label:'Imperative',key:'imp',imperative:true}];
@@ -748,7 +573,9 @@ let currentVerb=0, verbPersons=shuffle(ALL_PERSONS), verbTenses=shuffle(ALL_TENS
 
 function setVerb(idx){
   currentVerb=idx;
-  document.querySelectorAll('#panel-verb .sel-btn').forEach((b,i)=>b.classList.toggle('active',i===idx));
+  document.querySelectorAll('#verbSelectors .sel-btn').forEach(b=>b.classList.remove('active'));
+  const allBtns=document.querySelectorAll('#verbSelectors .sel-btn');
+  allBtns[idx] && allBtns[idx].classList.add('active');
   document.getElementById('verbDisplay').textContent=verbs[idx].display;
   document.getElementById('verbMeaning').textContent=verbs[idx].meaning+' — '+verbs[idx].conj;
   verbPersons=shuffle(ALL_PERSONS); verbTenses=shuffle(ALL_TENSES);
@@ -756,6 +583,7 @@ function setVerb(idx){
 }
 
 function buildVerbTable(){
+  if(!verbs.length) return;
   const table=document.getElementById('verbTable'); table.innerHTML='';
   const thead=document.createElement('thead'),hr=document.createElement('tr');
   ['Person / Form','Singular','Plural'].forEach(h=>{const th=document.createElement('th');th.textContent=h;hr.appendChild(th);});
@@ -767,10 +595,9 @@ function buildVerbTable(){
     st.textContent=t.imperative?'Imperative (2nd person)':t.label+' Tense';
     sr.appendChild(st);tbody.appendChild(sr);
     if(t.imperative){
-      // Imperative: just one row, singular and plural
       const tr=document.createElement('tr');
       const td0=document.createElement('td');td0.className='label';td0.textContent='—';tr.appendChild(td0);
-      ['s','p'].forEach((num,ni)=>{
+      ['s','p'].forEach((num)=>{
         const td=document.createElement('td'),inp=document.createElement('input');
         inp.type='text';inp.autocomplete='off';inp.spellcheck=false;
         inp.dataset.tense='imp';inp.dataset.num=num;inp.dataset.person='imp';
@@ -792,6 +619,10 @@ function buildVerbTable(){
     }
   });
   table.appendChild(tbody);
+  if(!document.getElementById('verbDisplay').textContent && verbs.length){
+    document.getElementById('verbDisplay').textContent=verbs[0].display;
+    document.getElementById('verbMeaning').textContent=verbs[0].meaning+' — '+verbs[0].conj;
+  }
 }
 
 function getVerbAnswer(tense,num,pi){
@@ -830,7 +661,7 @@ function resetVerb(){
   buildVerbTable(); document.getElementById('verbScore').textContent='';
 }
 
-// ── AGREEMENT — QUESTION 1 ───────────────────────────────────────────────────
+// ── AGREEMENT — QUESTION 1 ────────────────────────────────────────────────────
 
 const Q1_ANSWERS = ['case','gender','number'];
 let q1Unlocked = false;
@@ -838,10 +669,8 @@ let q1Unlocked = false;
 function checkQ1(){
   const ids = ['q1a','q1b','q1c'];
   const userVals = ids.map(id => normAgree(document.getElementById(id).value));
-  const correct  = [...Q1_ANSWERS];  // ['case','gender','number']
+  const correct  = [...Q1_ANSWERS];
   const claimed  = [false,false,false];
-
-  // Greedy match (order-independent, no duplicates)
   const matched = userVals.map(uv=>{
     if(!uv) return false;
     for(let ci=0;ci<correct.length;ci++){
@@ -849,20 +678,17 @@ function checkQ1(){
     }
     return false;
   });
-
   const seen={};
   const dup = userVals.map(uv=>{ if(!uv) return false; if(seen[uv]) return true; seen[uv]=true; return false; });
-
   let countCorrect=0;
   ids.forEach((id,i)=>{
     const el=document.getElementById(id);
     el.classList.remove('correct','wrong');
-    if(!userVals[i])           { el.classList.add('wrong'); el.title='Enter one of: case, gender, number'; }
-    else if(dup[i])            { el.classList.add('wrong'); el.title='Duplicate — each property can only appear once'; }
-    else if(matched[i])        { el.classList.add('correct'); countCorrect++; }
-    else                       { el.classList.add('wrong'); el.title='Not one of the three required properties'; }
+    if(!userVals[i])      { el.classList.add('wrong'); el.title='Enter one of: case, gender, number'; }
+    else if(dup[i])       { el.classList.add('wrong'); el.title='Duplicate — each property can only appear once'; }
+    else if(matched[i])   { el.classList.add('correct'); countCorrect++; }
+    else                  { el.classList.add('wrong'); el.title='Not one of the three required properties'; }
   });
-
   const s=document.getElementById('q1Score');
   if(countCorrect===3){
     s.style.color='green';
@@ -885,7 +711,8 @@ function resetQ1(){
 function resetAgreeTab(){
   q1Unlocked=false;
   resetQ1();
-  resetQ2();
+  resetQ2('std');
+  resetQ2('ex');
   document.getElementById('q2Locked').style.display='block';
   document.getElementById('q2Content').style.display='none';
 }
@@ -900,44 +727,7 @@ function unlockQ2(){
   loadAgreePhraseType('ex');
 }
 
-// ── AGREEMENT — QUESTION 2 ───────────────────────────────────────────────────
-
-const agreePhrases = [
-  {phrase:'puella magna',        translation:'"great girl" (subject)',       caseVal:'nominative', gender:'feminine',  number:'singular'},
-  {phrase:'amicus bonus',        translation:'"good friend" (subject)',      caseVal:'nominative', gender:'masculine', number:'singular'},
-  {phrase:'animus malus',        translation:'"bad spirit" (subject)',       caseVal:'nominative', gender:'masculine', number:'singular'},
-  {phrase:'vita bona',           translation:'"good life" (subject)',        caseVal:'nominative', gender:'feminine',  number:'singular'},
-  {phrase:'fama magna',          translation:'"great fame" (subject)',       caseVal:'nominative', gender:'feminine',  number:'singular'},
-  {phrase:'puellam magnam',      translation:'"great girl" (object)',        caseVal:'accusative', gender:'feminine',  number:'singular'},
-  {phrase:'amicum bonum',        translation:'"good friend" (object)',       caseVal:'accusative', gender:'masculine', number:'singular'},
-  {phrase:'vitam malam',         translation:'"bad life" (object)',          caseVal:'accusative', gender:'feminine',  number:'singular'},
-  {phrase:'animum magnum',       translation:'"great spirit" (object)',      caseVal:'accusative', gender:'masculine', number:'singular'},
-  {phrase:'famam bonam',         translation:'"good reputation" (object)',   caseVal:'accusative', gender:'feminine',  number:'singular'},
-  {phrase:'amici boni',          translation:'of a good friend',             caseVal:'genitive',   gender:'masculine', number:'singular'},
-  {phrase:'animi magni',         translation:'of a great spirit',            caseVal:'genitive',   gender:'masculine', number:'singular'},
-  {phrase:'amice bone',          translation:'"O good friend!" (address)',   caseVal:'vocative',   gender:'masculine', number:'singular'},
-  {phrase:'puellas magnas',      translation:'"great girls" (object)',       caseVal:'accusative', gender:'feminine',  number:'plural'},
-  {phrase:'amicos bonos',        translation:'"good friends" (object)',      caseVal:'accusative', gender:'masculine', number:'plural'},
-  {phrase:'animos malos',        translation:'"bad spirits" (object)',       caseVal:'accusative', gender:'masculine', number:'plural'},
-  {phrase:'vitas bonas',         translation:'"good lives" (object)',        caseVal:'accusative', gender:'feminine',  number:'plural'},
-  {phrase:'puellarum magnarum',  translation:'of great girls',               caseVal:'genitive',   gender:'feminine',  number:'plural'},
-  {phrase:'amicorum bonorum',    translation:'of good friends',              caseVal:'genitive',   gender:'masculine', number:'plural'},
-  {phrase:'animorum malorum',    translation:'of bad spirits',               caseVal:'genitive',   gender:'masculine', number:'plural'},
-  {phrase:'vitarum bonarum',     translation:'of good lives',                caseVal:'genitive',   gender:'feminine',  number:'plural'},
-];
-
-// 1st declension masculine exceptions — endings look feminine but gender is masculine
-const agreeExceptions = [
-  {phrase:'poeta magnus',        translation:'"great poet" (subject)',        caseVal:'nominative', gender:'masculine', number:'singular'},
-  {phrase:'poetam malum',        translation:'"bad poet" (object)',           caseVal:'accusative', gender:'masculine', number:'singular'},
-  {phrase:'poetas magnos',       translation:'"great poets" (object)',        caseVal:'accusative', gender:'masculine', number:'plural'},
-  {phrase:'nauta bonus',         translation:'"good sailor" (subject)',       caseVal:'nominative', gender:'masculine', number:'singular'},
-  {phrase:'nautam bonum',        translation:'"good sailor" (object)',        caseVal:'accusative', gender:'masculine', number:'singular'},
-  {phrase:'nautas bonos',        translation:'"good sailors" (object)',       caseVal:'accusative', gender:'masculine', number:'plural'},
-  {phrase:'agricola magnus',     translation:'"great farmer" (subject)',      caseVal:'nominative', gender:'masculine', number:'singular'},
-  {phrase:'agricolam magnum',    translation:'"great farmer" (object)',       caseVal:'accusative', gender:'masculine', number:'singular'},
-  {phrase:'agricolas magnos',    translation:'"great farmers" (object)',      caseVal:'accusative', gender:'masculine', number:'plural'},
-];
+// ── AGREEMENT — QUESTION 2 ────────────────────────────────────────────────────
 
 let agreeQueue=[], agreeIndex=0;
 let agreeExQueue=[], agreeExIndex=0;
@@ -952,7 +742,6 @@ function initAgreeExQueue(){
   agreeExIndex=0;
 }
 
-// Generic helpers — type is 'std' or 'ex'
 function getAgreeItem(type){
   if(type==='ex') return agreeExceptions[agreeExQueue[agreeExIndex]];
   return agreePhrases[agreeQueue[agreeIndex]];
@@ -964,11 +753,8 @@ function getAgreeIds(type){
 }
 
 function loadAgreePhraseType(type){
-  if(type==='ex'){
-    if(agreeExIndex>=agreeExQueue.length) initAgreeExQueue();
-  } else {
-    if(agreeIndex>=agreeQueue.length) initAgreeQueue();
-  }
+  if(type==='ex'){ if(agreeExIndex>=agreeExQueue.length) initAgreeExQueue(); }
+  else            { if(agreeIndex>=agreeQueue.length) initAgreeQueue(); }
   const item=getAgreeItem(type);
   const ids=getAgreeIds(type);
   const total=type==='ex'?agreeExceptions.length:agreePhrases.length;
@@ -983,8 +769,6 @@ function loadAgreePhraseType(type){
   document.getElementById(ids.score).textContent='';
 }
 
-function loadAgreePhrase(){ loadAgreePhraseType('std'); }
-
 function checkQ2(type){
   const item=getAgreeItem(type);
   const ids=getAgreeIds(type);
@@ -997,12 +781,8 @@ function checkQ2(type){
   fields.forEach(f=>{
     const el=document.getElementById(f.id);
     el.classList.remove('correct','wrong');
-    if(normAgree(el.value)===normAgree(f.expected)){
-      el.classList.add('correct'); correct++;
-    } else {
-      el.classList.add('wrong');
-      el.title='Expected: '+f.expected;
-    }
+    if(normAgree(el.value)===normAgree(f.expected)){ el.classList.add('correct'); correct++; }
+    else { el.classList.add('wrong'); el.title='Expected: '+f.expected; }
   });
   const s=document.getElementById(ids.score);
   s.style.color=correct===3?'green':'red';
@@ -1013,8 +793,7 @@ function checkQ2(type){
 function revealQ2(type){
   const item=getAgreeItem(type);
   const ids=getAgreeIds(type);
-  const fields=[{id:ids.case,v:item.caseVal},{id:ids.gender,v:item.gender},{id:ids.number,v:item.number}];
-  fields.forEach(f=>{
+  [{id:ids.case,v:item.caseVal},{id:ids.gender,v:item.gender},{id:ids.number,v:item.number}].forEach(f=>{
     const el=document.getElementById(f.id);
     el.value=f.v; el.classList.remove('wrong'); el.classList.add('correct');
   });
@@ -1041,33 +820,17 @@ function switchTab(tab){
   const panels=['decl','verb','agree'];
   document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',panels[i]===tab));
   panels.forEach(p=>document.getElementById('panel-'+p).classList.toggle('active',p===tab));
-  // Clear everything on every tab switch
   resetDecl();
   resetVerb();
   resetAgreeTab();
 }
 
-// ── INIT ──────────────────────────────────────────────────────────────────────
-buildDeclTable();
-buildVerbTable();
-initAgreeQueue();
-initAgreeExQueue();
-// Q2 stays locked until Q1 is answered correctly
+// ── AUTH HELPERS ──────────────────────────────────────────────────────────────
 
-// ── SUPABASE ──────────────────────────────────────────────────────────────────
-
-const SUPA_URL = 'https://khnxvlrmcphunibmldwb.supabase.co';
-const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtobnh2bHJtY3BodW5pYm1sZHdiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NDg1NDYsImV4cCI6MjA5MzAyNDU0Nn0.iAWaYsb8TmLk5hempPxIX6Rinr6hLOwyaWu6_TONd24';
-const supa = supabase.createClient(SUPA_URL, SUPA_KEY);
-
-let currentUser = null;
-
-// On load — check if already logged in
 supa.auth.getSession().then(({ data: { session } }) => {
   if (session) handleSession(session);
 });
 
-// Listen for auth state changes (login, logout, token refresh)
 supa.auth.onAuthStateChange((_event, session) => {
   if (session) { handleSession(session); }
   else         { handleSignOut(); }
@@ -1088,8 +851,6 @@ function handleSignOut() {
   document.getElementById('authLoggedIn').style.display  = 'none';
   document.getElementById('authUserName').textContent     = '';
 }
-
-// ── AUTH MODAL HELPERS ────────────────────────────────────────────────────────
 
 function showAuthModal(view) {
   showView(view || 'login');
@@ -1113,7 +874,6 @@ function showView(v) {
 }
 
 function setAuthMsg(msg, isOk) {
-  // There's one authMsg element — make sure it's in the active view
   const el = document.getElementById('authMsg');
   el.textContent = msg;
   el.className = isOk ? 'ok' : '';
@@ -1124,8 +884,6 @@ function clearAuthMsg() {
   document.getElementById('authMsg').className = '';
 }
 
-// ── AUTH ACTIONS ──────────────────────────────────────────────────────────────
-
 async function doLogin() {
   const email    = document.getElementById('loginEmail').value.trim();
   const password = document.getElementById('loginPassword').value;
@@ -1133,7 +891,6 @@ async function doLogin() {
   setAuthMsg('Signing in…', true);
   const { error } = await supa.auth.signInWithPassword({ email, password });
   if (error) { setAuthMsg(error.message); }
-  // success handled by onAuthStateChange
 }
 
 async function doRegister() {
@@ -1149,13 +906,8 @@ async function doRegister() {
     options: { data: { display_name: name } }
   });
   if (error) { setAuthMsg(error.message); return; }
-  // Create profile row
   if (data.user) {
-    await supa.from('profiles').upsert({
-      id: data.user.id,
-      display_name: name,
-      role: 'student'
-    });
+    await supa.from('profiles').upsert({ id: data.user.id, display_name: name, role: 'student' });
   }
   showView('confirm');
 }
@@ -1185,6 +937,9 @@ async function saveScore(tab, drillName, correct, total) {
     total
   });
 }
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+loadDrillData();
 
 </script>
 </body>
