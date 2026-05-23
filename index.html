@@ -84,6 +84,20 @@
   .agree-locked { text-align: center; color: #aaa; font-size: 0.9rem; padding: 16px 0; }
   .agree-counter { text-align: right; font-size: 0.78rem; color: #555; margin-bottom: 6px; }
 
+  /* ── Fallback banner ─────────────────────────────────── */
+  #fallbackBanner {
+    display: none;
+    background: #fff3cd;
+    border: 1px solid #c9840a;
+    border-radius: 4px;
+    padding: 10px 16px;
+    margin-bottom: 16px;
+    font-size: 0.85rem;
+    color: #5a3e00;
+    line-height: 1.5;
+  }
+  #fallbackBanner strong { color: #8b4800; }
+
   /* ── Auth bar ───────────────────────────────────────── */
   #authBar { position: fixed; top: 12px; right: 16px; z-index: 200; display: flex; align-items: center; gap: 8px; }
   #authUserName { font-size: 0.8rem; color: #555; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -162,6 +176,18 @@
     </div>
   </div>
 </div>
+
+<!-- ── NETLIFY NOTIFICATION FORM (hidden, background submit) ── -->
+<form name="db-offline-alert" netlify netlify-honeypot="bot-field" hidden>
+  <input type="hidden" name="form-name" value="db-offline-alert">
+  <input type="hidden" name="bot-field">
+  <input type="hidden" name="message">
+  <input type="hidden" name="timestamp">
+  <input type="hidden" name="hostname">
+</form>
+
+<!-- ── FALLBACK BANNER (shown when running on local data) ── -->
+<div id="fallbackBanner"></div>
 
 <!-- ── LOADING SCREEN ────────────────────────────────────── -->
 <div id="loadingScreen">
@@ -274,7 +300,7 @@
 </div><!-- end panel-agree -->
 
 <footer>
-  &copy; Copyright 2026 Dan Berge. All rights reserved. &mdash; v1.5
+  &copy; Copyright 2026 Dan Berge. All rights reserved. &mdash; v1.6
 </footer>
 
 </div><!-- end appContent -->
@@ -328,15 +354,133 @@ function normAgree(s) {
 
 // ── DATA LOADING ──────────────────────────────────────────────────────────────
 
+// ── FALLBACK DATA ─────────────────────────────────────────────────────────────
+// Used if Supabase is unreachable. Matches the database content exactly.
+
+const FALLBACK_WORDS = [
+  {display:'magnus / magna / magnum',meaning:'Adj. — great, large',noun:false,note:null,data:{s:{Nominative:['magnus','magna','magnum'],Genitive:['magni','magnae','magni'],Dative:['magno','magnae','magno'],Accusative:['magnum','magnam','magnum'],Ablative:['magno','magna','magno'],Vocative:['magne','magna','magnum']},p:{Nominative:['magni','magnae','magna'],Genitive:['magnorum','magnarum','magnorum'],Dative:['magnis','magnis','magnis'],Accusative:['magnos','magnas','magna'],Ablative:['magnis','magnis','magnis'],Vocative:['magni','magnae','magna']}}},
+  {display:'bonus / bona / bonum',meaning:'Adj. — good',noun:false,note:null,data:{s:{Nominative:['bonus','bona','bonum'],Genitive:['boni','bonae','boni'],Dative:['bono','bonae','bono'],Accusative:['bonum','bonam','bonum'],Ablative:['bono','bona','bono'],Vocative:['bone','bona','bonum']},p:{Nominative:['boni','bonae','bona'],Genitive:['bonorum','bonarum','bonorum'],Dative:['bonis','bonis','bonis'],Accusative:['bonos','bonas','bona'],Ablative:['bonis','bonis','bonis'],Vocative:['boni','bonae','bona']}}},
+  {display:'malus / mala / malum',meaning:'Adj. — bad, evil',noun:false,note:null,data:{s:{Nominative:['malus','mala','malum'],Genitive:['mali','malae','mali'],Dative:['malo','malae','malo'],Accusative:['malum','malam','malum'],Ablative:['malo','mala','malo'],Vocative:['male','mala','malum']},p:{Nominative:['mali','malae','mala'],Genitive:['malorum','malarum','malorum'],Dative:['malis','malis','malis'],Accusative:['malos','malas','mala'],Ablative:['malis','malis','malis'],Vocative:['mali','malae','mala']}}},
+  {display:'multus / multa / multum',meaning:'Adj. — much, many',noun:false,note:null,data:{s:{Nominative:['multus','multa','multum'],Genitive:['multi','multae','multi'],Dative:['multo','multae','multo'],Accusative:['multum','multam','multum'],Ablative:['multo','multa','multo'],Vocative:['multe','multa','multum']},p:{Nominative:['multi','multae','multa'],Genitive:['multorum','multarum','multorum'],Dative:['multis','multis','multis'],Accusative:['multos','multas','multa'],Ablative:['multis','multis','multis'],Vocative:['multi','multae','multa']}}},
+  {display:'filius, filii',meaning:'n. (m) — son; 2nd declension',noun:true,note:'Exception: -ius nouns contract the vocative singular to -i (not -ie). All other endings are standard.',data:{s:{Nominative:'filius',Genitive:'filii',Dative:'filio',Accusative:'filium',Ablative:'filio',Vocative:'fili'},p:{Nominative:'filii',Genitive:'filiorum',Dative:'filiis',Accusative:'filios',Ablative:'filiis',Vocative:'filii'}}},
+  {display:'puer, pueri',meaning:'n. (m) — boy; 2nd declension -er (stem keeps -e-)',noun:true,note:'Exception: -er nouns look irregular in the nominative but follow standard 2nd declension endings. Puer keeps the -e- throughout — check the genitive (pueri) to find the true stem.',data:{s:{Nominative:'puer',Genitive:'pueri',Dative:'puero',Accusative:'puerum',Ablative:'puero',Vocative:'puer'},p:{Nominative:'pueri',Genitive:'puerorum',Dative:'pueris',Accusative:'pueros',Ablative:'pueris',Vocative:'pueri'}}},
+  {display:'ager, agri',meaning:'n. (m) — field; 2nd declension -er (stem drops -e-)',noun:true,note:'Exception: like puer, but ager drops the -e- after the nominative — the stem is agr-, not ager-. Always check the genitive to identify the true stem.',data:{s:{Nominative:'ager',Genitive:'agri',Dative:'agro',Accusative:'agrum',Ablative:'agro',Vocative:'ager'},p:{Nominative:'agri',Genitive:'agrorum',Dative:'agris',Accusative:'agros',Ablative:'agris',Vocative:'agri'}}},
+  {display:'poeta, poetae',meaning:'n. (m) — poet; 1st declension',noun:true,note:'Exception: poeta follows 1st declension endings (like puella) but is grammatically masculine. Its adjectives must take masculine forms — e.g. poeta magnus, not poeta magna.',data:{s:{Nominative:'poeta',Genitive:'poetae',Dative:'poetae',Accusative:'poetam',Ablative:'poeta',Vocative:'poeta'},p:{Nominative:'poetae',Genitive:'poetarum',Dative:'poetis',Accusative:'poetas',Ablative:'poetis',Vocative:'poetae'}}},
+  {display:'nauta, nautae',meaning:'n. (m) — sailor; 1st declension',noun:true,note:'Exception: nauta follows 1st declension endings but is grammatically masculine — adjectives agree in masculine forms. Same pattern as poeta and agricola.',data:{s:{Nominative:'nauta',Genitive:'nautae',Dative:'nautae',Accusative:'nautam',Ablative:'nauta',Vocative:'nauta'},p:{Nominative:'nautae',Genitive:'nautarum',Dative:'nautis',Accusative:'nautas',Ablative:'nautis',Vocative:'nautae'}}},
+  {display:'agricola, agricolae',meaning:'n. (m) — farmer; 1st declension',noun:true,note:'Exception: agricola follows 1st declension endings but is grammatically masculine — adjectives agree in masculine forms. Same pattern as poeta and nauta.',data:{s:{Nominative:'agricola',Genitive:'agricolae',Dative:'agricolae',Accusative:'agricolam',Ablative:'agricola',Vocative:'agricola'},p:{Nominative:'agricolae',Genitive:'agricolarum',Dative:'agricolis',Accusative:'agricolas',Ablative:'agricolis',Vocative:'agricolae'}}},
+];
+
+const FALLBACK_VERBS = [
+  {display:'esse',meaning:'to be',conj:'(irregular)',pres:['sum','es','est','sumus','estis','sunt'],fut:['ero','eris','erit','erimus','eritis','erunt'],imp:['es','este']},
+  {display:'amare',meaning:'to love',conj:'1st conjugation',pres:['amo','amas','amat','amamus','amatis','amant'],fut:['amabo','amabis','amabit','amabimus','amabitis','amabunt'],imp:['ama','amate']},
+  {display:'laudare',meaning:'to praise',conj:'1st conjugation',pres:['laudo','laudas','laudat','laudamus','laudatis','laudant'],fut:['laudabo','laudabis','laudabit','laudabimus','laudabitis','laudabunt'],imp:['lauda','laudate']},
+  {display:'portare',meaning:'to carry',conj:'1st conjugation',pres:['porto','portas','portat','portamus','portatis','portant'],fut:['portabo','portabis','portabit','portabimus','portabitis','portabunt'],imp:['porta','portate']},
+  {display:'dare',meaning:'to give',conj:'1st conj. (irregular stem)',pres:['do','das','dat','damus','datis','dant'],fut:['dabo','dabis','dabit','dabimus','dabitis','dabunt'],imp:['da','date']},
+  {display:'monere',meaning:'to warn, advise',conj:'2nd conjugation',pres:['moneo','mones','monet','monemus','monetis','monent'],fut:['monebo','monebis','monebit','monebimus','monebitis','monebunt'],imp:['mone','monete']},
+  {display:'videre',meaning:'to see',conj:'2nd conjugation',pres:['video','vides','videt','videmus','videtis','vident'],fut:['videbo','videbis','videbit','videbimus','videbitis','videbunt'],imp:['vide','videte']},
+  {display:'habere',meaning:'to have',conj:'2nd conjugation',pres:['habeo','habes','habet','habemus','habetis','habent'],fut:['habebo','habebis','habebit','habebimus','habebitis','habebunt'],imp:['habe','habete']},
+];
+
+const FALLBACK_AGREE = [
+  {phrase:'puella magna',translation:'"great girl" (subject)',caseVal:'nominative',gender:'feminine',number:'singular'},
+  {phrase:'amicus bonus',translation:'"good friend" (subject)',caseVal:'nominative',gender:'masculine',number:'singular'},
+  {phrase:'animus malus',translation:'"bad spirit" (subject)',caseVal:'nominative',gender:'masculine',number:'singular'},
+  {phrase:'vita bona',translation:'"good life" (subject)',caseVal:'nominative',gender:'feminine',number:'singular'},
+  {phrase:'fama magna',translation:'"great fame" (subject)',caseVal:'nominative',gender:'feminine',number:'singular'},
+  {phrase:'puellam magnam',translation:'"great girl" (object)',caseVal:'accusative',gender:'feminine',number:'singular'},
+  {phrase:'amicum bonum',translation:'"good friend" (object)',caseVal:'accusative',gender:'masculine',number:'singular'},
+  {phrase:'vitam malam',translation:'"bad life" (object)',caseVal:'accusative',gender:'feminine',number:'singular'},
+  {phrase:'animum magnum',translation:'"great spirit" (object)',caseVal:'accusative',gender:'masculine',number:'singular'},
+  {phrase:'famam bonam',translation:'"good reputation" (object)',caseVal:'accusative',gender:'feminine',number:'singular'},
+  {phrase:'amici boni',translation:'of a good friend',caseVal:'genitive',gender:'masculine',number:'singular'},
+  {phrase:'animi magni',translation:'of a great spirit',caseVal:'genitive',gender:'masculine',number:'singular'},
+  {phrase:'amice bone',translation:'"O good friend!" (address)',caseVal:'vocative',gender:'masculine',number:'singular'},
+  {phrase:'puellas magnas',translation:'"great girls" (object)',caseVal:'accusative',gender:'feminine',number:'plural'},
+  {phrase:'amicos bonos',translation:'"good friends" (object)',caseVal:'accusative',gender:'masculine',number:'plural'},
+  {phrase:'animos malos',translation:'"bad spirits" (object)',caseVal:'accusative',gender:'masculine',number:'plural'},
+  {phrase:'vitas bonas',translation:'"good lives" (object)',caseVal:'accusative',gender:'feminine',number:'plural'},
+  {phrase:'puellarum magnarum',translation:'of great girls',caseVal:'genitive',gender:'feminine',number:'plural'},
+  {phrase:'amicorum bonorum',translation:'of good friends',caseVal:'genitive',gender:'masculine',number:'plural'},
+  {phrase:'animorum malorum',translation:'of bad spirits',caseVal:'genitive',gender:'masculine',number:'plural'},
+  {phrase:'vitarum bonarum',translation:'of good lives',caseVal:'genitive',gender:'feminine',number:'plural'},
+];
+
+const FALLBACK_AGREE_EX = [
+  {phrase:'poeta magnus',translation:'"great poet" (subject)',caseVal:'nominative',gender:'masculine',number:'singular'},
+  {phrase:'poetam malum',translation:'"bad poet" (object)',caseVal:'accusative',gender:'masculine',number:'singular'},
+  {phrase:'poetas magnos',translation:'"great poets" (object)',caseVal:'accusative',gender:'masculine',number:'plural'},
+  {phrase:'nauta bonus',translation:'"good sailor" (subject)',caseVal:'nominative',gender:'masculine',number:'singular'},
+  {phrase:'nautam bonum',translation:'"good sailor" (object)',caseVal:'accusative',gender:'masculine',number:'singular'},
+  {phrase:'nautas bonos',translation:'"good sailors" (object)',caseVal:'accusative',gender:'masculine',number:'plural'},
+  {phrase:'agricola magnus',translation:'"great farmer" (subject)',caseVal:'nominative',gender:'masculine',number:'singular'},
+  {phrase:'agricolam magnum',translation:'"great farmer" (object)',caseVal:'accusative',gender:'masculine',number:'singular'},
+  {phrase:'agricolas magnos',translation:'"great farmers" (object)',caseVal:'accusative',gender:'masculine',number:'plural'},
+];
+
+// ── FALLBACK NOTIFICATION ─────────────────────────────────────────────────────
+
+async function notifyDatabaseOffline(errorMsg) {
+  const banner = document.getElementById('fallbackBanner');
+  const hostname = window.location.hostname;
+  const isNetlify = hostname.endsWith('netlify.app') || hostname === 'latin-drill.netlify.app';
+  const timestamp = new Date().toISOString();
+
+  if (!isNetlify) {
+    banner.innerHTML = '<strong>⚠ Running on local data.</strong> The database is unreachable. Email notification unavailable (not running on Netlify). Error: ' + errorMsg;
+    banner.style.display = 'block';
+    return;
+  }
+
+  // Attempt Netlify Forms submission
+  try {
+    const formData = new FormData();
+    formData.append('form-name', 'db-offline-alert');
+    formData.append('message', 'Latina Exercitia database is offline. Error: ' + errorMsg);
+    formData.append('timestamp', timestamp);
+    formData.append('hostname', hostname);
+
+    const res = await fetch('/', { method: 'POST', body: formData });
+
+    if (res.ok) {
+      banner.innerHTML = '<strong>⚠ Running on local data.</strong> The database is unreachable — all drills are available but new content will not appear and scores will not be saved. You have been notified by email.';
+    } else {
+      banner.innerHTML = '<strong>⚠ Running on local data.</strong> The database is unreachable. Email notification failed (form submission returned ' + res.status + ').';
+    }
+  } catch (e) {
+    banner.innerHTML = '<strong>⚠ Running on local data.</strong> The database is unreachable. Email notification failed (' + e.message + ').';
+  }
+
+  banner.style.display = 'block';
+}
+
+// ── DATA LOADING ──────────────────────────────────────────────────────────────
+
+function loadFallbackData() {
+  words = FALLBACK_WORDS;
+  verbs = FALLBACK_VERBS;
+  agreePhrases = FALLBACK_AGREE;
+  agreeExceptions = FALLBACK_AGREE_EX;
+}
+
 async function loadDrillData() {
   const { data, error } = await supa
     .from('drills')
     .select('*')
     .order('id');
 
-  if (error || !data) {
-    document.getElementById('loadingScreen').innerHTML =
-      '<p style="color:red;">Failed to load drill data. Please refresh the page.</p>';
+  if (error || !data || data.length === 0) {
+    const errMsg = error ? error.message : 'No data returned';
+    loadFallbackData();
+    await notifyDatabaseOffline(errMsg);
+    // Continue to initialise with fallback data
+    buildDeclSelectors();
+    buildVerbSelectors();
+    buildDeclTable();
+    buildVerbTable();
+    initAgreeQueue();
+    initAgreeExQueue();
+    document.getElementById('loadingScreen').style.display = 'none';
+    document.getElementById('appContent').style.display = 'block';
     return;
   }
 
