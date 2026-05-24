@@ -623,11 +623,10 @@ let currentWord=0, declCases=shuffle(ALL_CASES), declGenders=shuffle(ALL_GENDERS
 
 function setWord(idx){
   currentWord=idx;
-  document.querySelectorAll('#declSelectors .sel-btn').forEach(b => b.classList.remove('active'));
-  // Find and activate the right button
-  const allBtns = document.querySelectorAll('#declSelectors .sel-btn');
-  const standardCount = words.filter(w => !w.noun).length;
-  allBtns[idx] && allBtns[idx].classList.add('active');
+  const label = words[idx].display.split('/')[0].trim().split(',')[0].trim();
+  document.querySelectorAll('#declSelectors .sel-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.textContent.trim() === label);
+  });
   document.getElementById('wordDisplay').textContent=words[idx].display;
   document.getElementById('wordMeaning').textContent=words[idx].meaning;
   const noteEl=document.getElementById('declNote');
@@ -731,9 +730,10 @@ function buildVerbTenses(verb) {
 
 function setVerb(idx){
   currentVerb=idx;
-  document.querySelectorAll('#verbSelectors .sel-btn').forEach(b=>b.classList.remove('active'));
-  const allBtns=document.querySelectorAll('#verbSelectors .sel-btn');
-  allBtns[idx] && allBtns[idx].classList.add('active');
+  // Highlight by matching display name, not array position
+  document.querySelectorAll('#verbSelectors .sel-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.textContent.trim() === verbs[idx].display);
+  });
   document.getElementById('verbDisplay').textContent=verbs[idx].display;
   document.getElementById('verbMeaning').textContent=verbs[idx].meaning+' — '+verbs[idx].conj;
   verbPersons=shuffle(ALL_PERSONS);
