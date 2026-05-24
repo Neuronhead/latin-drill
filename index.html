@@ -300,7 +300,7 @@
 </div><!-- end panel-agree -->
 
 <footer>
-  &copy; Copyright 2026 Dan Berge. All rights reserved. &mdash; v1.6
+  &copy; Copyright 2026 Dan Berge. All rights reserved. &mdash; v1.7
 </footer>
 
 </div><!-- end appContent -->
@@ -475,6 +475,7 @@ async function loadDrillData() {
     // Continue to initialise with fallback data
     buildDeclSelectors();
     buildVerbSelectors();
+    verbTenses = buildVerbTenses(verbs[0]);
     buildDeclTable();
     buildVerbTable();
     initAgreeQueue();
@@ -504,9 +505,11 @@ async function loadDrillData() {
     display: d.content.display,
     meaning: d.content.meaning,
     conj:    d.content.conjugation_class,
+    forms:   d.content.forms,
+    // legacy flat keys for fallback compatibility
     pres:    d.content.forms.present,
     fut:     d.content.forms.future,
-    imp:     d.content.forms.imperative,
+    imp:     d.content.forms.imperative || null,
   }));
 
   agreePhrases   = agreeRows.filter(d => !d.content.is_exception).map(d => ({
@@ -532,6 +535,7 @@ async function loadDrillData() {
   buildVerbSelectors();
 
   // Initialise drills
+  verbTenses = buildVerbTenses(verbs[0]);
   buildDeclTable();
   buildVerbTable();
   initAgreeQueue();
@@ -712,8 +716,18 @@ function resetDecl(){
 // ── VERB LOGIC ────────────────────────────────────────────────────────────────
 
 const ALL_PERSONS=[{label:'1st',idx:0},{label:'2nd',idx:1},{label:'3rd',idx:2}];
-const ALL_TENSES=[{label:'Present',key:'pres'},{label:'Future',key:'fut'},{label:'Imperative',key:'imp',imperative:true}];
-let currentVerb=0, verbPersons=shuffle(ALL_PERSONS), verbTenses=shuffle(ALL_TENSES);
+// Tenses built dynamically per verb — see buildVerbTenses()
+let currentVerb=0, verbPersons=shuffle(ALL_PERSONS), verbTenses=[];
+
+function buildVerbTenses(verb) {
+  const forms = verb.forms || {};
+  const tenses = [];
+  if (forms.present)    tenses.push({label:'Present',   key:'pres', imperative:false});
+  if (forms.future)     tenses.push({label:'Future',    key:'fut',  imperative:false});
+  if (forms.imperfect)  tenses.push({label:'Imperfect', key:'impf', imperative:false});
+  if (forms.imperative) tenses.push({label:'Imperative',key:'imp',  imperative:true});
+  return shuffle(tenses);
+}
 
 function setVerb(idx){
   currentVerb=idx;
@@ -722,7 +736,8 @@ function setVerb(idx){
   allBtns[idx] && allBtns[idx].classList.add('active');
   document.getElementById('verbDisplay').textContent=verbs[idx].display;
   document.getElementById('verbMeaning').textContent=verbs[idx].meaning+' — '+verbs[idx].conj;
-  verbPersons=shuffle(ALL_PERSONS); verbTenses=shuffle(ALL_TENSES);
+  verbPersons=shuffle(ALL_PERSONS);
+  verbTenses=buildVerbTenses(verbs[idx]);
   buildVerbTable(); document.getElementById('verbScore').textContent='';
 }
 
@@ -770,11 +785,14 @@ function buildVerbTable(){
 }
 
 function getVerbAnswer(tense,num,pi){
+  const v = verbs[currentVerb];
   if(tense==='imp'){
-    return num==='s'?verbs[currentVerb].imp[0]:verbs[currentVerb].imp[1];
+    return num==='s' ? v.imp[0] : v.imp[1];
   }
-  const arr=tense==='pres'?verbs[currentVerb].pres:verbs[currentVerb].fut;
-  return num==='s'?arr[pi]:arr[pi+3];
+  const keyMap = {pres:'present', fut:'future', impf:'imperfect'};
+  const arr = v.forms ? v.forms[keyMap[tense]] : (tense==='pres' ? v.pres : v.fut);
+  if(!arr) return '';
+  return num==='s' ? arr[pi] : arr[pi+3];
 }
 
 function checkVerb(){
@@ -801,7 +819,8 @@ function revealVerb(){
 }
 
 function resetVerb(){
-  verbPersons=shuffle(ALL_PERSONS); verbTenses=shuffle(ALL_TENSES);
+  verbPersons=shuffle(ALL_PERSONS);
+  verbTenses=buildVerbTenses(verbs[currentVerb]);
   buildVerbTable(); document.getElementById('verbScore').textContent='';
 }
 
