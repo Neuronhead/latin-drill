@@ -218,6 +218,7 @@
   <div class="buttons">
     <button class="primary"   onclick="checkDecl()">Check Answers</button>
     <button class="secondary" onclick="revealDecl()">Show Answers</button>
+    <button class="secondary" id="undoDeclBtn" onclick="undoDecl()" style="display:none;" title="Restore your previous answers">Undo</button>
     <button class="secondary" onclick="resetDecl()">Clear &amp; Shuffle</button>
   </div>
   <div class="score" id="declScore"></div>
@@ -233,6 +234,7 @@
   <div class="buttons">
     <button class="primary"   onclick="checkVerb()">Check Answers</button>
     <button class="secondary" onclick="revealVerb()">Show Answers</button>
+    <button class="secondary" id="undoVerbBtn" onclick="undoVerb()" style="display:none;" title="Restore your previous answers">Undo</button>
     <button class="secondary" onclick="resetVerb()">Clear &amp; Shuffle</button>
   </div>
   <div class="score" id="verbScore"></div>
@@ -272,6 +274,7 @@
         <div class="buttons">
           <button class="primary"   onclick="checkQ2('std')">Check Answers</button>
           <button class="secondary" onclick="revealQ2('std')">Show Answers</button>
+          <button class="secondary" id="undoAgreestdBtn" onclick="undoQ2('std')" style="display:none;" title="Restore your previous answers">Undo</button>
           <button class="secondary" onclick="nextAgree('std')">Next Phrase</button>
           <button class="secondary" onclick="resetQ2('std')">Clear</button>
         </div>
@@ -290,6 +293,7 @@
         <div class="buttons">
           <button class="primary"   onclick="checkQ2('ex')">Check Answers</button>
           <button class="secondary" onclick="revealQ2('ex')">Show Answers</button>
+          <button class="secondary" id="undoAgreeexBtn" onclick="undoQ2('ex')" style="display:none;" title="Restore your previous answers">Undo</button>
           <button class="secondary" onclick="nextAgree('ex')">Next Phrase</button>
           <button class="secondary" onclick="resetQ2('ex')">Clear</button>
         </div>
@@ -300,7 +304,7 @@
 </div><!-- end panel-agree -->
 
 <footer>
-  &copy; Copyright 2026 Dan Berge. All rights reserved. &mdash; v1.7
+  &copy; Copyright 2026 Dan Berge. All rights reserved. &mdash; v1.8
 </footer>
 
 </div><!-- end appContent -->
@@ -615,6 +619,32 @@ function buildVerbSelectors() {
   if (firstBtn) firstBtn.classList.add('active');
 }
 
+// ── UNDO (student answer snapshots) ──────────────────────────────────────────
+
+let declSnapshot = null;
+let verbSnapshot = null;
+let agreeSnapshot = {};
+
+function takeSnapshot(selector) {
+  const snap = {};
+  document.querySelectorAll(selector + ' input').forEach((inp, i) => {
+    snap[i] = { value: inp.value, classes: [...inp.classList] };
+  });
+  return snap;
+}
+
+function applySnapshot(selector, snap, scoreId) {
+  if (!snap) return;
+  document.querySelectorAll(selector + ' input').forEach((inp, i) => {
+    if (snap[i] !== undefined) {
+      inp.value = snap[i].value;
+      inp.classList.remove('correct', 'wrong');
+      snap[i].classes.forEach(c => { if(c==='correct'||c==='wrong') inp.classList.add(c); });
+    }
+  });
+  if (scoreId) document.getElementById(scoreId).textContent = '';
+}
+
 // ── DECLENSION LOGIC ──────────────────────────────────────────────────────────
 
 const ALL_CASES   = ['Nominative','Genitive','Dative','Accusative','Ablative','Vocative'];
@@ -698,6 +728,7 @@ function checkDecl(){
 }
 
 function revealDecl(){
+  declSnapshot = takeSnapshot('#declTable');
   const w=words[currentWord];
   document.querySelectorAll('#declTable input').forEach(inp=>{
     const raw=w.data[inp.dataset.num][inp.dataset.case];
@@ -705,11 +736,22 @@ function revealDecl(){
     inp.classList.remove('wrong');inp.classList.add('correct');
   });
   document.getElementById('declScore').textContent='';
+  document.getElementById('undoDeclBtn').style.display='inline-block';
 }
 
 function resetDecl(){
+  declSnapshot = takeSnapshot('#declTable');
   declCases=shuffle(ALL_CASES); declGenders=shuffle(ALL_GENDERS);
   buildDeclTable(); document.getElementById('declScore').textContent='';
+  document.getElementById('undoDeclBtn').style.display='inline-block';
+}
+
+function undoDecl(){
+  if(!declSnapshot) return;
+  buildDeclTable(); // rebuild same layout
+  applySnapshot('#declTable', declSnapshot, 'declScore');
+  document.getElementById('undoDeclBtn').style.display='none';
+  declSnapshot = null;
 }
 
 // ── VERB LOGIC ────────────────────────────────────────────────────────────────
@@ -811,17 +853,31 @@ function checkVerb(){
 }
 
 function revealVerb(){
+  verbSnapshot = takeSnapshot('#verbTable');
   document.querySelectorAll('#verbTable input').forEach(inp=>{
     inp.value=getVerbAnswer(inp.dataset.tense,inp.dataset.num,parseInt(inp.dataset.person));
     inp.classList.remove('wrong');inp.classList.add('correct');
   });
   document.getElementById('verbScore').textContent='';
+  document.getElementById('undoVerbBtn').style.display='inline-block';
 }
 
 function resetVerb(){
+  verbSnapshot = takeSnapshot('#verbTable');
   verbPersons=shuffle(ALL_PERSONS);
   verbTenses=buildVerbTenses(verbs[currentVerb]);
   buildVerbTable(); document.getElementById('verbScore').textContent='';
+  document.getElementById('undoVerbBtn').style.display='inline-block';
+}
+
+function undoVerb(){
+  if(!verbSnapshot) return;
+  verbPersons=shuffle(ALL_PERSONS);
+  verbTenses=buildVerbTenses(verbs[currentVerb]);
+  buildVerbTable();
+  applySnapshot('#verbTable', verbSnapshot, 'verbScore');
+  document.getElementById('undoVerbBtn').style.display='none';
+  verbSnapshot = null;
 }
 
 // ── AGREEMENT — QUESTION 1 ────────────────────────────────────────────────────
@@ -954,13 +1010,23 @@ function checkQ2(type){
 }
 
 function revealQ2(type){
-  const item=getAgreeItem(type);
   const ids=getAgreeIds(type);
+  agreeSnapshot[type] = {
+    case: document.getElementById(ids.case).value,
+    gender: document.getElementById(ids.gender).value,
+    number: document.getElementById(ids.number).value,
+    caseClass: [...document.getElementById(ids.case).classList],
+    genderClass: [...document.getElementById(ids.gender).classList],
+    numberClass: [...document.getElementById(ids.number).classList],
+  };
+  const item=getAgreeItem(type);
   [{id:ids.case,v:item.caseVal},{id:ids.gender,v:item.gender},{id:ids.number,v:item.number}].forEach(f=>{
     const el=document.getElementById(f.id);
     el.value=f.v; el.classList.remove('wrong'); el.classList.add('correct');
   });
   document.getElementById(ids.score).textContent='';
+  const undoBtn=document.getElementById('undoAgree'+type+'Btn');
+  if(undoBtn) undoBtn.style.display='inline-block';
 }
 
 function nextAgree(type){
@@ -970,11 +1036,37 @@ function nextAgree(type){
 
 function resetQ2(type){
   const ids=getAgreeIds(type);
+  agreeSnapshot[type] = {
+    case: document.getElementById(ids.case).value,
+    gender: document.getElementById(ids.gender).value,
+    number: document.getElementById(ids.number).value,
+    caseClass: [...document.getElementById(ids.case).classList],
+    genderClass: [...document.getElementById(ids.gender).classList],
+    numberClass: [...document.getElementById(ids.number).classList],
+  };
   [ids.case,ids.gender,ids.number].forEach(id=>{
     const el=document.getElementById(id);
     el.value='';el.classList.remove('correct','wrong');el.title='';
   });
   document.getElementById(ids.score).textContent='';
+  const undoBtn=document.getElementById('undoAgree'+type+'Btn');
+  if(undoBtn) undoBtn.style.display='inline-block';
+}
+
+function undoQ2(type){
+  const snap=agreeSnapshot[type];
+  if(!snap) return;
+  const ids=getAgreeIds(type);
+  [{id:ids.case,key:'case'},{id:ids.gender,key:'gender'},{id:ids.number,key:'number'}].forEach(f=>{
+    const el=document.getElementById(f.id);
+    el.value=snap[f.key];
+    el.classList.remove('correct','wrong');
+    snap[f.key+'Class'].forEach(c=>{ if(c==='correct'||c==='wrong') el.classList.add(c); });
+  });
+  document.getElementById(ids.score).textContent='';
+  const undoBtn=document.getElementById('undoAgree'+type+'Btn');
+  if(undoBtn) undoBtn.style.display='none';
+  agreeSnapshot[type]=null;
 }
 
 // ── TAB SWITCHING ─────────────────────────────────────────────────────────────
