@@ -627,19 +627,22 @@ let agreeSnapshot = {};
 
 function takeSnapshot(selector) {
   const snap = {};
-  document.querySelectorAll(selector + ' input').forEach((inp, i) => {
-    snap[i] = { value: inp.value, classes: [...inp.classList] };
+  document.querySelectorAll(selector + ' input').forEach(inp => {
+    // Build a stable key from data attributes so snapshot survives shuffling
+    const key = JSON.stringify(inp.dataset);
+    snap[key] = { value: inp.value, classes: [...inp.classList] };
   });
   return snap;
 }
 
 function applySnapshot(selector, snap, scoreId) {
   if (!snap) return;
-  document.querySelectorAll(selector + ' input').forEach((inp, i) => {
-    if (snap[i] !== undefined) {
-      inp.value = snap[i].value;
+  document.querySelectorAll(selector + ' input').forEach(inp => {
+    const key = JSON.stringify(inp.dataset);
+    if (snap[key] !== undefined) {
+      inp.value = snap[key].value;
       inp.classList.remove('correct', 'wrong');
-      snap[i].classes.forEach(c => { if(c==='correct'||c==='wrong') inp.classList.add(c); });
+      snap[key].classes.forEach(c => { if(c==='correct'||c==='wrong') inp.classList.add(c); });
     }
   });
   if (scoreId) document.getElementById(scoreId).textContent = '';
