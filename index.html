@@ -739,11 +739,12 @@ function revealDecl(){
   document.getElementById('undoDeclBtn').style.display='inline-block';
 }
 
-function resetDecl(){
-  declSnapshot = takeSnapshot('#declTable');
+function resetDecl(silent){
+  if(!silent) declSnapshot = takeSnapshot('#declTable');
   declCases=shuffle(ALL_CASES); declGenders=shuffle(ALL_GENDERS);
   buildDeclTable(); document.getElementById('declScore').textContent='';
-  document.getElementById('undoDeclBtn').style.display='inline-block';
+  if(!silent) document.getElementById('undoDeclBtn').style.display='inline-block';
+  else { document.getElementById('undoDeclBtn').style.display='none'; declSnapshot=null; }
 }
 
 function undoDecl(){
@@ -862,12 +863,13 @@ function revealVerb(){
   document.getElementById('undoVerbBtn').style.display='inline-block';
 }
 
-function resetVerb(){
-  verbSnapshot = takeSnapshot('#verbTable');
+function resetVerb(silent){
+  if(!silent) verbSnapshot = takeSnapshot('#verbTable');
   verbPersons=shuffle(ALL_PERSONS);
   verbTenses=buildVerbTenses(verbs[currentVerb]);
   buildVerbTable(); document.getElementById('verbScore').textContent='';
-  document.getElementById('undoVerbBtn').style.display='inline-block';
+  if(!silent) document.getElementById('undoVerbBtn').style.display='inline-block';
+  else { document.getElementById('undoVerbBtn').style.display='none'; verbSnapshot=null; }
 }
 
 function undoVerb(){
@@ -1075,9 +1077,14 @@ function switchTab(tab){
   const panels=['decl','verb','agree'];
   document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',panels[i]===tab));
   panels.forEach(p=>document.getElementById('panel-'+p).classList.toggle('active',p===tab));
-  resetDecl();
-  resetVerb();
+  resetDecl(true);
+  resetVerb(true);
   resetAgreeTab();
+  // Hide all undo buttons on tab switch
+  ['undoDeclBtn','undoVerbBtn','undoAgreestdBtn','undoAgreeexBtn'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.style.display='none';
+  });
 }
 
 // ── AUTH HELPERS ──────────────────────────────────────────────────────────────
