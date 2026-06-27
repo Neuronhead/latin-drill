@@ -19,13 +19,17 @@
 
 ## Where we're at (quick orientation)
 
-We're working out the **local development + portability foundations** for Latina Exercitia *before* building further features. The app is live (Netlify + hosted Supabase) but **pre-launch — no real users yet**, which makes foundational choices migration-cost-free right now.
+> **How to resume:** read this section + *Next steps* below, from the **canonical repo copy** (`architecture/Latina_Exercitia_Decision_Record.md`). The planning-conversation artifact is only the live view within an active session; the repo copy is the durable status report. This orientation is refreshed at each checkpoint.
 
-**Direction settled:** run the *full Supabase stack locally* (via the Supabase CLI + Docker) for development and as an offline backup, with the hosted cloud as current production and a **self-hosted Supabase on an Azure VM** as the medium-term production target. Switching between all three is the *same software* — mostly a config change, not a migration.
+We're laying the **local development + portability foundations** for Latina Exercitia *before* building further features. The app is live (Netlify + hosted Supabase) but **pre-launch — no real users yet**, so foundational choices are migration-cost-free.
 
-**Guiding principle adopted:** portability and technology-agnosticism *where feasible* — abstract at the data layer, keep authorization logic Postgres-native where possible, stay pragmatic everywhere else. This principle now also covers a **second seam: an AI provider abstraction** (for translation-equivalence reasoning and future AI uses) — same pattern as the database one.
+**Direction settled:** full Supabase stack locally (CLI + Docker) for dev + offline backup; hosted cloud as current production; **self-hosted Supabase on an Azure VM** as medium-term production. All three are the *same software* — switching is mostly config. Portability is pursued via two abstraction seams (`dataProvider.js`, `aiProvider.js`), Postgres-native authorization, and "don't over-abstract."
 
-**Nothing has been built yet this conversation.** Next concrete action is setting up the local Supabase stack (pending Docker status check). The AI work is *architecture-only for now* — reserve the seam; detailed decisions about how AI is used come later (Dan has further efficiency ideas to share over time).
+**Current reality (verified by Claude Code 2026-06-26):** all decisions are *planned, none built*. Codebase is greenfield — zero JS files, Supabase calls inline ×3, hardcoded anon key ×3, no local env, **Docker + Supabase CLI both absent**. The repo schema is **not self-contained** (`profiles`/`scores` undefined), so it can't bootstrap a local DB yet.
+
+**The immediate path (in order):** (1) install Docker Desktop + Supabase CLI → (2) reconstruct `profiles`/`scores` via `supabase db dump` so the schema is self-contained → (3) `supabase start` for the local stack. Everything else (abstractions, config-switch, AI) comes after the local stack stands up. AI work remains *architecture-only* for now.
+
+**Housekeeping done this session:** decision record made canonical in the repo; planning artifact + repo reconciled into one version; documentation-system map drafted (lives in chat until Drive connector recovers).
 
 ---
 
