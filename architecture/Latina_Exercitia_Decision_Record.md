@@ -1,7 +1,7 @@
 # Latina Exercitia — Working Decision Record
 
 > **Living document for this conversation.** Updated as decisions are settled.
-> **Last updated:** 2026-06-26 (current-state section added by Claude Code)
+> **Last updated:** 2026-06-26 (planning artifact + repo copy reconciled into one canonical version)
 >
 > **Source conversation (backlink):** https://claude.ai/chat/74d2bac6-db79-4168-8018-e7197a1c0750
 >
