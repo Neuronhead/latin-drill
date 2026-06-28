@@ -1,13 +1,15 @@
 # Latina Exercitia — Working Decision Record
 
 > **Living document for this conversation.** Updated as decisions are settled.
-> **Last updated:** 2026-06-26 (planning artifact + repo copy reconciled into one canonical version)
+> **Last updated:** 2026-06-26 (editing model changed — Claude Code is sole editor; planning conversation instructs)
 >
 > **Source conversation (backlink):** https://claude.ai/chat/74d2bac6-db79-4168-8018-e7197a1c0750
 >
 > **CANONICAL HOME:** `architecture/Latina_Exercitia_Decision_Record.md` in the GitHub repo (`Neuronhead/latin-drill`). Version-controlled; readable/writable by Claude Code directly; travels with the code.
 >
-> **SOURCE OF TRUTH RULE:** The **repo copy** (above) is the durable source of truth. The **artifact** in the planning conversation is the within-session working surface, reconciled *into* the repo copy at checkpoints via Dan. The **Drive copy** (project working folder) is optional redundancy, not canonical. Changes flow **one direction at a time** — either artifact → repo, or Claude Code → repo → relayed to artifact — never both moving in parallel. A stray copy found anywhere defers to the repo copy.
+> **SOURCE OF TRUTH RULE:** This file in the repo is the **single source of truth**. There is no second living copy. The **Drive copy** (project working folder), if present, is optional redundancy, not canonical; a stray copy found anywhere defers to this one.
+>
+> **EDITING MODEL:** **Claude Code is the sole editor of this document.** The planning conversation contributes by **instruction, not by mirroring text** — it describes what should change ("refresh the orientation," "add a decision about X," "mark item Y done") and Claude Code authors the wording, commits, and pushes. The planning artifact is a within-session working surface only; it is not kept byte-aligned with this file, so no verbatim relay is needed.
 >
 > **Drive locations (redundancy / related):**
 > - Project working folder: https://drive.google.com/drive/folders/1dbR9TolEveN1x2MykTAdTO2-ofG4BpIH — Latina Exercitia working files.
@@ -19,7 +21,7 @@
 
 ## Where we're at (quick orientation)
 
-> **How to resume:** read this section + *Next steps* below, from the **canonical repo copy** (`architecture/Latina_Exercitia_Decision_Record.md`). The planning-conversation artifact is only the live view within an active session; the repo copy is the durable status report. This orientation is refreshed at each checkpoint.
+> **How to resume:** read this section + *Next steps* below — this file is the single source of truth. At session start, Claude Code pastes these two sections back to the planning conversation as the re-sync ritual. This orientation is refreshed at each checkpoint.
 
 We're laying the **local development + portability foundations** for Latina Exercitia *before* building further features. The app is live (Netlify + hosted Supabase) but **pre-launch — no real users yet**, so foundational choices are migration-cost-free.
 
@@ -35,10 +37,11 @@ We're laying the **local development + portability foundations** for Latina Exer
 
 ## Roles & shared-file workflow (brief)
 
-- **Planning conversation (Claude in chat):** architecture, reasoning, decisions. Owns this record's decisions.
-- **Claude Code:** execution, codebase ground truth, issues found during implementation.
-- **Dan:** relays between the two; both update *this document* at checkpoints (not every turn).
-- **Convention:** mark items *exists today* vs. *planned* so the execution side isn't misled. Conflicts found in Code get relayed back and reconciled here.
+- **Planning conversation (Claude in chat):** architecture, reasoning, decisions. Sets direction and *instructs* what this record should say — does not edit the file or mirror its text.
+- **Claude Code:** sole editor of this document; also owns execution, codebase ground truth, and issues found during implementation. Authors the wording, commits, and pushes.
+- **Dan:** relays instructions from the planning conversation to Claude Code (and findings back). No verbatim text is passed in either direction.
+- **Re-sync ritual:** at the start of a session, Claude Code pastes the *Where we're at* + *Next steps* sections back to the planning conversation so both sides share current status.
+- **Convention:** mark items *exists today* vs. *planned* so the execution side isn't misled. Conflicts Claude Code finds in the codebase are recorded here.
 
 ---
 
