@@ -98,7 +98,8 @@ The app calls app-level methods (`getDrillsForChapter(6)`, `saveScore(...)`, `si
 
 ## Next steps (to-do)
 
-- [x] **Install Docker Desktop + Supabase CLI** — confirmed 2026-06-26: *both* absent. Hard gate for local setup.
+- [x] **Confirmed toolchain status (2026-06-26):** Docker Desktop *and* Supabase CLI both absent from the machine.
+- [ ] **Install Docker Desktop + Supabase CLI** — still pending; the **hard gate** before any local setup can begin.
 - [ ] **Reconstruct missing table definitions** (`profiles`, `scores`) — pull from the hosted project via `supabase db dump` so the repo schema is self-contained. **Prerequisite to local stack** — without it, `supabase start` fails.
 - [ ] **Set up the local Supabase stack** (`supabase init` / `supabase start`) — after the two items above.
 - [ ] **Formalize schema as proper migration files** — not just relabeling; current SQL is incremental/incomplete (see Current state). Becomes source of truth once self-contained.
