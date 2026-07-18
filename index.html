@@ -34,6 +34,7 @@
   input:focus { outline: none; border-color: #8b2e0f; background: white; }
   input.correct { background: #d4edda; border-color: green; color: green; font-weight: bold; }
   input.wrong { background: #f8d7da; border-color: red; color: red; }
+  input.corrected { background: #fff3cd; border-color: #b8860b; color: #8a6d00; font-weight: bold; }
 
   .buttons { display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap; }
   .livecheck-label { display: flex; align-items: center; gap: 6px; font-family: Tahoma, Arial, sans-serif; font-size: 0.8rem; color: #8b2e0f; cursor: pointer; user-select: none; }
@@ -78,6 +79,7 @@
   .agree-box input:focus { outline: none; border-color: #8b2e0f; background: white; }
   .agree-box input.correct { background: #d4edda; border-color: green; color: green; font-weight: bold; }
   .agree-box input.wrong   { background: #f8d7da; border-color: red;   color: red; }
+  .agree-box input.corrected { background: #fff3cd; border-color: #b8860b; color: #8a6d00; font-weight: bold; }
   .agree-box input:disabled { background: #f0e8d0; color: #aaa; border-color: #ddd; cursor: not-allowed; }
   .agree-phrase { text-align: center; font-size: 1.5rem; color: #8b2e0f; font-weight: bold; margin: 8px 0 4px; letter-spacing: 0.03em; }
   .agree-phrase-meaning { text-align: center; color: #444; font-size: 0.9rem; margin-bottom: 16px; }
@@ -648,11 +650,70 @@ function applySnapshot(selector, snap, scoreId) {
     const key = JSON.stringify(inp.dataset);
     if (snap[key] !== undefined) {
       inp.value = snap[key].value;
-      inp.classList.remove('correct', 'wrong');
-      snap[key].classes.forEach(c => { if(c==='correct'||c==='wrong') inp.classList.add(c); });
+      inp.classList.remove('correct', 'wrong', 'corrected');
+      snap[key].classes.forEach(c => { if(c==='correct'||c==='wrong'||c==='corrected') inp.classList.add(c); });
     }
   });
   if (scoreId) document.getElementById(scoreId).textContent = '';
+}
+
+// ── LIVE "CHECK AS I GO" ATTEMPT TRACKING ─────────────────────────────────────
+// The first non-empty grading of a field records whether it was right first
+// try. Colours: green = right first try, yellow = right after a miss (or a
+// reveal), red = currently wrong. The saved score counts fields that are
+// correct at finish AND were right on the first attempt.
+const liveAttempts = { decl:{}, verb:{}, q1:{}, q2std:{}, q2ex:{} };
+
+const LIVE_CFG = {
+  decl:  { inputs: ()=>[...document.querySelectorAll('#declTable input')], scoreId:'declScore' },
+  verb:  { inputs: ()=>[...document.querySelectorAll('#verbTable input')], scoreId:'verbScore' },
+  q1:    { inputs: ()=>['q1a','q1b','q1c'].map(id=>document.getElementById(id)), scoreId:'q1Score' },
+  q2std: { inputs: ()=>['q2case','q2gender','q2number'].map(id=>document.getElementById(id)), scoreId:'q2Score' },
+  q2ex:  { inputs: ()=>['q2excase','q2exgender','q2exnumber'].map(id=>document.getElementById(id)), scoreId:'q2ExScore' },
+};
+
+function liveKey(inp){ return inp.id || JSON.stringify(inp.dataset); }
+function liveReset(section){ liveAttempts[section] = {}; }
+function liveAttempted(section, inp){ return liveKey(inp) in liveAttempts[section]; }
+
+function liveMark(section, inp, isCorrect){
+  const map = liveAttempts[section];
+  const key = liveKey(inp);
+  if(!(key in map)) map[key] = isCorrect;
+  inp.classList.remove('correct','wrong','corrected');
+  if(isCorrect) inp.classList.add(map[key] ? 'correct' : 'corrected');
+  else inp.classList.add('wrong');
+}
+
+function liveCounts(section){
+  let green=0, yellow=0, red=0;
+  const ins = LIVE_CFG[section].inputs();
+  ins.forEach(i=>{
+    if(i.classList.contains('correct')) green++;
+    else if(i.classList.contains('corrected')) yellow++;
+    else if(i.classList.contains('wrong')) red++;
+  });
+  return { green, yellow, red, total: ins.length };
+}
+
+function liveScoreLine(section){
+  const c = liveCounts(section);
+  const s = document.getElementById(LIVE_CFG[section].scoreId);
+  s.style.color = '#555';
+  s.textContent = 'First try: '+c.green+' · Corrected: '+c.yellow+' · Wrong: '+c.red+' · Remaining: '+(c.total-c.green-c.yellow-c.red);
+}
+
+// Final sweep for "Finish & Save Score": grade every field (blanks count as
+// missed), report, and return the counts for saving.
+function liveFinish(section, gradeFn){
+  LIVE_CFG[section].inputs().forEach((inp,i)=>gradeFn(inp,i));
+  const c = liveCounts(section);
+  const s = document.getElementById(LIVE_CFG[section].scoreId);
+  s.style.color = c.green===c.total ? 'green' : 'red';
+  s.textContent = c.green===c.total
+    ? 'Optime! '+c.green+'/'+c.total+' right first try.'
+    : c.green+'/'+c.total+' right first try ('+c.yellow+' corrected) — hover red cells to see the expected answer.';
+  return c;
 }
 
 // ── DECLENSION LOGIC ──────────────────────────────────────────────────────────
@@ -673,6 +734,7 @@ function setWord(idx){
   if(words[idx].note){ noteEl.textContent=words[idx].note; noteEl.style.display='block'; }
   else { noteEl.style.display='none'; noteEl.textContent=''; }
   declCases=shuffle(ALL_CASES); declGenders=shuffle(ALL_GENDERS);
+  liveReset('decl');
   buildDeclTable(); document.getElementById('declScore').textContent='';
 }
 
@@ -721,13 +783,22 @@ function buildDeclTable(){
   }
 }
 
+function declAnswer(inp){
+  const raw=words[currentWord].data[inp.dataset.num][inp.dataset.case];
+  return inp.dataset.gi==='noun'?raw:raw[parseInt(inp.dataset.gi)];
+}
+
 function checkDecl(){
+  if(document.getElementById('liveDecl').checked){
+    const c=liveFinish('decl', inp=>checkDeclCell(inp, true));
+    saveScore('declensions', words[currentWord].display, c.green, c.total);
+    return;
+  }
   const inputs=document.querySelectorAll('#declTable input');
-  let correct=0,total=0; const w=words[currentWord];
+  let correct=0,total=0;
   inputs.forEach(inp=>{
-    const raw=w.data[inp.dataset.num][inp.dataset.case];
-    const ans=inp.dataset.gi==='noun'?raw:raw[parseInt(inp.dataset.gi)];
-    inp.classList.remove('correct','wrong'); total++;
+    const ans=declAnswer(inp);
+    inp.classList.remove('correct','wrong','corrected'); total++;
     if(norm(inp.value)===norm(ans)){inp.classList.add('correct');correct++;}
     else{inp.classList.add('wrong');inp.title='Expected: '+ans;}
   });
@@ -737,35 +808,51 @@ function checkDecl(){
   saveScore('declensions', words[currentWord].display, correct, total);
 }
 
-function checkDeclCell(inp){
-  const w=words[currentWord];
-  const raw=w.data[inp.dataset.num][inp.dataset.case];
-  const ans=inp.dataset.gi==='noun'?raw:raw[parseInt(inp.dataset.gi)];
-  inp.classList.remove('correct','wrong');
-  if(!inp.value) { inp.title=''; return; }
-  if(norm(inp.value)===norm(ans)){inp.classList.add('correct');}
-  else{inp.classList.add('wrong');inp.title='Expected: '+ans;}
+function checkDeclCell(inp, finalSweep){
+  const ans=declAnswer(inp);
+  if(!inp.value && !finalSweep && !liveAttempted('decl', inp)){
+    inp.classList.remove('correct','wrong','corrected'); inp.title=''; return;
+  }
+  const ok=norm(inp.value)===norm(ans);
+  liveMark('decl', inp, ok);
+  inp.title = ok ? '' : 'Expected: '+ans;
 }
 
 document.getElementById('declTable').addEventListener('focusout', e=>{
-  if(e.target.tagName==='INPUT' && document.getElementById('liveDecl').checked) checkDeclCell(e.target);
+  if(e.target.tagName==='INPUT' && document.getElementById('liveDecl').checked){
+    checkDeclCell(e.target);
+    liveScoreLine('decl');
+  }
 });
 
 function revealDecl(){
   declSnapshot = takeSnapshot('#declTable');
-  const w=words[currentWord];
+  declSnapshot.liveMap = {...liveAttempts.decl};
+  const live=document.getElementById('liveDecl').checked;
   document.querySelectorAll('#declTable input').forEach(inp=>{
-    const raw=w.data[inp.dataset.num][inp.dataset.case];
-    inp.value=inp.dataset.gi==='noun'?raw:raw[parseInt(inp.dataset.gi)];
-    inp.classList.remove('wrong');inp.classList.add('correct');
+    inp.value=declAnswer(inp);
+    inp.title='';
+    if(live){
+      // Revealed fields earn no first-try credit
+      const key=liveKey(inp);
+      if(!(key in liveAttempts.decl)) liveAttempts.decl[key]=false;
+      liveMark('decl', inp, true);
+    } else {
+      inp.classList.remove('wrong','corrected');inp.classList.add('correct');
+    }
   });
-  document.getElementById('declScore').textContent='';
+  if(live) liveScoreLine('decl');
+  else document.getElementById('declScore').textContent='';
   document.getElementById('undoDeclBtn').style.display='inline-block';
 }
 
 function resetDecl(silent){
-  if(!silent) declSnapshot = takeSnapshot('#declTable');
+  if(!silent){
+    declSnapshot = takeSnapshot('#declTable');
+    declSnapshot.liveMap = {...liveAttempts.decl};
+  }
   declCases=shuffle(ALL_CASES); declGenders=shuffle(ALL_GENDERS);
+  liveReset('decl');
   buildDeclTable(); document.getElementById('declScore').textContent='';
   if(!silent) document.getElementById('undoDeclBtn').style.display='inline-block';
   else { document.getElementById('undoDeclBtn').style.display='none'; declSnapshot=null; }
@@ -775,6 +862,8 @@ function undoDecl(){
   if(!declSnapshot) return;
   buildDeclTable(); // rebuild same layout
   applySnapshot('#declTable', declSnapshot, 'declScore');
+  liveAttempts.decl = declSnapshot.liveMap ? {...declSnapshot.liveMap} : {};
+  if(document.getElementById('liveDecl').checked) liveScoreLine('decl');
   document.getElementById('undoDeclBtn').style.display='none';
   declSnapshot = null;
 }
@@ -805,6 +894,7 @@ function setVerb(idx){
   document.getElementById('verbMeaning').textContent=verbs[idx].meaning+' — '+verbs[idx].conj;
   verbPersons=shuffle(ALL_PERSONS);
   verbTenses=buildVerbTenses(verbs[idx]);
+  liveReset('verb');
   buildVerbTable(); document.getElementById('verbScore').textContent='';
 }
 
@@ -863,11 +953,16 @@ function getVerbAnswer(tense,num,pi){
 }
 
 function checkVerb(){
+  if(document.getElementById('liveVerb').checked){
+    const c=liveFinish('verb', inp=>checkVerbCell(inp, true));
+    saveScore('verbs', verbs[currentVerb].display, c.green, c.total);
+    return;
+  }
   const inputs=document.querySelectorAll('#verbTable input');
   let correct=0,total=0;
   inputs.forEach(inp=>{
     const ans=getVerbAnswer(inp.dataset.tense,inp.dataset.num,parseInt(inp.dataset.person));
-    inp.classList.remove('correct','wrong'); total++;
+    inp.classList.remove('correct','wrong','corrected'); total++;
     if(norm(inp.value)===norm(ans)){inp.classList.add('correct');correct++;}
     else{inp.classList.add('wrong');inp.title='Expected: '+ans;}
   });
@@ -877,32 +972,52 @@ function checkVerb(){
   saveScore('verbs', verbs[currentVerb].display, correct, total);
 }
 
-function checkVerbCell(inp){
+function checkVerbCell(inp, finalSweep){
   const ans=getVerbAnswer(inp.dataset.tense,inp.dataset.num,parseInt(inp.dataset.person));
-  inp.classList.remove('correct','wrong');
-  if(!inp.value) { inp.title=''; return; }
-  if(norm(inp.value)===norm(ans)){inp.classList.add('correct');}
-  else{inp.classList.add('wrong');inp.title='Expected: '+ans;}
+  if(!inp.value && !finalSweep && !liveAttempted('verb', inp)){
+    inp.classList.remove('correct','wrong','corrected'); inp.title=''; return;
+  }
+  const ok=norm(inp.value)===norm(ans);
+  liveMark('verb', inp, ok);
+  inp.title = ok ? '' : 'Expected: '+ans;
 }
 
 document.getElementById('verbTable').addEventListener('focusout', e=>{
-  if(e.target.tagName==='INPUT' && document.getElementById('liveVerb').checked) checkVerbCell(e.target);
+  if(e.target.tagName==='INPUT' && document.getElementById('liveVerb').checked){
+    checkVerbCell(e.target);
+    liveScoreLine('verb');
+  }
 });
 
 function revealVerb(){
   verbSnapshot = takeSnapshot('#verbTable');
+  verbSnapshot.liveMap = {...liveAttempts.verb};
+  const live=document.getElementById('liveVerb').checked;
   document.querySelectorAll('#verbTable input').forEach(inp=>{
     inp.value=getVerbAnswer(inp.dataset.tense,inp.dataset.num,parseInt(inp.dataset.person));
-    inp.classList.remove('wrong');inp.classList.add('correct');
+    inp.title='';
+    if(live){
+      // Revealed fields earn no first-try credit
+      const key=liveKey(inp);
+      if(!(key in liveAttempts.verb)) liveAttempts.verb[key]=false;
+      liveMark('verb', inp, true);
+    } else {
+      inp.classList.remove('wrong','corrected');inp.classList.add('correct');
+    }
   });
-  document.getElementById('verbScore').textContent='';
+  if(live) liveScoreLine('verb');
+  else document.getElementById('verbScore').textContent='';
   document.getElementById('undoVerbBtn').style.display='inline-block';
 }
 
 function resetVerb(silent){
-  if(!silent) verbSnapshot = takeSnapshot('#verbTable');
+  if(!silent){
+    verbSnapshot = takeSnapshot('#verbTable');
+    verbSnapshot.liveMap = {...liveAttempts.verb};
+  }
   verbPersons=shuffle(ALL_PERSONS);
   verbTenses=buildVerbTenses(verbs[currentVerb]);
+  liveReset('verb');
   buildVerbTable(); document.getElementById('verbScore').textContent='';
   if(!silent) document.getElementById('undoVerbBtn').style.display='inline-block';
   else { document.getElementById('undoVerbBtn').style.display='none'; verbSnapshot=null; }
@@ -914,6 +1029,8 @@ function undoVerb(){
   verbTenses=buildVerbTenses(verbs[currentVerb]);
   buildVerbTable();
   applySnapshot('#verbTable', verbSnapshot, 'verbScore');
+  liveAttempts.verb = verbSnapshot.liveMap ? {...verbSnapshot.liveMap} : {};
+  if(document.getElementById('liveVerb').checked) liveScoreLine('verb');
   document.getElementById('undoVerbBtn').style.display='none';
   verbSnapshot = null;
 }
@@ -923,7 +1040,7 @@ function undoVerb(){
 const Q1_ANSWERS = ['case','gender','number'];
 let q1Unlocked = false;
 
-function evaluateQ1(liveMode){
+function evaluateQ1(liveMode, finalSweep){
   const ids = ['q1a','q1b','q1c'];
   const userVals = ids.map(id => normAgree(document.getElementById(id).value));
   const correct  = [...Q1_ANSWERS];
@@ -940,37 +1057,51 @@ function evaluateQ1(liveMode){
   let countCorrect=0;
   ids.forEach((id,i)=>{
     const el=document.getElementById(id);
-    el.classList.remove('correct','wrong');
-    if(liveMode && !userVals[i]) { el.title=''; return; }
-    if(!userVals[i])      { el.classList.add('wrong'); el.title='Enter one of: case, gender, number'; }
-    else if(dup[i])       { el.classList.add('wrong'); el.title='Duplicate — each property can only appear once'; }
-    else if(matched[i])   { el.classList.add('correct'); countCorrect++; }
-    else                  { el.classList.add('wrong'); el.title='Not one of the three required properties'; }
+    const hint = !userVals[i] ? 'Enter one of: case, gender, number'
+               : dup[i]       ? 'Duplicate — each property can only appear once'
+               : matched[i]   ? ''
+               :                'Not one of the three required properties';
+    if(liveMode){
+      if(!userVals[i] && !finalSweep && !liveAttempted('q1', el)){
+        el.classList.remove('correct','wrong','corrected'); el.title=''; return;
+      }
+      liveMark('q1', el, matched[i]);
+      el.title=hint;
+      if(matched[i]) countCorrect++;
+      return;
+    }
+    el.classList.remove('correct','wrong','corrected');
+    if(matched[i]){ el.classList.add('correct'); countCorrect++; }
+    else { el.classList.add('wrong'); }
+    el.title=hint;
   });
   const s=document.getElementById('q1Score');
   if(countCorrect===3){
     s.style.color='green';
     s.textContent='Correct! Now identify those properties in the phrase below.';
     unlockQ2();
-  } else if(!liveMode || userVals.some(v=>v)){
+  } else if(liveMode && !finalSweep){
+    if(Object.keys(liveAttempts.q1).length) liveScoreLine('q1');
+  } else if(!liveMode || finalSweep){
     s.style.color='red';
     s.textContent=countCorrect+'/3 — hover red boxes for hints.';
   }
 }
 
-function checkQ1(){ evaluateQ1(false); }
+function checkQ1(){ evaluateQ1(document.getElementById('liveQ1').checked, true); }
 
 ['q1a','q1b','q1c'].forEach(id=>{
   document.getElementById(id).addEventListener('focusout', ()=>{
-    if(document.getElementById('liveQ1').checked) evaluateQ1(true);
+    if(document.getElementById('liveQ1').checked) evaluateQ1(true, false);
   });
 });
 
 function resetQ1(){
   ['q1a','q1b','q1c'].forEach(id=>{
     const el=document.getElementById(id);
-    el.value='';el.classList.remove('correct','wrong');el.title='';
+    el.value='';el.classList.remove('correct','wrong','corrected');el.title='';
   });
+  liveReset('q1');
   document.getElementById('q1Score').textContent='';
 }
 
@@ -1030,14 +1161,24 @@ function loadAgreePhraseType(type){
   document.getElementById(ids.counter).textContent='Phrase '+(idx+1)+' of '+total;
   [ids.case,ids.gender,ids.number].forEach(id=>{
     const el=document.getElementById(id);
-    el.value='';el.classList.remove('correct','wrong');el.title='';
+    el.value='';el.classList.remove('correct','wrong','corrected');el.title='';
   });
+  liveReset(type==='ex'?'q2ex':'q2std');
   document.getElementById(ids.score).textContent='';
 }
+
+const Q2_KEYS=['case','gender','number'];
+function q2Section(type){ return type==='ex'?'q2ex':'q2std'; }
+function q2LiveBox(type){ return document.getElementById(type==='ex'?'liveQ2ex':'liveQ2std'); }
 
 function checkQ2(type){
   const item=getAgreeItem(type);
   const ids=getAgreeIds(type);
+  if(q2LiveBox(type).checked){
+    const c=liveFinish(q2Section(type), (inp,i)=>checkQ2Cell(type, Q2_KEYS[i], true));
+    saveScore('agreement', (type==='ex'?'exceptions: ':'standard: ')+item.phrase, c.green, c.total);
+    return;
+  }
   const fields=[
     {id:ids.case,   expected:item.caseVal},
     {id:ids.gender, expected:item.gender},
@@ -1046,7 +1187,7 @@ function checkQ2(type){
   let correct=0;
   fields.forEach(f=>{
     const el=document.getElementById(f.id);
-    el.classList.remove('correct','wrong');
+    el.classList.remove('correct','wrong','corrected');
     if(normAgree(el.value)===normAgree(f.expected)){ el.classList.add('correct'); correct++; }
     else { el.classList.add('wrong'); el.title='Expected: '+f.expected; }
   });
@@ -1056,41 +1197,54 @@ function checkQ2(type){
   saveScore('agreement', (type==='ex'?'exceptions: ':'standard: ')+item.phrase, correct, 3);
 }
 
-function checkQ2Cell(type, key){
+function checkQ2Cell(type, key, finalSweep){
   const item=getAgreeItem(type);
   const ids=getAgreeIds(type);
   const idMap = {case: ids.case, gender: ids.gender, number: ids.number};
   const expectedMap = {case: item.caseVal, gender: item.gender, number: item.number};
+  const section=q2Section(type);
   const el=document.getElementById(idMap[key]);
-  el.classList.remove('correct','wrong');
-  if(!el.value) { el.title=''; return; }
-  if(normAgree(el.value)===normAgree(expectedMap[key])){ el.classList.add('correct'); }
-  else { el.classList.add('wrong'); el.title='Expected: '+expectedMap[key]; }
+  if(!el.value && !finalSweep && !liveAttempted(section, el)){
+    el.classList.remove('correct','wrong','corrected'); el.title=''; return;
+  }
+  const ok=normAgree(el.value)===normAgree(expectedMap[key]);
+  liveMark(section, el, ok);
+  el.title = ok ? '' : 'Expected: '+expectedMap[key];
 }
 
 ['std','ex'].forEach(type=>{
   const ids=getAgreeIds(type);
   [['case',ids.case],['gender',ids.gender],['number',ids.number]].forEach(([key,id])=>{
     document.getElementById(id).addEventListener('focusout', ()=>{
-      if(document.getElementById('live'+(type==='ex'?'Q2ex':'Q2std')).checked) checkQ2Cell(type, key);
+      if(q2LiveBox(type).checked){
+        checkQ2Cell(type, key);
+        liveScoreLine(q2Section(type));
+      }
     });
   });
 });
 
-// In live mode the check button's job shifts to catching blanks and saving the score
-[['liveDecl','checkDeclBtn','Finish & Save Score','Check Answers'],
- ['liveVerb','checkVerbBtn','Finish & Save Score','Check Answers'],
- ['liveQ1','checkQ1Btn','Check All','Check'],
- ['liveQ2std','checkQ2stdBtn','Finish & Save Score','Check Answers'],
- ['liveQ2ex','checkQ2exBtn','Finish & Save Score','Check Answers']
-].forEach(([boxId,btnId,liveLabel,normalLabel])=>{
+// In live mode the check button's job shifts to catching blanks and saving the
+// score. Toggling the box starts a fresh attempt history for that section.
+[['liveDecl','checkDeclBtn','decl','Finish & Save Score','Check Answers'],
+ ['liveVerb','checkVerbBtn','verb','Finish & Save Score','Check Answers'],
+ ['liveQ1','checkQ1Btn','q1','Check All','Check'],
+ ['liveQ2std','checkQ2stdBtn','q2std','Finish & Save Score','Check Answers'],
+ ['liveQ2ex','checkQ2exBtn','q2ex','Finish & Save Score','Check Answers']
+].forEach(([boxId,btnId,section,liveLabel,normalLabel])=>{
   document.getElementById(boxId).addEventListener('change', e=>{
     document.getElementById(btnId).textContent = e.target.checked ? liveLabel : normalLabel;
+    liveReset(section);
+    LIVE_CFG[section].inputs().forEach(inp=>{
+      if(inp) { inp.classList.remove('correct','wrong','corrected'); inp.title=''; }
+    });
+    document.getElementById(LIVE_CFG[section].scoreId).textContent='';
   });
 });
 
 function revealQ2(type){
   const ids=getAgreeIds(type);
+  const section=q2Section(type);
   agreeSnapshot[type] = {
     case: document.getElementById(ids.case).value,
     gender: document.getElementById(ids.gender).value,
@@ -1098,13 +1252,24 @@ function revealQ2(type){
     caseClass: [...document.getElementById(ids.case).classList],
     genderClass: [...document.getElementById(ids.gender).classList],
     numberClass: [...document.getElementById(ids.number).classList],
+    liveMap: {...liveAttempts[section]},
   };
   const item=getAgreeItem(type);
+  const live=q2LiveBox(type).checked;
   [{id:ids.case,v:item.caseVal},{id:ids.gender,v:item.gender},{id:ids.number,v:item.number}].forEach(f=>{
     const el=document.getElementById(f.id);
-    el.value=f.v; el.classList.remove('wrong'); el.classList.add('correct');
+    el.value=f.v; el.title='';
+    if(live){
+      // Revealed fields earn no first-try credit
+      const key=liveKey(el);
+      if(!(key in liveAttempts[section])) liveAttempts[section][key]=false;
+      liveMark(section, el, true);
+    } else {
+      el.classList.remove('wrong','corrected'); el.classList.add('correct');
+    }
   });
-  document.getElementById(ids.score).textContent='';
+  if(live) liveScoreLine(section);
+  else document.getElementById(ids.score).textContent='';
   const undoBtn=document.getElementById('undoAgree'+type+'Btn');
   if(undoBtn) undoBtn.style.display='inline-block';
 }
@@ -1116,6 +1281,7 @@ function nextAgree(type){
 
 function resetQ2(type){
   const ids=getAgreeIds(type);
+  const section=q2Section(type);
   agreeSnapshot[type] = {
     case: document.getElementById(ids.case).value,
     gender: document.getElementById(ids.gender).value,
@@ -1123,11 +1289,13 @@ function resetQ2(type){
     caseClass: [...document.getElementById(ids.case).classList],
     genderClass: [...document.getElementById(ids.gender).classList],
     numberClass: [...document.getElementById(ids.number).classList],
+    liveMap: {...liveAttempts[section]},
   };
   [ids.case,ids.gender,ids.number].forEach(id=>{
     const el=document.getElementById(id);
-    el.value='';el.classList.remove('correct','wrong');el.title='';
+    el.value='';el.classList.remove('correct','wrong','corrected');el.title='';
   });
+  liveReset(section);
   document.getElementById(ids.score).textContent='';
   const undoBtn=document.getElementById('undoAgree'+type+'Btn');
   if(undoBtn) undoBtn.style.display='inline-block';
@@ -1137,13 +1305,16 @@ function undoQ2(type){
   const snap=agreeSnapshot[type];
   if(!snap) return;
   const ids=getAgreeIds(type);
+  const section=q2Section(type);
   [{id:ids.case,key:'case'},{id:ids.gender,key:'gender'},{id:ids.number,key:'number'}].forEach(f=>{
     const el=document.getElementById(f.id);
     el.value=snap[f.key];
-    el.classList.remove('correct','wrong');
-    snap[f.key+'Class'].forEach(c=>{ if(c==='correct'||c==='wrong') el.classList.add(c); });
+    el.classList.remove('correct','wrong','corrected');
+    snap[f.key+'Class'].forEach(c=>{ if(c==='correct'||c==='wrong'||c==='corrected') el.classList.add(c); });
   });
-  document.getElementById(ids.score).textContent='';
+  liveAttempts[section] = snap.liveMap ? {...snap.liveMap} : {};
+  if(q2LiveBox(type).checked) liveScoreLine(section);
+  else document.getElementById(ids.score).textContent='';
   const undoBtn=document.getElementById('undoAgree'+type+'Btn');
   if(undoBtn) undoBtn.style.display='none';
   agreeSnapshot[type]=null;
