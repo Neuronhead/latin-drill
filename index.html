@@ -218,7 +218,7 @@
   <div id="declNote" style="display:none; background:#fff8e8; border:1px solid #c9a96e; border-radius:4px; padding:10px 14px; margin-bottom:12px; font-size:0.88rem; color:#333; line-height:1.5;"></div>
   <table id="declTable"></table>
   <div class="buttons">
-    <button class="primary"   onclick="checkDecl()">Check Answers</button>
+    <button class="primary"   id="checkDeclBtn" onclick="checkDecl()">Check Answers</button>
     <button class="secondary" onclick="revealDecl()">Show Answers</button>
     <button class="secondary" id="undoDeclBtn" onclick="undoDecl()" style="display:none;" title="Restore your previous answers">Undo</button>
     <button class="secondary" onclick="resetDecl()">Clear &amp; Shuffle</button>
@@ -235,7 +235,7 @@
   <div class="meaning" id="verbMeaning"></div>
   <table id="verbTable"></table>
   <div class="buttons">
-    <button class="primary"   onclick="checkVerb()">Check Answers</button>
+    <button class="primary"   id="checkVerbBtn" onclick="checkVerb()">Check Answers</button>
     <button class="secondary" onclick="revealVerb()">Show Answers</button>
     <button class="secondary" id="undoVerbBtn" onclick="undoVerb()" style="display:none;" title="Restore your previous answers">Undo</button>
     <button class="secondary" onclick="resetVerb()">Clear &amp; Shuffle</button>
@@ -255,7 +255,7 @@
       <div class="agree-box"><label>&nbsp;</label><input type="text" id="q1c" autocomplete="off" spellcheck="false"></div>
     </div>
     <div class="buttons">
-      <button class="primary"   onclick="checkQ1()">Check</button>
+      <button class="primary"   id="checkQ1Btn" onclick="checkQ1()">Check</button>
       <button class="secondary" onclick="resetQ1()">Clear</button>
       <label class="livecheck-label" title="Check each answer as soon as you leave its field"><input type="checkbox" id="liveQ1">Check as I go</label>
     </div>
@@ -277,7 +277,7 @@
           <div class="agree-box"><label>Number</label><input type="text" id="q2number" autocomplete="off" spellcheck="false"></div>
         </div>
         <div class="buttons">
-          <button class="primary"   onclick="checkQ2('std')">Check Answers</button>
+          <button class="primary"   id="checkQ2stdBtn" onclick="checkQ2('std')">Check Answers</button>
           <button class="secondary" onclick="revealQ2('std')">Show Answers</button>
           <button class="secondary" id="undoAgreestdBtn" onclick="undoQ2('std')" style="display:none;" title="Restore your previous answers">Undo</button>
           <button class="secondary" onclick="nextAgree('std')">Next Phrase</button>
@@ -297,7 +297,7 @@
           <div class="agree-box"><label>Number</label><input type="text" id="q2exnumber" autocomplete="off" spellcheck="false"></div>
         </div>
         <div class="buttons">
-          <button class="primary"   onclick="checkQ2('ex')">Check Answers</button>
+          <button class="primary"   id="checkQ2exBtn" onclick="checkQ2('ex')">Check Answers</button>
           <button class="secondary" onclick="revealQ2('ex')">Show Answers</button>
           <button class="secondary" id="undoAgreeexBtn" onclick="undoQ2('ex')" style="display:none;" title="Restore your previous answers">Undo</button>
           <button class="secondary" onclick="nextAgree('ex')">Next Phrase</button>
@@ -1074,6 +1074,18 @@ function checkQ2Cell(type, key){
     document.getElementById(id).addEventListener('focusout', ()=>{
       if(document.getElementById('live'+(type==='ex'?'Q2ex':'Q2std')).checked) checkQ2Cell(type, key);
     });
+  });
+});
+
+// In live mode the check button's job shifts to catching blanks and saving the score
+[['liveDecl','checkDeclBtn','Finish & Save Score','Check Answers'],
+ ['liveVerb','checkVerbBtn','Finish & Save Score','Check Answers'],
+ ['liveQ1','checkQ1Btn','Check All','Check'],
+ ['liveQ2std','checkQ2stdBtn','Finish & Save Score','Check Answers'],
+ ['liveQ2ex','checkQ2exBtn','Finish & Save Score','Check Answers']
+].forEach(([boxId,btnId,liveLabel,normalLabel])=>{
+  document.getElementById(boxId).addEventListener('change', e=>{
+    document.getElementById(btnId).textContent = e.target.checked ? liveLabel : normalLabel;
   });
 });
 
