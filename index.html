@@ -35,7 +35,9 @@
   input.correct { background: #d4edda; border-color: green; color: green; font-weight: bold; }
   input.wrong { background: #f8d7da; border-color: red; color: red; }
 
-  .buttons { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .buttons { display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap; }
+  .livecheck-label { display: flex; align-items: center; gap: 6px; font-family: Tahoma, Arial, sans-serif; font-size: 0.8rem; color: #8b2e0f; cursor: pointer; user-select: none; }
+  .livecheck-label input[type=checkbox] { width: auto; padding: 0; accent-color: #8b2e0f; cursor: pointer; }
   button.primary { background: #8b2e0f; color: white; border: 2px solid #8b2e0f; padding: 9px 22px; font-family: Tahoma, Arial, sans-serif; font-size: 0.85rem; border-radius: 3px; cursor: pointer; }
   button.secondary { background: white; color: #8b2e0f; border: 2px solid #8b2e0f; padding: 9px 22px; font-family: Tahoma, Arial, sans-serif; font-size: 0.85rem; border-radius: 3px; cursor: pointer; }
   button.primary:hover { background: #6b1e08; }
@@ -220,6 +222,7 @@
     <button class="secondary" onclick="revealDecl()">Show Answers</button>
     <button class="secondary" id="undoDeclBtn" onclick="undoDecl()" style="display:none;" title="Restore your previous answers">Undo</button>
     <button class="secondary" onclick="resetDecl()">Clear &amp; Shuffle</button>
+    <label class="livecheck-label" title="Check each answer as soon as you leave its field"><input type="checkbox" id="liveDecl">Check as I go</label>
   </div>
   <div class="score" id="declScore"></div>
 </div>
@@ -236,6 +239,7 @@
     <button class="secondary" onclick="revealVerb()">Show Answers</button>
     <button class="secondary" id="undoVerbBtn" onclick="undoVerb()" style="display:none;" title="Restore your previous answers">Undo</button>
     <button class="secondary" onclick="resetVerb()">Clear &amp; Shuffle</button>
+    <label class="livecheck-label" title="Check each answer as soon as you leave its field"><input type="checkbox" id="liveVerb">Check as I go</label>
   </div>
   <div class="score" id="verbScore"></div>
 </div>
@@ -253,6 +257,7 @@
     <div class="buttons">
       <button class="primary"   onclick="checkQ1()">Check</button>
       <button class="secondary" onclick="resetQ1()">Clear</button>
+      <label class="livecheck-label" title="Check each answer as soon as you leave its field"><input type="checkbox" id="liveQ1">Check as I go</label>
     </div>
     <div class="score" id="q1Score"></div>
   </div>
@@ -277,6 +282,7 @@
           <button class="secondary" id="undoAgreestdBtn" onclick="undoQ2('std')" style="display:none;" title="Restore your previous answers">Undo</button>
           <button class="secondary" onclick="nextAgree('std')">Next Phrase</button>
           <button class="secondary" onclick="resetQ2('std')">Clear</button>
+          <label class="livecheck-label" title="Check each answer as soon as you leave its field"><input type="checkbox" id="liveQ2std">Check as I go</label>
         </div>
         <div class="score" id="q2Score"></div>
       </div>
@@ -296,6 +302,7 @@
           <button class="secondary" id="undoAgreeexBtn" onclick="undoQ2('ex')" style="display:none;" title="Restore your previous answers">Undo</button>
           <button class="secondary" onclick="nextAgree('ex')">Next Phrase</button>
           <button class="secondary" onclick="resetQ2('ex')">Clear</button>
+          <label class="livecheck-label" title="Check each answer as soon as you leave its field"><input type="checkbox" id="liveQ2ex">Check as I go</label>
         </div>
         <div class="score" id="q2ExScore"></div>
       </div>
@@ -730,6 +737,20 @@ function checkDecl(){
   saveScore('declensions', words[currentWord].display, correct, total);
 }
 
+function checkDeclCell(inp){
+  const w=words[currentWord];
+  const raw=w.data[inp.dataset.num][inp.dataset.case];
+  const ans=inp.dataset.gi==='noun'?raw:raw[parseInt(inp.dataset.gi)];
+  inp.classList.remove('correct','wrong');
+  if(!inp.value) { inp.title=''; return; }
+  if(norm(inp.value)===norm(ans)){inp.classList.add('correct');}
+  else{inp.classList.add('wrong');inp.title='Expected: '+ans;}
+}
+
+document.getElementById('declTable').addEventListener('focusout', e=>{
+  if(e.target.tagName==='INPUT' && document.getElementById('liveDecl').checked) checkDeclCell(e.target);
+});
+
 function revealDecl(){
   declSnapshot = takeSnapshot('#declTable');
   const w=words[currentWord];
@@ -856,6 +877,18 @@ function checkVerb(){
   saveScore('verbs', verbs[currentVerb].display, correct, total);
 }
 
+function checkVerbCell(inp){
+  const ans=getVerbAnswer(inp.dataset.tense,inp.dataset.num,parseInt(inp.dataset.person));
+  inp.classList.remove('correct','wrong');
+  if(!inp.value) { inp.title=''; return; }
+  if(norm(inp.value)===norm(ans)){inp.classList.add('correct');}
+  else{inp.classList.add('wrong');inp.title='Expected: '+ans;}
+}
+
+document.getElementById('verbTable').addEventListener('focusout', e=>{
+  if(e.target.tagName==='INPUT' && document.getElementById('liveVerb').checked) checkVerbCell(e.target);
+});
+
 function revealVerb(){
   verbSnapshot = takeSnapshot('#verbTable');
   document.querySelectorAll('#verbTable input').forEach(inp=>{
@@ -890,7 +923,7 @@ function undoVerb(){
 const Q1_ANSWERS = ['case','gender','number'];
 let q1Unlocked = false;
 
-function checkQ1(){
+function evaluateQ1(liveMode){
   const ids = ['q1a','q1b','q1c'];
   const userVals = ids.map(id => normAgree(document.getElementById(id).value));
   const correct  = [...Q1_ANSWERS];
@@ -908,6 +941,7 @@ function checkQ1(){
   ids.forEach((id,i)=>{
     const el=document.getElementById(id);
     el.classList.remove('correct','wrong');
+    if(liveMode && !userVals[i]) { el.title=''; return; }
     if(!userVals[i])      { el.classList.add('wrong'); el.title='Enter one of: case, gender, number'; }
     else if(dup[i])       { el.classList.add('wrong'); el.title='Duplicate — each property can only appear once'; }
     else if(matched[i])   { el.classList.add('correct'); countCorrect++; }
@@ -918,11 +952,19 @@ function checkQ1(){
     s.style.color='green';
     s.textContent='Correct! Now identify those properties in the phrase below.';
     unlockQ2();
-  } else {
+  } else if(!liveMode || userVals.some(v=>v)){
     s.style.color='red';
     s.textContent=countCorrect+'/3 — hover red boxes for hints.';
   }
 }
+
+function checkQ1(){ evaluateQ1(false); }
+
+['q1a','q1b','q1c'].forEach(id=>{
+  document.getElementById(id).addEventListener('focusout', ()=>{
+    if(document.getElementById('liveQ1').checked) evaluateQ1(true);
+  });
+});
 
 function resetQ1(){
   ['q1a','q1b','q1c'].forEach(id=>{
@@ -1013,6 +1055,27 @@ function checkQ2(type){
   s.textContent=correct===3?'Optime! All correct.':correct+'/3 — hover red boxes to see the expected answer.';
   saveScore('agreement', (type==='ex'?'exceptions: ':'standard: ')+item.phrase, correct, 3);
 }
+
+function checkQ2Cell(type, key){
+  const item=getAgreeItem(type);
+  const ids=getAgreeIds(type);
+  const idMap = {case: ids.case, gender: ids.gender, number: ids.number};
+  const expectedMap = {case: item.caseVal, gender: item.gender, number: item.number};
+  const el=document.getElementById(idMap[key]);
+  el.classList.remove('correct','wrong');
+  if(!el.value) { el.title=''; return; }
+  if(normAgree(el.value)===normAgree(expectedMap[key])){ el.classList.add('correct'); }
+  else { el.classList.add('wrong'); el.title='Expected: '+expectedMap[key]; }
+}
+
+['std','ex'].forEach(type=>{
+  const ids=getAgreeIds(type);
+  [['case',ids.case],['gender',ids.gender],['number',ids.number]].forEach(([key,id])=>{
+    document.getElementById(id).addEventListener('focusout', ()=>{
+      if(document.getElementById('live'+(type==='ex'?'Q2ex':'Q2std')).checked) checkQ2Cell(type, key);
+    });
+  });
+});
 
 function revealQ2(type){
   const ids=getAgreeIds(type);
