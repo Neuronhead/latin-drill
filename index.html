@@ -206,7 +206,8 @@
 <p class="sub">Fill in all forms, then click Check Answers. Clear &amp; Shuffle randomises the order.</p>
 
 <div class="tabs">
-  <div class="tab active" onclick="switchTab('decl')">Declensions</div>
+  <div class="tab active" onclick="switchTab('decl')">1st &amp; 2nd Declension</div>
+  <div class="tab"        onclick="switchTab('decl3')">3rd Declension</div>
   <div class="tab"        onclick="switchTab('verb')">Verb Conjugations</div>
   <div class="tab"        onclick="switchTab('agree')">Adjective/Noun Agreement</div>
 </div>
@@ -227,6 +228,50 @@
     <label class="livecheck-label" title="Check each answer as soon as you leave its field"><input type="checkbox" id="liveDecl">Check as I go</label>
   </div>
   <div class="score" id="declScore"></div>
+</div>
+
+<!-- ── 3RD DECLENSION PANEL ──────────────────────────────────── -->
+<div class="panel" id="panel-decl3">
+
+  <!-- Drill A: paradigm table -->
+  <div id="decl3Selectors"></div>
+  <div class="panel-subtitle">3rd Declension Nouns &mdash; Paradigm</div>
+  <div class="word-display" id="decl3Display"></div>
+  <div class="meaning" id="decl3Meaning"></div>
+  <div id="decl3Note" style="display:none; background:#fff8e8; border:1px solid #c9a96e; border-radius:4px; padding:10px 14px; margin-bottom:12px; font-size:0.88rem; color:#333; line-height:1.5;"></div>
+  <table id="decl3Table"></table>
+  <div class="buttons">
+    <button class="primary"   id="checkDecl3Btn" onclick="checkDecl3()">Check Answers</button>
+    <button class="secondary" onclick="revealDecl3()">Show Answers</button>
+    <button class="secondary" id="undoDecl3Btn" onclick="undoDecl3()" style="display:none;" title="Restore your previous answers">Undo</button>
+    <button class="secondary" onclick="resetDecl3()">Clear &amp; Shuffle</button>
+    <label class="livecheck-label" title="Check each answer as soon as you leave its field"><input type="checkbox" id="liveDecl3">Check as I go</label>
+  </div>
+  <div class="score" id="decl3Score"></div>
+
+  <!-- Drill B: base + gender + form -->
+  <div class="agree-section" style="margin-top:28px;">
+    <div class="agree-section-title">Stem &amp; Gender</div>
+    <div class="agree-question">Given the dictionary entry, supply the <strong>base</strong> (drop <em>-is</em> from the genitive), the <strong>gender</strong>, and the requested <strong>form</strong>.</div>
+    <div class="agree-counter" id="stemCounter"></div>
+    <div class="agree-phrase" id="stemPhrase"></div>
+    <div class="agree-phrase-meaning" id="stemMeaning"></div>
+    <div class="agree-boxes">
+      <div class="agree-box"><label>Base</label><input type="text" id="stemBase" autocomplete="off" spellcheck="false"></div>
+      <div class="agree-box"><label>Gender</label><input type="text" id="stemGender" autocomplete="off" spellcheck="false"></div>
+      <div class="agree-box"><label id="stemFormLabel">Form</label><input type="text" id="stemForm" autocomplete="off" spellcheck="false"></div>
+    </div>
+    <div class="buttons">
+      <button class="primary"   id="checkStemBtn" onclick="checkStem()">Check Answers</button>
+      <button class="secondary" onclick="revealStem()">Show Answers</button>
+      <button class="secondary" id="undoStemBtn" onclick="undoStem()" style="display:none;" title="Restore your previous answers">Undo</button>
+      <button class="secondary" onclick="nextStem()">Next Word</button>
+      <button class="secondary" onclick="resetStem()">Clear</button>
+      <label class="livecheck-label" title="Check each answer as soon as you leave its field"><input type="checkbox" id="liveStem">Check as I go</label>
+    </div>
+    <div class="score" id="stemScore"></div>
+  </div>
+
 </div>
 
 <!-- ── VERB PANEL ────────────────────────────────────────────── -->
@@ -313,7 +358,7 @@
 </div><!-- end panel-agree -->
 
 <footer>
-  &copy; Copyright 2026 Dan Berge. All rights reserved. &mdash; v1.8
+  &copy; Copyright 2026 Dan Berge. All rights reserved. &mdash; v1.9
 </footer>
 
 </div><!-- end appContent -->
@@ -334,6 +379,7 @@ let words = [];
 let verbs = [];
 let agreePhrases = [];
 let agreeExceptions = [];
+let nouns3 = [];
 
 // ── UTILITIES ─────────────────────────────────────────────────────────────────
 
@@ -430,6 +476,24 @@ const FALLBACK_AGREE_EX = [
   {phrase:'agricolas magnos',translation:'"great farmers" (object)',caseVal:'accusative',gender:'masculine',number:'plural'},
 ];
 
+const FALLBACK_NOUNS3 = [
+  {"display": "rex, regis", "meaning": "m. — king", "gender": "m", "base": "reg", "note": null, "data": {"s": {"Nominative": "rex", "Genitive": "regis", "Dative": "regi", "Accusative": "regem", "Ablative": "rege"}, "p": {"Nominative": "reges", "Genitive": "regum", "Dative": "regibus", "Accusative": "reges", "Ablative": "regibus"}}},
+  {"display": "homo, hominis", "meaning": "m. — human being, man", "gender": "m", "base": "homin", "note": null, "data": {"s": {"Nominative": "homo", "Genitive": "hominis", "Dative": "homini", "Accusative": "hominem", "Ablative": "homine"}, "p": {"Nominative": "homines", "Genitive": "hominum", "Dative": "hominibus", "Accusative": "homines", "Ablative": "hominibus"}}},
+  {"display": "amor, amoris", "meaning": "m. — love", "gender": "m", "base": "amor", "note": null, "data": {"s": {"Nominative": "amor", "Genitive": "amoris", "Dative": "amori", "Accusative": "amorem", "Ablative": "amore"}, "p": {"Nominative": "amores", "Genitive": "amorum", "Dative": "amoribus", "Accusative": "amores", "Ablative": "amoribus"}}},
+  {"display": "labor, laboris", "meaning": "m. — labor, work, toil", "gender": "m", "base": "labor", "note": null, "data": {"s": {"Nominative": "labor", "Genitive": "laboris", "Dative": "labori", "Accusative": "laborem", "Ablative": "labore"}, "p": {"Nominative": "labores", "Genitive": "laborum", "Dative": "laboribus", "Accusative": "labores", "Ablative": "laboribus"}}},
+  {"display": "mos, moris", "meaning": "m. — habit, custom, manner", "gender": "m", "base": "mor", "note": null, "data": {"s": {"Nominative": "mos", "Genitive": "moris", "Dative": "mori", "Accusative": "morem", "Ablative": "more"}, "p": {"Nominative": "mores", "Genitive": "morum", "Dative": "moribus", "Accusative": "mores", "Ablative": "moribus"}}},
+  {"display": "virtus, virtutis", "meaning": "f. — manliness, courage, virtue", "gender": "f", "base": "virtut", "note": null, "data": {"s": {"Nominative": "virtus", "Genitive": "virtutis", "Dative": "virtuti", "Accusative": "virtutem", "Ablative": "virtute"}, "p": {"Nominative": "virtutes", "Genitive": "virtutum", "Dative": "virtutibus", "Accusative": "virtutes", "Ablative": "virtutibus"}}},
+  {"display": "civitas, civitatis", "meaning": "f. — state, citizenship", "gender": "f", "base": "civitat", "note": null, "data": {"s": {"Nominative": "civitas", "Genitive": "civitatis", "Dative": "civitati", "Accusative": "civitatem", "Ablative": "civitate"}, "p": {"Nominative": "civitates", "Genitive": "civitatum", "Dative": "civitatibus", "Accusative": "civitates", "Ablative": "civitatibus"}}},
+  {"display": "pax, pacis", "meaning": "f. — peace", "gender": "f", "base": "pac", "note": null, "data": {"s": {"Nominative": "pax", "Genitive": "pacis", "Dative": "paci", "Accusative": "pacem", "Ablative": "pace"}, "p": {"Nominative": "paces", "Genitive": "pacum", "Dative": "pacibus", "Accusative": "paces", "Ablative": "pacibus"}}},
+  {"display": "uxor, uxoris", "meaning": "f. — wife", "gender": "f", "base": "uxor", "note": null, "data": {"s": {"Nominative": "uxor", "Genitive": "uxoris", "Dative": "uxori", "Accusative": "uxorem", "Ablative": "uxore"}, "p": {"Nominative": "uxores", "Genitive": "uxorum", "Dative": "uxoribus", "Accusative": "uxores", "Ablative": "uxoribus"}}},
+  {"display": "virgo, virginis", "meaning": "f. — maiden, virgin", "gender": "f", "base": "virgin", "note": null, "data": {"s": {"Nominative": "virgo", "Genitive": "virginis", "Dative": "virgini", "Accusative": "virginem", "Ablative": "virgine"}, "p": {"Nominative": "virgines", "Genitive": "virginum", "Dative": "virginibus", "Accusative": "virgines", "Ablative": "virginibus"}}},
+  {"display": "corpus, corporis", "meaning": "n. — body", "gender": "n", "base": "corpor", "note": null, "data": {"s": {"Nominative": "corpus", "Genitive": "corporis", "Dative": "corpori", "Accusative": "corpus", "Ablative": "corpore"}, "p": {"Nominative": "corpora", "Genitive": "corporum", "Dative": "corporibus", "Accusative": "corpora", "Ablative": "corporibus"}}},
+  {"display": "carmen, carminis", "meaning": "n. — song, poem", "gender": "n", "base": "carmin", "note": null, "data": {"s": {"Nominative": "carmen", "Genitive": "carminis", "Dative": "carmini", "Accusative": "carmen", "Ablative": "carmine"}, "p": {"Nominative": "carmina", "Genitive": "carminum", "Dative": "carminibus", "Accusative": "carmina", "Ablative": "carminibus"}}},
+  {"display": "nomen, nominis", "meaning": "n. — name", "gender": "n", "base": "nomin", "note": null, "data": {"s": {"Nominative": "nomen", "Genitive": "nominis", "Dative": "nomini", "Accusative": "nomen", "Ablative": "nomine"}, "p": {"Nominative": "nomina", "Genitive": "nominum", "Dative": "nominibus", "Accusative": "nomina", "Ablative": "nominibus"}}},
+  {"display": "tempus, temporis", "meaning": "n. — time, occasion, opportunity", "gender": "n", "base": "tempor", "note": null, "data": {"s": {"Nominative": "tempus", "Genitive": "temporis", "Dative": "tempori", "Accusative": "tempus", "Ablative": "tempore"}, "p": {"Nominative": "tempora", "Genitive": "temporum", "Dative": "temporibus", "Accusative": "tempora", "Ablative": "temporibus"}}},
+];
+
+
 // ── FALLBACK NOTIFICATION ─────────────────────────────────────────────────────
 
 async function notifyDatabaseOffline(errorMsg) {
@@ -473,6 +537,7 @@ function loadFallbackData() {
   verbs = FALLBACK_VERBS;
   agreePhrases = FALLBACK_AGREE;
   agreeExceptions = FALLBACK_AGREE_EX;
+  nouns3 = FALLBACK_NOUNS3;
 }
 
 async function loadDrillData() {
@@ -491,6 +556,9 @@ async function loadDrillData() {
     verbTenses = buildVerbTenses(verbs[0]);
     buildDeclTable();
     buildVerbTable();
+    buildDecl3Selectors();
+    buildDecl3Table();
+    initStemQueue();
     initAgreeQueue();
     initAgreeExQueue();
     document.getElementById('loadingScreen').style.display = 'none';
@@ -500,6 +568,7 @@ async function loadDrillData() {
 
   // Separate by type
   const declRows  = data.filter(d => d.type === 'declension');
+  const decl3Rows = data.filter(d => d.type === 'declension3');
   const verbRows  = data.filter(d => d.type === 'conjugation');
   const agreeRows = data.filter(d => d.type === 'agreement');
 
@@ -509,6 +578,16 @@ async function loadDrillData() {
     display: d.content.display,
     meaning: d.content.meaning,
     noun:    d.content.is_noun || false,
+    note:    d.content.note || null,
+    data:    d.content.paradigm,
+  }));
+
+  nouns3 = decl3Rows.map(d => ({
+    id:      d.id,
+    display: d.content.display,
+    meaning: d.content.meaning,
+    gender:  d.content.gender,
+    base:    d.content.base,
     note:    d.content.note || null,
     data:    d.content.paradigm,
   }));
@@ -551,6 +630,9 @@ async function loadDrillData() {
   verbTenses = buildVerbTenses(verbs[0]);
   buildDeclTable();
   buildVerbTable();
+  buildDecl3Selectors();
+  buildDecl3Table();
+  initStemQueue();
   initAgreeQueue();
   initAgreeExQueue();
 
@@ -662,7 +744,7 @@ function applySnapshot(selector, snap, scoreId) {
 // try. Colours: green = right first try, yellow = right after a miss (or a
 // reveal), red = currently wrong. The saved score counts fields that are
 // correct at finish AND were right on the first attempt.
-const liveAttempts = { decl:{}, verb:{}, q1:{}, q2std:{}, q2ex:{} };
+const liveAttempts = { decl:{}, decl3:{}, stem:{}, verb:{}, q1:{}, q2std:{}, q2ex:{} };
 
 const LIVE_CFG = {
   decl:  { inputs: ()=>[...document.querySelectorAll('#declTable input')], scoreId:'declScore' },
@@ -670,6 +752,8 @@ const LIVE_CFG = {
   q1:    { inputs: ()=>['q1a','q1b','q1c'].map(id=>document.getElementById(id)), scoreId:'q1Score' },
   q2std: { inputs: ()=>['q2case','q2gender','q2number'].map(id=>document.getElementById(id)), scoreId:'q2Score' },
   q2ex:  { inputs: ()=>['q2excase','q2exgender','q2exnumber'].map(id=>document.getElementById(id)), scoreId:'q2ExScore' },
+  decl3: { inputs: ()=>[...document.querySelectorAll('#decl3Table input')], scoreId:'decl3Score' },
+  stem:  { inputs: ()=>['stemBase','stemGender','stemForm'].map(id=>document.getElementById(id)), scoreId:'stemScore' },
 };
 
 function liveKey(inp){ return inp.id || JSON.stringify(inp.dataset); }
@@ -1320,17 +1404,346 @@ function undoQ2(type){
   agreeSnapshot[type]=null;
 }
 
+
+// ── 3RD DECLENSION ── DRILL A: PARADIGM TABLE ─────────────────────────────────
+// Reuses the single-column noun layout. 5 cases (no vocative — identical to nom).
+
+const DECL3_CASES = ['Nominative','Genitive','Dative','Accusative','Ablative'];
+let currentNoun3 = 0, decl3Cases = shuffle(DECL3_CASES);
+let decl3Snapshot = null;
+
+const GENDER3 = { m:'Masculine', f:'Feminine', n:'Neuter' };
+
+function buildDecl3Selectors(){
+  const container = document.getElementById('decl3Selectors');
+  if(!container) return;
+  container.innerHTML = '';
+  ['m','f','n'].forEach(g => {
+    const group = nouns3.filter(n => n.gender === g);
+    if(!group.length) return;
+    const wrap = document.createElement('div'); wrap.className = 'selector-group';
+    wrap.innerHTML = '<div class="selector-label">'+GENDER3[g]+'</div>';
+    const sel = document.createElement('div'); sel.className = 'selector';
+    group.forEach(n => {
+      const btn = document.createElement('button');
+      btn.className = 'sel-btn';
+      btn.textContent = n.display.split(',')[0].trim();
+      btn.onclick = () => setNoun3(nouns3.indexOf(n));
+      sel.appendChild(btn);
+    });
+    wrap.appendChild(sel); container.appendChild(wrap);
+  });
+  const first = container.querySelector('.sel-btn');
+  if(first) first.classList.add('active');
+}
+
+function setNoun3(idx){
+  currentNoun3 = idx;
+  const label = nouns3[idx].display.split(',')[0].trim();
+  document.querySelectorAll('#decl3Selectors .sel-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.textContent.trim() === label);
+  });
+  document.getElementById('decl3Display').textContent = nouns3[idx].display;
+  document.getElementById('decl3Meaning').textContent = nouns3[idx].meaning;
+  const noteEl = document.getElementById('decl3Note');
+  if(nouns3[idx].note){ noteEl.textContent = nouns3[idx].note; noteEl.style.display='block'; }
+  else { noteEl.style.display='none'; noteEl.textContent=''; }
+  decl3Cases = shuffle(DECL3_CASES);
+  liveReset('decl3');
+  buildDecl3Table();
+  document.getElementById('decl3Score').textContent='';
+}
+
+function buildDecl3Table(){
+  if(!nouns3.length) return;
+  const table = document.getElementById('decl3Table'); table.innerHTML='';
+  const n = nouns3[currentNoun3];
+  const thead = document.createElement('thead'), hr = document.createElement('tr');
+  const th0 = document.createElement('th'); th0.textContent='Case'; hr.appendChild(th0);
+  const th1 = document.createElement('th'); th1.textContent='Form'; hr.appendChild(th1);
+  thead.appendChild(hr); table.appendChild(thead);
+  const tbody = document.createElement('tbody');
+  ['s','p'].forEach(num => {
+    const sr = document.createElement('tr'), st = document.createElement('td');
+    st.className='section'; st.colSpan=2; st.textContent = num==='s'?'Singular':'Plural';
+    sr.appendChild(st); tbody.appendChild(sr);
+    decl3Cases.forEach(c => {
+      const tr = document.createElement('tr');
+      const td0 = document.createElement('td'); td0.className='label'; td0.textContent=c; tr.appendChild(td0);
+      const td = document.createElement('td'), inp = document.createElement('input');
+      inp.type='text'; inp.autocomplete='off'; inp.spellcheck=false;
+      inp.dataset.num=num; inp.dataset.case=c;
+      td.appendChild(inp); tr.appendChild(td);
+      tbody.appendChild(tr);
+    });
+  });
+  table.appendChild(tbody);
+  if(!document.getElementById('decl3Display').textContent && nouns3.length){
+    document.getElementById('decl3Display').textContent = nouns3[0].display;
+    document.getElementById('decl3Meaning').textContent = nouns3[0].meaning;
+    const noteEl = document.getElementById('decl3Note');
+    if(nouns3[0].note){ noteEl.textContent = nouns3[0].note; noteEl.style.display='block'; }
+  }
+}
+
+function decl3Answer(inp){
+  return nouns3[currentNoun3].data[inp.dataset.num][inp.dataset.case];
+}
+
+function checkDecl3(){
+  if(document.getElementById('liveDecl3').checked){
+    const c = liveFinish('decl3', inp=>checkDecl3Cell(inp, true));
+    saveScore('declension3', nouns3[currentNoun3].display, c.green, c.total);
+    return;
+  }
+  const inputs = document.querySelectorAll('#decl3Table input');
+  let correct=0, total=0;
+  inputs.forEach(inp => {
+    const ans = decl3Answer(inp);
+    inp.classList.remove('correct','wrong','corrected'); total++;
+    if(norm(inp.value)===norm(ans)){ inp.classList.add('correct'); correct++; }
+    else { inp.classList.add('wrong'); inp.title='Expected: '+ans; }
+  });
+  const scr = document.getElementById('decl3Score');
+  scr.style.color = correct===total ? 'green' : 'red';
+  scr.textContent = correct===total
+    ? 'Optime! '+correct+'/'+total+' — perfect.'
+    : correct+'/'+total+' — hover red cells to see the expected answer.';
+  saveScore('declension3', nouns3[currentNoun3].display, correct, total);
+}
+
+function checkDecl3Cell(inp, finalSweep){
+  const ans = decl3Answer(inp);
+  if(!inp.value && !finalSweep && !liveAttempted('decl3', inp)){
+    inp.classList.remove('correct','wrong','corrected'); inp.title=''; return;
+  }
+  const ok = norm(inp.value)===norm(ans);
+  liveMark('decl3', inp, ok);
+  inp.title = ok ? '' : 'Expected: '+ans;
+}
+
+document.getElementById('decl3Table').addEventListener('focusout', e=>{
+  if(e.target.tagName==='INPUT' && document.getElementById('liveDecl3').checked){
+    checkDecl3Cell(e.target);
+    liveScoreLine('decl3');
+  }
+});
+
+function revealDecl3(){
+  decl3Snapshot = takeSnapshot('#decl3Table');
+  decl3Snapshot.liveMap = {...liveAttempts.decl3};
+  const live = document.getElementById('liveDecl3').checked;
+  document.querySelectorAll('#decl3Table input').forEach(inp => {
+    inp.value = decl3Answer(inp); inp.title='';
+    if(live){
+      const key = liveKey(inp);
+      if(!(key in liveAttempts.decl3)) liveAttempts.decl3[key]=false;
+      liveMark('decl3', inp, true);
+    } else {
+      inp.classList.remove('wrong','corrected'); inp.classList.add('correct');
+    }
+  });
+  if(live) liveScoreLine('decl3');
+  else document.getElementById('decl3Score').textContent='';
+  document.getElementById('undoDecl3Btn').style.display='inline-block';
+}
+
+function resetDecl3(silent){
+  if(!silent){
+    decl3Snapshot = takeSnapshot('#decl3Table');
+    decl3Snapshot.liveMap = {...liveAttempts.decl3};
+  }
+  decl3Cases = shuffle(DECL3_CASES);
+  liveReset('decl3');
+  buildDecl3Table(); document.getElementById('decl3Score').textContent='';
+  if(!silent) document.getElementById('undoDecl3Btn').style.display='inline-block';
+  else { document.getElementById('undoDecl3Btn').style.display='none'; decl3Snapshot=null; }
+}
+
+function undoDecl3(){
+  if(!decl3Snapshot) return;
+  buildDecl3Table();
+  applySnapshot('#decl3Table', decl3Snapshot, 'decl3Score');
+  liveAttempts.decl3 = decl3Snapshot.liveMap ? {...decl3Snapshot.liveMap} : {};
+  if(document.getElementById('liveDecl3').checked) liveScoreLine('decl3');
+  document.getElementById('undoDecl3Btn').style.display='none';
+  decl3Snapshot = null;
+}
+
+// ── 3RD DECLENSION ── DRILL B: STEM & GENDER ──────────────────────────────────
+// Shows the dictionary entry; student supplies base, gender, and one requested
+// form (drawn at random from the paradigm). Uses the agreement-box UI.
+
+let stemQueue=[], stemIndex=0, stemTarget=null;
+let stemSnapshot=null;
+
+const GENDER_FULL = { m:'masculine', f:'feminine', n:'neuter' };
+const CASE_ABBR = { Nominative:'nom', Genitive:'gen', Dative:'dat', Accusative:'acc', Ablative:'abl' };
+
+function initStemQueue(){
+  stemQueue = shuffle([...Array(nouns3.length).keys()]);
+  stemIndex = 0;
+  loadStem();
+}
+
+function pickStemTarget(n){
+  // choose a random non-nominative-singular form so the answer isn't just the lemma
+  const opts = [];
+  ['s','p'].forEach(num => DECL3_CASES.forEach(c => {
+    if(num==='s' && c==='Nominative') return;
+    opts.push({num, case:c, answer:n.data[num][c]});
+  }));
+  return opts[Math.floor(Math.random()*opts.length)];
+}
+
+function loadStem(){
+  if(!nouns3.length) return;
+  if(stemIndex >= stemQueue.length) initStemQueue();
+  const n = nouns3[stemQueue[stemIndex]];
+  stemTarget = pickStemTarget(n);
+  document.getElementById('stemCounter').textContent = 'Word '+(stemIndex+1)+' of '+nouns3.length;
+  document.getElementById('stemPhrase').textContent = n.display;
+  document.getElementById('stemMeaning').textContent = n.meaning;
+  const numWord = stemTarget.num==='s' ? 'singular' : 'plural';
+  document.getElementById('stemFormLabel').textContent = stemTarget.case+' '+numWord;
+  ['stemBase','stemGender','stemForm'].forEach(id => {
+    const el=document.getElementById(id);
+    el.value=''; el.classList.remove('correct','wrong','corrected'); el.title='';
+  });
+  liveReset('stem');
+  document.getElementById('stemScore').textContent='';
+}
+
+function currentStemNoun(){ return nouns3[stemQueue[stemIndex]]; }
+
+// map the three inputs -> expected values (gender accepts m / masculine etc via normAgree)
+function stemExpected(){
+  const n = currentStemNoun();
+  return {
+    stemBase:   n.base,
+    stemGender: GENDER_FULL[n.gender],
+    stemForm:   stemTarget.answer,
+  };
+}
+
+function stemCheckField(id, finalSweep){
+  const exp = stemExpected();
+  const el = document.getElementById(id);
+  if(!el.value && !finalSweep && !liveAttempted('stem', el)){
+    el.classList.remove('correct','wrong','corrected'); el.title=''; return;
+  }
+  let ok;
+  if(id==='stemGender') ok = normAgree(el.value)===normAgree(exp[id]);
+  else                  ok = norm(el.value)===norm(exp[id]);
+  liveMark('stem', el, ok);
+  el.title = ok ? '' : 'Expected: '+exp[id];
+}
+
+function checkStem(){
+  const exp = stemExpected();
+  if(document.getElementById('liveStem').checked){
+    const c = liveFinish('stem', (inp)=>stemCheckField(inp.id, true));
+    saveScore('declension3', 'stem: '+currentStemNoun().display, c.green, c.total);
+    return;
+  }
+  let correct=0;
+  ['stemBase','stemGender','stemForm'].forEach(id => {
+    const el=document.getElementById(id);
+    el.classList.remove('correct','wrong','corrected');
+    const ok = id==='stemGender'
+      ? normAgree(el.value)===normAgree(exp[id])
+      : norm(el.value)===norm(exp[id]);
+    if(ok){ el.classList.add('correct'); correct++; }
+    else { el.classList.add('wrong'); el.title='Expected: '+exp[id]; }
+  });
+  const scr=document.getElementById('stemScore');
+  scr.style.color = correct===3 ? 'green' : 'red';
+  scr.textContent = correct===3 ? 'Optime! All correct.' : correct+'/3 — hover red boxes to see the expected answer.';
+  saveScore('declension3', 'stem: '+currentStemNoun().display, correct, 3);
+}
+
+['stemBase','stemGender','stemForm'].forEach(id => {
+  document.getElementById(id).addEventListener('focusout', ()=>{
+    if(document.getElementById('liveStem').checked){
+      stemCheckField(id);
+      liveScoreLine('stem');
+    }
+  });
+});
+
+function revealStem(){
+  const exp = stemExpected();
+  stemSnapshot = {
+    values: {},
+    classes: {},
+    liveMap: {...liveAttempts.stem},
+    target: stemTarget,
+  };
+  ['stemBase','stemGender','stemForm'].forEach(id=>{
+    const el=document.getElementById(id);
+    stemSnapshot.values[id]=el.value;
+    stemSnapshot.classes[id]=[...el.classList];
+  });
+  const live=document.getElementById('liveStem').checked;
+  ['stemBase','stemGender','stemForm'].forEach(id=>{
+    const el=document.getElementById(id);
+    el.value=exp[id]; el.title='';
+    if(live){
+      const key=liveKey(el);
+      if(!(key in liveAttempts.stem)) liveAttempts.stem[key]=false;
+      liveMark('stem', el, true);
+    } else {
+      el.classList.remove('wrong','corrected'); el.classList.add('correct');
+    }
+  });
+  if(live) liveScoreLine('stem');
+  else document.getElementById('stemScore').textContent='';
+  document.getElementById('undoStemBtn').style.display='inline-block';
+}
+
+function nextStem(){
+  stemIndex++;
+  loadStem();
+  document.getElementById('undoStemBtn').style.display='none';
+  stemSnapshot=null;
+}
+
+function resetStem(){
+  ['stemBase','stemGender','stemForm'].forEach(id=>{
+    const el=document.getElementById(id);
+    el.value=''; el.classList.remove('correct','wrong','corrected'); el.title='';
+  });
+  liveReset('stem');
+  document.getElementById('stemScore').textContent='';
+}
+
+function undoStem(){
+  if(!stemSnapshot) return;
+  ['stemBase','stemGender','stemForm'].forEach(id=>{
+    const el=document.getElementById(id);
+    el.value=stemSnapshot.values[id];
+    el.classList.remove('correct','wrong','corrected');
+    stemSnapshot.classes[id].forEach(c=>{ if(c==='correct'||c==='wrong'||c==='corrected') el.classList.add(c); });
+  });
+  liveAttempts.stem = stemSnapshot.liveMap ? {...stemSnapshot.liveMap} : {};
+  if(document.getElementById('liveStem').checked) liveScoreLine('stem');
+  document.getElementById('undoStemBtn').style.display='none';
+  stemSnapshot=null;
+}
+
+
 // ── TAB SWITCHING ─────────────────────────────────────────────────────────────
 
 function switchTab(tab){
-  const panels=['decl','verb','agree'];
+  const panels=['decl','decl3','verb','agree'];
   document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',panels[i]===tab));
   panels.forEach(p=>document.getElementById('panel-'+p).classList.toggle('active',p===tab));
   resetDecl(true);
+  resetDecl3(true);
   resetVerb(true);
   resetAgreeTab();
   // Hide all undo buttons on tab switch
-  ['undoDeclBtn','undoVerbBtn','undoAgreestdBtn','undoAgreeexBtn'].forEach(id=>{
+  ['undoDeclBtn','undoDecl3Btn','undoStemBtn','undoVerbBtn','undoAgreestdBtn','undoAgreeexBtn'].forEach(id=>{
     const el=document.getElementById(id);
     if(el) el.style.display='none';
   });
