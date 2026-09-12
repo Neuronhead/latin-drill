@@ -265,6 +265,7 @@
       <button class="primary"   id="checkStemBtn" onclick="checkStem()">Check Answers</button>
       <button class="secondary" onclick="revealStem()">Show Answers</button>
       <button class="secondary" id="undoStemBtn" onclick="undoStem()" style="display:none;" title="Restore your previous answers">Undo</button>
+      <button class="secondary" onclick="prevStem()">Previous Word</button>
       <button class="secondary" onclick="nextStem()">Next Word</button>
       <button class="secondary" onclick="resetStem()">Clear</button>
       <label class="livecheck-label" title="Check each answer as soon as you leave its field"><input type="checkbox" id="liveStem">Check as I go</label>
@@ -1702,7 +1703,14 @@ function revealStem(){
 }
 
 function nextStem(){
-  stemIndex++;
+  stemIndex = (stemIndex + 1) % stemQueue.length;
+  loadStem();
+  document.getElementById('undoStemBtn').style.display='none';
+  stemSnapshot=null;
+}
+
+function prevStem(){
+  stemIndex = (stemIndex - 1 + stemQueue.length) % stemQueue.length;
   loadStem();
   document.getElementById('undoStemBtn').style.display='none';
   stemSnapshot=null;
