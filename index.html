@@ -225,7 +225,7 @@
     <button class="secondary" onclick="revealDecl()">Show Answers</button>
     <button class="secondary" id="undoDeclBtn" onclick="undoDecl()" style="display:none;" title="Restore your previous answers">Undo</button>
     <button class="secondary" onclick="resetDecl()">Clear &amp; Shuffle</button>
-    <label class="livecheck-label" title="Check each answer as soon as you leave its field"><input type="checkbox" id="liveDecl">Check as I go</label>
+    <label class="livecheck-label" title="Check each answer as soon as you leave its field"><input type="checkbox" id="liveDecl" checked>Check as I go</label>
   </div>
   <div class="score" id="declScore"></div>
 </div>
@@ -245,7 +245,7 @@
     <button class="secondary" onclick="revealDecl3()">Show Answers</button>
     <button class="secondary" id="undoDecl3Btn" onclick="undoDecl3()" style="display:none;" title="Restore your previous answers">Undo</button>
     <button class="secondary" onclick="resetDecl3()">Clear &amp; Shuffle</button>
-    <label class="livecheck-label" title="Check each answer as soon as you leave its field"><input type="checkbox" id="liveDecl3">Check as I go</label>
+    <label class="livecheck-label" title="Check each answer as soon as you leave its field"><input type="checkbox" id="liveDecl3" checked>Check as I go</label>
   </div>
   <div class="score" id="decl3Score"></div>
 
@@ -268,7 +268,7 @@
       <button class="secondary" onclick="prevStem()">Previous Word</button>
       <button class="secondary" onclick="nextStem()">Next Word</button>
       <button class="secondary" onclick="resetStem()">Clear</button>
-      <label class="livecheck-label" title="Check each answer as soon as you leave its field"><input type="checkbox" id="liveStem">Check as I go</label>
+      <label class="livecheck-label" title="Check each answer as soon as you leave its field"><input type="checkbox" id="liveStem" checked>Check as I go</label>
     </div>
     <div class="score" id="stemScore"></div>
   </div>
@@ -287,7 +287,7 @@
     <button class="secondary" onclick="revealVerb()">Show Answers</button>
     <button class="secondary" id="undoVerbBtn" onclick="undoVerb()" style="display:none;" title="Restore your previous answers">Undo</button>
     <button class="secondary" onclick="resetVerb()">Clear &amp; Shuffle</button>
-    <label class="livecheck-label" title="Check each answer as soon as you leave its field"><input type="checkbox" id="liveVerb">Check as I go</label>
+    <label class="livecheck-label" title="Check each answer as soon as you leave its field"><input type="checkbox" id="liveVerb" checked>Check as I go</label>
   </div>
   <div class="score" id="verbScore"></div>
 </div>
@@ -305,7 +305,7 @@
     <div class="buttons">
       <button class="primary"   id="checkQ1Btn" onclick="checkQ1()">Check</button>
       <button class="secondary" onclick="resetQ1()">Clear</button>
-      <label class="livecheck-label" title="Check each answer as soon as you leave its field"><input type="checkbox" id="liveQ1">Check as I go</label>
+      <label class="livecheck-label" title="Check each answer as soon as you leave its field"><input type="checkbox" id="liveQ1" checked>Check as I go</label>
     </div>
     <div class="score" id="q1Score"></div>
   </div>
@@ -330,7 +330,7 @@
           <button class="secondary" id="undoAgreestdBtn" onclick="undoQ2('std')" style="display:none;" title="Restore your previous answers">Undo</button>
           <button class="secondary" onclick="nextAgree('std')">Next Phrase</button>
           <button class="secondary" onclick="resetQ2('std')">Clear</button>
-          <label class="livecheck-label" title="Check each answer as soon as you leave its field"><input type="checkbox" id="liveQ2std">Check as I go</label>
+          <label class="livecheck-label" title="Check each answer as soon as you leave its field"><input type="checkbox" id="liveQ2std" checked>Check as I go</label>
         </div>
         <div class="score" id="q2Score"></div>
       </div>
@@ -350,7 +350,7 @@
           <button class="secondary" id="undoAgreeexBtn" onclick="undoQ2('ex')" style="display:none;" title="Restore your previous answers">Undo</button>
           <button class="secondary" onclick="nextAgree('ex')">Next Phrase</button>
           <button class="secondary" onclick="resetQ2('ex')">Clear</button>
-          <label class="livecheck-label" title="Check each answer as soon as you leave its field"><input type="checkbox" id="liveQ2ex">Check as I go</label>
+          <label class="livecheck-label" title="Check each answer as soon as you leave its field"><input type="checkbox" id="liveQ2ex" checked>Check as I go</label>
         </div>
         <div class="score" id="q2ExScore"></div>
       </div>
@@ -1311,12 +1311,16 @@ function checkQ2Cell(type, key, finalSweep){
 
 // In live mode the check button's job shifts to catching blanks and saving the
 // score. Toggling the box starts a fresh attempt history for that section.
-[['liveDecl','checkDeclBtn','decl','Finish & Save Score','Check Answers'],
+const LIVE_TOGGLES = [
+ ['liveDecl','checkDeclBtn','decl','Finish & Save Score','Check Answers'],
+ ['liveDecl3','checkDecl3Btn','decl3','Finish & Save Score','Check Answers'],
+ ['liveStem','checkStemBtn','stem','Finish & Save Score','Check Answers'],
  ['liveVerb','checkVerbBtn','verb','Finish & Save Score','Check Answers'],
  ['liveQ1','checkQ1Btn','q1','Check All','Check'],
  ['liveQ2std','checkQ2stdBtn','q2std','Finish & Save Score','Check Answers'],
  ['liveQ2ex','checkQ2exBtn','q2ex','Finish & Save Score','Check Answers']
-].forEach(([boxId,btnId,section,liveLabel,normalLabel])=>{
+];
+LIVE_TOGGLES.forEach(([boxId,btnId,section,liveLabel,normalLabel])=>{
   document.getElementById(boxId).addEventListener('change', e=>{
     document.getElementById(btnId).textContent = e.target.checked ? liveLabel : normalLabel;
     liveReset(section);
@@ -1326,6 +1330,15 @@ function checkQ2Cell(type, key, finalSweep){
     document.getElementById(LIVE_CFG[section].scoreId).textContent='';
   });
 });
+
+// Sync every check button's label to its checkbox's initial (checked) state.
+function syncLiveLabels(){
+  LIVE_TOGGLES.forEach(([boxId,btnId,section,liveLabel,normalLabel])=>{
+    const box=document.getElementById(boxId);
+    const btn=document.getElementById(btnId);
+    if(box && btn) btn.textContent = box.checked ? liveLabel : normalLabel;
+  });
+}
 
 function revealQ2(type){
   const ids=getAgreeIds(type);
@@ -1872,6 +1885,7 @@ async function saveScore(tab, drillName, correct, total) {
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
 loadDrillData();
+syncLiveLabels();
 
 </script>
 </body>
