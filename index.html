@@ -36,6 +36,21 @@
   input.wrong { background: #f8d7da; border-color: red; color: red; }
   input.corrected { background: #fff3cd; border-color: #b8860b; color: #8a6d00; font-weight: bold; }
 
+  /* Vocabulary drill */
+  .vocab-table td.vocab-eng { text-align: left; padding: 4px 6px; }
+  .vocab-cell { display: inline-flex; flex-direction: column; gap: 2px; margin: 2px 6px 2px 0; vertical-align: top; }
+  .vocab-cell input { width: 150px; }
+  .vocab-cell .cell-note { font-size: 0.68rem; color: #777; text-align: center; min-height: 0.9em; }
+  .vocab-table td.given { font-weight: bold; color: #8b2e0f; }
+  .vocab-table td.given-eng { text-align: left; color: #333; font-size: 0.9rem; }
+  input.vocab-full { background: #a8dfb4; border-color: #1c6b2e; color: #12511f; font-weight: bold; }
+  tr.vocab-solved td.label, tr.vocab-solved td.given { background: #f3fbf4; }
+  tr.vocab-solved { box-shadow: inset 3px 0 0 #1c6b2e; }
+  .vocab-derivs { font-size: 0.78rem; color: #4a4a4a; background: #fff8e8; border-left: 3px solid #c9a96e; padding: 5px 10px; margin-top: 3px; text-align: left; }
+  .vocab-derivs strong { color: #8b2e0f; }
+  .vocab-note { font-size: 0.72rem; color: #777; margin-top: 2px; text-align: left; }
+  .dir-toggle { display: flex; gap: 8px; justify-content: center; margin-bottom: 14px; flex-wrap: wrap; }
+
   .buttons { display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap; }
   .livecheck-label { display: flex; align-items: center; gap: 6px; font-family: Tahoma, Arial, sans-serif; font-size: 0.8rem; color: #8b2e0f; cursor: pointer; user-select: none; }
   .livecheck-label input[type=checkbox] { width: auto; padding: 0; accent-color: #8b2e0f; cursor: pointer; }
@@ -210,6 +225,7 @@
   <div class="tab"        onclick="switchTab('decl3')">3rd Declension</div>
   <div class="tab"        onclick="switchTab('verb')">Verb Conjugations</div>
   <div class="tab"        onclick="switchTab('agree')">Adjective/Noun Agreement</div>
+  <div class="tab"        onclick="switchTab('vocab')">Vocabulary</div>
 </div>
 
 <!-- ── DECLENSION PANEL ──────────────────────────────────────── -->
@@ -358,8 +374,41 @@
   </div>
 </div><!-- end panel-agree -->
 
+<!-- ── VOCABULARY PANEL ─────────────────────────────────────── -->
+<div class="panel" id="panel-vocab">
+
+  <div id="vocabChapters"></div>
+
+  <div class="dir-toggle">
+    <button class="sel-btn active" id="dirLa2En" onclick="setVocabDirection('la2en')">Latin shown &rarr; type English</button>
+    <button class="sel-btn"        id="dirEn2La" onclick="setVocabDirection('en2la')">English shown &rarr; type Latin</button>
+  </div>
+
+  <div class="panel-subtitle" id="vocabSubtitle">Vocabula &mdash; gender is always answered</div>
+
+  <div class="agree-section">
+    <div class="agree-section-title">Nouns</div>
+    <table class="vocab-table" id="vocabNounTable"></table>
+  </div>
+
+  <div class="agree-section">
+    <div class="agree-section-title">Other Parts of Speech</div>
+    <table class="vocab-table" id="vocabOtherTable"></table>
+  </div>
+
+  <div class="buttons">
+    <button class="primary"   id="checkVocabBtn" onclick="checkVocab()">Check Answers</button>
+    <button class="secondary" onclick="revealVocab()">Show Answers</button>
+    <button class="secondary" id="undoVocabBtn" onclick="undoVocab()" style="display:none;" title="Restore your previous answers">Undo</button>
+    <button class="secondary" onclick="resetVocab()">Clear</button>
+    <label class="livecheck-label" title="Check each answer as soon as you leave its field"><input type="checkbox" id="liveVocab" checked>Check as I go</label>
+  </div>
+  <div class="score" id="vocabScore"></div>
+
+</div><!-- end panel-vocab -->
+
 <footer>
-  &copy; Copyright 2026 Dan Berge. All rights reserved. &mdash; v1.9
+  &copy; Copyright 2026 Dan Berge. All rights reserved. &mdash; v2.0
 </footer>
 
 </div><!-- end appContent -->
@@ -381,6 +430,7 @@ let verbs = [];
 let agreePhrases = [];
 let agreeExceptions = [];
 let nouns3 = [];
+let vocab = [];
 
 // ── UTILITIES ─────────────────────────────────────────────────────────────────
 
@@ -477,6 +527,31 @@ const FALLBACK_AGREE_EX = [
   {phrase:'agricolas magnos',translation:'"great farmers" (object)',caseVal:'accusative',gender:'masculine',number:'plural'},
 ];
 
+const FALLBACK_VOCAB = [
+  {"chapter": 7, "group": "noun", "pos": "m", "lemma": "amor", "forms": ["amor", "amoris"], "gender": "m", "meanings": [{"items": ["love"]}], "derivatives": ["amorous", "enamored"], "cf": ["amo", "amicus"], "note": null, "type_label": null},
+  {"chapter": 7, "group": "noun", "pos": "n", "lemma": "carmen", "forms": ["carmen", "carminis"], "gender": "n", "meanings": [{"items": ["song", "poem"]}], "derivatives": ["charm"], "cf": [], "note": null, "type_label": null},
+  {"chapter": 7, "group": "noun", "pos": "f", "lemma": "civitas", "forms": ["civitas", "civitatis"], "gender": "f", "meanings": [{"items": ["state", "citizenship"]}], "derivatives": ["city"], "cf": [], "note": null, "type_label": null},
+  {"chapter": 7, "group": "noun", "pos": "n", "lemma": "corpus", "forms": ["corpus", "corporis"], "gender": "n", "meanings": [{"items": ["body"]}], "derivatives": ["corps", "corpse", "corpuscle", "corpulent", "corporal", "corporeal", "corporate", "corporation", "incorporate", "corsage", "corset"], "cf": [], "note": null, "type_label": null},
+  {"chapter": 7, "group": "noun", "pos": "m", "lemma": "homo", "forms": ["homo", "hominis"], "gender": "m", "meanings": [{"items": ["human being", "man"]}], "derivatives": ["homicide", "homage"], "cf": ["humanus", "vir"], "note": "Also homo sapiens — but not the prefix homo-.", "type_label": null},
+  {"chapter": 7, "group": "noun", "pos": "m", "lemma": "labor", "forms": ["labor", "laboris"], "gender": "m", "meanings": [{"items": ["labor", "work", "toil"]}, {"items": ["a work", "production"]}], "derivatives": ["laboratory", "belabor", "laborious", "collaborate", "elaborate"], "cf": [], "note": null, "type_label": null},
+  {"chapter": 7, "group": "noun", "pos": "f", "lemma": "littera", "forms": ["littera", "litterae"], "gender": "f", "meanings": [{"items": ["a letter of the alphabet"]}, {"items": ["a letter", "epistle", "literature"], "note": "pl. litterae, litterarum"}], "derivatives": ["literal", "letters", "belles-lettres", "illiterate", "alliteration"], "cf": [], "note": "Special idiomatic meaning in the plural.", "type_label": null},
+  {"chapter": 7, "group": "noun", "pos": "m", "lemma": "mos", "forms": ["mos", "moris"], "gender": "m", "meanings": [{"items": ["habit", "custom", "manner"]}, {"items": ["habits", "morals", "character"], "note": "pl. mores, morum"}], "derivatives": ["mores", "moral", "immoral", "immorality", "morale", "morose"], "cf": [], "note": "Special idiomatic meaning in the plural.", "type_label": null},
+  {"chapter": 7, "group": "noun", "pos": "n", "lemma": "nomen", "forms": ["nomen", "nominis"], "gender": "n", "meanings": [{"items": ["name"]}], "derivatives": ["nomenclature", "nominate", "nominative", "nominal", "noun", "pronoun", "renown", "denomination", "ignominy", "misnomer"], "cf": [], "note": null, "type_label": null},
+  {"chapter": 7, "group": "noun", "pos": "f", "lemma": "pax", "forms": ["pax", "pacis"], "gender": "f", "meanings": [{"items": ["peace"]}], "derivatives": ["pacify", "pacific", "pacifist", "appease", "pay"], "cf": [], "note": null, "type_label": null},
+  {"chapter": 7, "group": "noun", "pos": "f", "lemma": "regina", "forms": ["regina", "reginae"], "gender": "f", "meanings": [{"items": ["queen"]}], "derivatives": ["Regina", "regina", "reginal"], "cf": [], "note": null, "type_label": null},
+  {"chapter": 7, "group": "noun", "pos": "m", "lemma": "rex", "forms": ["rex", "regis"], "gender": "m", "meanings": [{"items": ["king"]}], "derivatives": ["regal", "regalia", "regicide", "royal"], "cf": ["rajah"], "note": null, "type_label": null},
+  {"chapter": 7, "group": "noun", "pos": "n", "lemma": "tempus", "forms": ["tempus", "temporis"], "gender": "n", "meanings": [{"items": ["time"]}, {"items": ["occasion", "opportunity"]}], "derivatives": ["tempo", "temporary", "contemporary", "temporal", "temporize", "extempore", "tense (of a verb)"], "cf": [], "note": null, "type_label": null},
+  {"chapter": 7, "group": "noun", "pos": "f", "lemma": "terra", "forms": ["terra", "terrae"], "gender": "f", "meanings": [{"items": ["earth", "ground", "land", "country"]}], "derivatives": ["terrestrial", "terrace", "terrier", "territory", "inter (verb)", "parterre", "subterranean", "terra cotta"], "cf": [], "note": null, "type_label": null},
+  {"chapter": 7, "group": "noun", "pos": "f", "lemma": "uxor", "forms": ["uxor", "uxoris"], "gender": "f", "meanings": [{"items": ["wife"]}], "derivatives": ["uxorial", "uxorious", "uxoricide"], "cf": [], "note": null, "type_label": null},
+  {"chapter": 7, "group": "noun", "pos": "f", "lemma": "virgo", "forms": ["virgo", "virginis"], "gender": "f", "meanings": [{"items": ["maiden", "virgin"]}], "derivatives": ["virgin", "virginal", "virginity", "Virginia"], "cf": [], "note": null, "type_label": null},
+  {"chapter": 7, "group": "noun", "pos": "f", "lemma": "virtus", "forms": ["virtus", "virtutis"], "gender": "f", "meanings": [{"items": ["manliness", "courage"]}, {"items": ["excellence", "character", "worth", "virtue"]}], "derivatives": ["virtuoso", "virtuosity", "virtual"], "cf": ["vir"], "note": null, "type_label": null},
+  {"chapter": 7, "group": "other", "pos": "adj", "lemma": "novus", "forms": ["novus", "nova", "novum"], "gender": "adj", "meanings": [{"items": ["new"]}, {"items": ["strange"]}], "derivatives": ["novel", "novelty", "novice", "innovate"], "cf": [], "note": null, "type_label": "adj."},
+  {"chapter": 7, "group": "other", "pos": "prep", "lemma": "post", "forms": ["post"], "gender": "prep", "meanings": [{"items": ["after", "behind"]}], "derivatives": ["posterity", "posterior", "posthumous", "post mortem", "preposterous", "postgraduate", "postlude", "postpositive", "postwar"], "cf": [], "note": "P.M. = post meridiem.", "type_label": "prep. + acc."},
+  {"chapter": 7, "group": "other", "pos": "prep", "lemma": "sub", "forms": ["sub"], "gender": "prep", "meanings": [{"items": ["under", "up under", "close to"]}, {"items": ["down to", "down into", "to the foot of", "at the foot of"]}], "derivatives": ["subterranean", "suburb", "succeed", "suffix", "suggest", "support", "sustain"], "cf": [], "note": "+ abl. with verbs of rest; + acc. with verbs of motion. By assimilation: suc-, suf-, sug-, sup-, sus-.", "type_label": "prep. + abl. / + acc."},
+  {"chapter": 7, "group": "other", "pos": "verb", "lemma": "audeo", "forms": ["audeo", "audere", "ausus sum"], "gender": "verb", "meanings": [{"items": ["to dare", "dare"]}], "derivatives": ["audacious", "audacity"], "cf": [], "note": "The third principal part is unusual — semi-deponent (see Capvt XXXIV).", "type_label": "semi-deponent verb"},
+  {"chapter": 7, "group": "other", "pos": "verb", "lemma": "neco", "forms": ["neco", "necare", "necavi", "necatum"], "gender": "verb", "meanings": [{"items": ["to murder", "murder", "to kill", "kill"]}], "derivatives": ["internecine"], "cf": ["nocere"], "note": null, "type_label": "1st conjugation verb"},
+];
+
 const FALLBACK_NOUNS3 = [
   {"display": "rex, regis", "meaning": "m. — king", "gender": "m", "base": "reg", "note": null, "data": {"s": {"Nominative": "rex", "Genitive": "regis", "Dative": "regi", "Accusative": "regem", "Ablative": "rege"}, "p": {"Nominative": "reges", "Genitive": "regum", "Dative": "regibus", "Accusative": "reges", "Ablative": "regibus"}}},
   {"display": "homo, hominis", "meaning": "m. — human being, man", "gender": "m", "base": "homin", "note": null, "data": {"s": {"Nominative": "homo", "Genitive": "hominis", "Dative": "homini", "Accusative": "hominem", "Ablative": "homine"}, "p": {"Nominative": "homines", "Genitive": "hominum", "Dative": "hominibus", "Accusative": "homines", "Ablative": "hominibus"}}},
@@ -539,6 +614,7 @@ function loadFallbackData() {
   agreePhrases = FALLBACK_AGREE;
   agreeExceptions = FALLBACK_AGREE_EX;
   nouns3 = FALLBACK_NOUNS3;
+  vocab = FALLBACK_VOCAB;
 }
 
 async function loadDrillData() {
@@ -560,6 +636,8 @@ async function loadDrillData() {
     buildDecl3Selectors();
     buildDecl3Table();
     initStemQueue();
+    buildVocabChapters();
+    buildVocabTables();
     initAgreeQueue();
     initAgreeExQueue();
     document.getElementById('loadingScreen').style.display = 'none';
@@ -570,6 +648,7 @@ async function loadDrillData() {
   // Separate by type
   const declRows  = data.filter(d => d.type === 'declension');
   const decl3Rows = data.filter(d => d.type === 'declension3');
+  const vocabRowsRaw = data.filter(d => d.type === 'vocab');
   const verbRows  = data.filter(d => d.type === 'conjugation');
   const agreeRows = data.filter(d => d.type === 'agreement');
 
@@ -581,6 +660,21 @@ async function loadDrillData() {
     noun:    d.content.is_noun || false,
     note:    d.content.note || null,
     data:    d.content.paradigm,
+  }));
+
+  vocab = vocabRowsRaw.map(d => ({
+    id:          d.id,
+    chapter:     Number(d.content.chapter),
+    group:       d.content.group,
+    pos:         d.content.pos,
+    lemma:       d.content.lemma,
+    forms:       d.content.forms || [],
+    gender:      d.content.gender,
+    meanings:    d.content.meanings || [],
+    derivatives: d.content.derivatives || [],
+    cf:          d.content.cf || [],
+    note:        d.content.note || null,
+    type_label:  d.content.type_label || null,
   }));
 
   nouns3 = decl3Rows.map(d => ({
@@ -634,6 +728,8 @@ async function loadDrillData() {
   buildDecl3Selectors();
   buildDecl3Table();
   initStemQueue();
+  buildVocabChapters();
+  buildVocabTables();
   initAgreeQueue();
   initAgreeExQueue();
 
@@ -745,7 +841,7 @@ function applySnapshot(selector, snap, scoreId) {
 // try. Colours: green = right first try, yellow = right after a miss (or a
 // reveal), red = currently wrong. The saved score counts fields that are
 // correct at finish AND were right on the first attempt.
-const liveAttempts = { decl:{}, decl3:{}, stem:{}, verb:{}, q1:{}, q2std:{}, q2ex:{} };
+const liveAttempts = { decl:{}, decl3:{}, stem:{}, vocab:{}, verb:{}, q1:{}, q2std:{}, q2ex:{} };
 
 const LIVE_CFG = {
   decl:  { inputs: ()=>[...document.querySelectorAll('#declTable input')], scoreId:'declScore' },
@@ -755,6 +851,7 @@ const LIVE_CFG = {
   q2ex:  { inputs: ()=>['q2excase','q2exgender','q2exnumber'].map(id=>document.getElementById(id)), scoreId:'q2ExScore' },
   decl3: { inputs: ()=>[...document.querySelectorAll('#decl3Table input')], scoreId:'decl3Score' },
   stem:  { inputs: ()=>['stemBase','stemGender','stemForm'].map(id=>document.getElementById(id)), scoreId:'stemScore' },
+  vocab: { inputs: ()=>[...document.querySelectorAll('#panel-vocab input[data-lemma]')], scoreId:'vocabScore' },
 };
 
 function liveKey(inp){ return inp.id || JSON.stringify(inp.dataset); }
@@ -1315,6 +1412,7 @@ const LIVE_TOGGLES = [
  ['liveDecl','checkDeclBtn','decl','Finish & Save Score','Check Answers'],
  ['liveDecl3','checkDecl3Btn','decl3','Finish & Save Score','Check Answers'],
  ['liveStem','checkStemBtn','stem','Finish & Save Score','Check Answers'],
+ ['liveVocab','checkVocabBtn','vocab','Finish & Save Score','Check Answers'],
  ['liveVerb','checkVerbBtn','verb','Finish & Save Score','Check Answers'],
  ['liveQ1','checkQ1Btn','q1','Check All','Check'],
  ['liveQ2std','checkQ2stdBtn','q2std','Finish & Save Score','Check Answers'],
@@ -1753,18 +1851,374 @@ function undoStem(){
 }
 
 
+
+// ── VOCABULARY DRILL ──────────────────────────────────────────────────────────
+// Two tables per chapter: nouns, then other parts of speech.
+// One answer cell per SENSE GROUP (Wheelock's semicolons). Gender is always
+// answered. Derivatives reveal once the whole row is correct.
+
+let vocabChapter = null;
+let vocabDirection = 'la2en';   // 'la2en' = Latin given; 'en2la' = English given
+let vocabSnapshot = null;
+
+const POS_LABEL = { m:'m.', f:'f.', n:'n.', adj:'adj.', prep:'prep.', verb:'verb' };
+
+function normEng(v){
+  return (v||'').toLowerCase().trim()
+    .replace(/[.,;:!?]/g,'')
+    .replace(/^(a|an|the)\s+/,'')
+    .replace(/^to\s+/,'')
+    .replace(/\s+/g,' ');
+}
+
+function vocabChaptersAvailable(){
+  return [...new Set(vocab.map(v=>v.chapter))].sort((a,b)=>a-b);
+}
+
+function buildVocabChapters(){
+  const box = document.getElementById('vocabChapters');
+  if(!box) return;
+  const chapters = vocabChaptersAvailable();
+  if(!chapters.length){ box.innerHTML=''; return; }
+  if(vocabChapter===null) vocabChapter = chapters[0];
+  box.innerHTML = '';
+  const wrap = document.createElement('div'); wrap.className='selector-group';
+  wrap.innerHTML = '<div class="selector-label">Chapter</div>';
+  const sel = document.createElement('div'); sel.className='selector';
+  chapters.forEach(ch => {
+    const b=document.createElement('button');
+    b.className='sel-btn'+(ch===vocabChapter?' active':'');
+    b.textContent='Vocabulary '+ch;
+    b.onclick=()=>setVocabChapter(ch);
+    sel.appendChild(b);
+  });
+  wrap.appendChild(sel); box.appendChild(wrap);
+}
+
+function setVocabChapter(ch){
+  vocabChapter = ch;
+  buildVocabChapters();
+  buildVocabTables();
+  liveReset('vocab');
+  document.getElementById('vocabScore').textContent='';
+  document.getElementById('undoVocabBtn').style.display='none';
+  vocabSnapshot=null;
+}
+
+function setVocabDirection(dir){
+  vocabDirection = dir;
+  document.getElementById('dirLa2En').classList.toggle('active', dir==='la2en');
+  document.getElementById('dirEn2La').classList.toggle('active', dir==='en2la');
+  buildVocabTables();
+  liveReset('vocab');
+  document.getElementById('vocabScore').textContent='';
+  document.getElementById('undoVocabBtn').style.display='none';
+  vocabSnapshot=null;
+}
+
+function vocabRows(group){
+  return vocab.filter(v => v.chapter===vocabChapter && v.group===group);
+}
+
+// Build one <table>. group: 'noun' | 'other'
+function buildVocabTable(tableId, group){
+  const table=document.getElementById(tableId);
+  if(!table) return;
+  table.innerHTML='';
+  const rows = vocabRows(group);
+  if(!rows.length){ table.innerHTML='<tbody><tr><td class="label">No entries.</td></tr></tbody>'; return; }
+
+  const isNoun = group==='noun';
+  const head = isNoun
+    ? ['Nominative','Genitive','Gender','English']
+    : ['Latin','Other forms','Type','English'];
+
+  const thead=document.createElement('thead'), hr=document.createElement('tr');
+  head.forEach(h=>{ const th=document.createElement('th'); th.textContent=h; hr.appendChild(th); });
+  thead.appendChild(hr); table.appendChild(thead);
+
+  const tbody=document.createElement('tbody');
+  rows.forEach(v => {
+    const tr=document.createElement('tr');
+    tr.dataset.lemma=v.lemma;
+
+    // Column 1 & 2: Latin forms — given text in la2en, inputs in en2la
+    [0,1].forEach(fi => {
+      const td=document.createElement('td');
+      const val = fi===0 ? v.forms[0] : v.forms.slice(1).join(', ');
+      if(vocabDirection==='la2en'){
+        td.className = fi===0 ? 'label given' : 'given';
+        td.textContent = val || '\u2014';
+      } else {
+        if(!val){ td.className='given'; td.textContent='\u2014'; }
+        else {
+          const inp=document.createElement('input');
+          inp.type='text'; inp.autocomplete='off'; inp.spellcheck=false;
+          inp.dataset.lemma=v.lemma; inp.dataset.kind='latin'; inp.dataset.slot=String(fi);
+          td.appendChild(inp);
+        }
+      }
+      tr.appendChild(td);
+    });
+
+    // Column 3: Gender / Type — always an input
+    const tdG=document.createElement('td');
+    const gi=document.createElement('input');
+    gi.type='text'; gi.autocomplete='off'; gi.spellcheck=false;
+    gi.dataset.lemma=v.lemma; gi.dataset.kind='gender';
+    tdG.appendChild(gi); tr.appendChild(tdG);
+
+    // Column 4: English — inputs in la2en, given text in en2la
+    const tdE=document.createElement('td');
+    if(vocabDirection==='la2en'){
+      tdE.className='vocab-eng';
+      v.meanings.forEach((g,gi2)=>{
+        const cell=document.createElement('div'); cell.className='vocab-cell';
+        const inp=document.createElement('input');
+        inp.type='text'; inp.autocomplete='off'; inp.spellcheck=false;
+        inp.dataset.lemma=v.lemma; inp.dataset.kind='eng'; inp.dataset.slot=String(gi2);
+        cell.appendChild(inp);
+        const note=document.createElement('div'); note.className='cell-note';
+        note.textContent=g.note||'';
+        cell.appendChild(note);
+        tdE.appendChild(cell);
+      });
+    } else {
+      tdE.className='given-eng';
+      tdE.innerHTML = v.meanings.map(g =>
+        g.items.join(', ') + (g.note ? ' <span style="color:#888">('+g.note+')</span>' : '')
+      ).join('; ');
+    }
+    // derivatives holder (hidden until the row is solved)
+    const dv=document.createElement('div'); dv.className='vocab-derivs';
+    dv.style.display='none'; dv.dataset.derivFor=v.lemma;
+    tdE.appendChild(dv);
+    tr.appendChild(tdE);
+
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+}
+
+function buildVocabTables(){
+  if(!vocab.length) return;
+  if(vocabChapter===null){
+    const chs=vocabChaptersAvailable();
+    if(chs.length) vocabChapter=chs[0]; else return;
+  }
+  buildVocabTable('vocabNounTable','noun');
+  buildVocabTable('vocabOtherTable','other');
+  document.getElementById('vocabSubtitle').textContent =
+    vocabDirection==='la2en'
+      ? 'Latin is given \u2014 supply the gender and every English meaning listed'
+      : 'English is given \u2014 supply the Latin forms and the gender';
+}
+
+function vocabEntry(lemma){
+  return vocab.find(v=>v.lemma===lemma && v.chapter===vocabChapter);
+}
+
+// Gender / type accepts the letter or the word.
+const GENDER_ACCEPT = {
+  m:['m','masc','masculine'], f:['f','fem','feminine'], n:['n','neut','neuter'],
+  adj:['adj','adjective'], prep:['prep','preposition'], verb:['v','verb'],
+};
+
+function vocabFieldCorrect(inp){
+  const v = vocabEntry(inp.dataset.lemma);
+  if(!v) return false;
+  const val = inp.value;
+  if(inp.dataset.kind==='gender'){
+    const want = GENDER_ACCEPT[v.gender]||[v.gender];
+    return want.includes(normEng(val).replace(/\./g,''));
+  }
+  if(inp.dataset.kind==='latin'){
+    const slot=+inp.dataset.slot;
+    const want = slot===0 ? v.forms[0] : v.forms.slice(1).join(', ');
+    return norm(val)===norm(want);
+  }
+  // english: accept any listed meaning from ANY sense group of this word,
+  // but each meaning may only be used once per row.
+  const all=[]; v.meanings.forEach(g=>g.items.forEach(i=>all.push(normEng(i))));
+  const mine=normEng(val);
+  if(!mine || !all.includes(mine)) return false;
+  const siblings=[...document.querySelectorAll('input[data-kind="eng"][data-lemma="'+CSS.escape(v.lemma)+'"]')];
+  for(const sib of siblings){
+    if(sib===inp) break;                        // only earlier cells claim first
+    if(normEng(sib.value)===mine) return false; // duplicate
+  }
+  return true;
+}
+
+function vocabRowInputs(lemma){
+  return [...document.querySelectorAll('#panel-vocab input[data-lemma="'+CSS.escape(lemma)+'"]')];
+}
+
+// A row is solved when every input in it is correct.
+function updateVocabRow(lemma){
+  const inputs=vocabRowInputs(lemma);
+  if(!inputs.length) return false;
+  const solved=inputs.every(i=>vocabFieldCorrect(i));
+  const tr=document.querySelector('#panel-vocab tr[data-lemma="'+CSS.escape(lemma)+'"]');
+  if(tr) tr.classList.toggle('vocab-solved', solved);
+  // upgrade every english cell to the stronger green when fully solved
+  inputs.filter(i=>i.dataset.kind==='eng').forEach(i=>{
+    i.classList.toggle('vocab-full', solved && i.classList.contains('correct'));
+  });
+  const dv=document.querySelector('#panel-vocab [data-deriv-for="'+CSS.escape(lemma)+'"]');
+  const v=vocabEntry(lemma);
+  if(dv && v){
+    if(solved){
+      let html='';
+      if(v.derivatives && v.derivatives.length) html+='<strong>English derivatives:</strong> '+v.derivatives.join(', ');
+      if(v.cf && v.cf.length) html+=(html?'<br>':'')+'<strong>cf.</strong> '+v.cf.join(', ');
+      if(v.note) html+=(html?'<br>':'')+'<span style="color:#777">'+v.note+'</span>';
+      dv.innerHTML=html;
+      dv.style.display = html ? 'block' : 'none';
+    } else {
+      dv.style.display='none';
+    }
+  }
+  return solved;
+}
+
+function updateAllVocabRows(){
+  const lemmas=[...new Set([...document.querySelectorAll('#panel-vocab input[data-lemma]')].map(i=>i.dataset.lemma))];
+  lemmas.forEach(updateVocabRow);
+}
+
+function vocabExpected(inp){
+  const v=vocabEntry(inp.dataset.lemma);
+  if(!v) return '';
+  if(inp.dataset.kind==='gender') return POS_LABEL[v.gender]||v.gender;
+  if(inp.dataset.kind==='latin'){
+    const slot=+inp.dataset.slot;
+    return slot===0 ? v.forms[0] : v.forms.slice(1).join(', ');
+  }
+  const g=v.meanings[+inp.dataset.slot];
+  return g ? g.items.join(' / ') : '';
+}
+
+function checkVocabCell(inp, finalSweep){
+  if(!inp.value && !finalSweep && !liveAttempted('vocab', inp)){
+    inp.classList.remove('correct','wrong','corrected','vocab-full'); inp.title=''; return;
+  }
+  const ok=vocabFieldCorrect(inp);
+  liveMark('vocab', inp, ok);
+  inp.title = ok ? '' : 'Expected: '+vocabExpected(inp);
+}
+
+function checkVocab(){
+  if(document.getElementById('liveVocab').checked){
+    const c=liveFinish('vocab', inp=>checkVocabCell(inp,true));
+    updateAllVocabRows();
+    saveScore('vocabulary', 'Vocabulary '+vocabChapter, c.green, c.total);
+    return;
+  }
+  const inputs=[...document.querySelectorAll('#panel-vocab input[data-lemma]')];
+  let correct=0;
+  inputs.forEach(inp=>{
+    inp.classList.remove('correct','wrong','corrected','vocab-full');
+    if(vocabFieldCorrect(inp)){ inp.classList.add('correct'); correct++; }
+    else { inp.classList.add('wrong'); inp.title='Expected: '+vocabExpected(inp); }
+  });
+  updateAllVocabRows();
+  const solved=[...document.querySelectorAll('#panel-vocab tr.vocab-solved')].length;
+  const scr=document.getElementById('vocabScore');
+  scr.style.color = correct===inputs.length ? 'green' : 'red';
+  scr.textContent = correct===inputs.length
+    ? 'Optime! '+correct+'/'+inputs.length+' \u2014 every word complete.'
+    : correct+'/'+inputs.length+' fields \u00b7 '+solved+' words fully solved \u2014 hover red cells for the expected answer.';
+  saveScore('vocabulary', 'Vocabulary '+vocabChapter, correct, inputs.length);
+}
+
+function revealVocab(){
+  vocabSnapshot={ values:{}, classes:{}, liveMap:{...liveAttempts.vocab} };
+  const inputs=[...document.querySelectorAll('#panel-vocab input[data-lemma]')];
+  inputs.forEach((inp,i)=>{
+    vocabSnapshot.values[i]=inp.value;
+    vocabSnapshot.classes[i]=[...inp.classList];
+  });
+  const live=document.getElementById('liveVocab').checked;
+  inputs.forEach(inp=>{
+    const v=vocabEntry(inp.dataset.lemma);
+    if(!v) return;
+    if(inp.dataset.kind==='gender')      inp.value=v.gender;
+    else if(inp.dataset.kind==='latin')  inp.value=(+inp.dataset.slot===0)?v.forms[0]:v.forms.slice(1).join(', ');
+    else {
+      const g=v.meanings[+inp.dataset.slot];
+      inp.value=g?g.items[0]:'';
+    }
+    inp.title='';
+    if(live){
+      const key=liveKey(inp);
+      if(!(key in liveAttempts.vocab)) liveAttempts.vocab[key]=false;
+      liveMark('vocab', inp, true);
+    } else {
+      inp.classList.remove('wrong','corrected'); inp.classList.add('correct');
+    }
+  });
+  updateAllVocabRows();
+  if(live) liveScoreLine('vocab');
+  else document.getElementById('vocabScore').textContent='';
+  document.getElementById('undoVocabBtn').style.display='inline-block';
+}
+
+function resetVocab(silent){
+  if(!silent){
+    vocabSnapshot={ values:{}, classes:{}, liveMap:{...liveAttempts.vocab} };
+    [...document.querySelectorAll('#panel-vocab input[data-lemma]')].forEach((inp,i)=>{
+      vocabSnapshot.values[i]=inp.value;
+      vocabSnapshot.classes[i]=[...inp.classList];
+    });
+  }
+  liveReset('vocab');
+  buildVocabTables();
+  document.getElementById('vocabScore').textContent='';
+  if(!silent) document.getElementById('undoVocabBtn').style.display='inline-block';
+  else { document.getElementById('undoVocabBtn').style.display='none'; vocabSnapshot=null; }
+}
+
+function undoVocab(){
+  if(!vocabSnapshot) return;
+  buildVocabTables();
+  const inputs=[...document.querySelectorAll('#panel-vocab input[data-lemma]')];
+  inputs.forEach((inp,i)=>{
+    if(vocabSnapshot.values[i]!==undefined) inp.value=vocabSnapshot.values[i];
+    (vocabSnapshot.classes[i]||[]).forEach(c=>{
+      if(c==='correct'||c==='wrong'||c==='corrected'||c==='vocab-full') inp.classList.add(c);
+    });
+  });
+  liveAttempts.vocab = vocabSnapshot.liveMap ? {...vocabSnapshot.liveMap} : {};
+  updateAllVocabRows();
+  if(document.getElementById('liveVocab').checked) liveScoreLine('vocab');
+  document.getElementById('undoVocabBtn').style.display='none';
+  vocabSnapshot=null;
+}
+
+document.getElementById('panel-vocab').addEventListener('focusout', e=>{
+  if(e.target.tagName==='INPUT' && e.target.dataset.lemma
+     && document.getElementById('liveVocab').checked){
+    checkVocabCell(e.target);
+    updateVocabRow(e.target.dataset.lemma);
+    liveScoreLine('vocab');
+  }
+});
+
+
 // ── TAB SWITCHING ─────────────────────────────────────────────────────────────
 
 function switchTab(tab){
-  const panels=['decl','decl3','verb','agree'];
+  const panels=['decl','decl3','verb','agree','vocab'];
   document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',panels[i]===tab));
   panels.forEach(p=>document.getElementById('panel-'+p).classList.toggle('active',p===tab));
   resetDecl(true);
   resetDecl3(true);
+  resetVocab(true);
   resetVerb(true);
   resetAgreeTab();
   // Hide all undo buttons on tab switch
-  ['undoDeclBtn','undoDecl3Btn','undoStemBtn','undoVerbBtn','undoAgreestdBtn','undoAgreeexBtn'].forEach(id=>{
+  ['undoDeclBtn','undoDecl3Btn','undoStemBtn','undoVocabBtn','undoVerbBtn','undoAgreestdBtn','undoAgreeexBtn'].forEach(id=>{
     const el=document.getElementById(id);
     if(el) el.style.display='none';
   });
