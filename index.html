@@ -1617,7 +1617,7 @@ function loadStem(){
   stemTarget = pickStemTarget(n);
   document.getElementById('stemCounter').textContent = 'Word '+(stemIndex+1)+' of '+nouns3.length;
   document.getElementById('stemPhrase').textContent = n.display;
-  document.getElementById('stemMeaning').textContent = n.meaning;
+  document.getElementById('stemMeaning').textContent = n.meaning.replace(/^\s*[mfn]\.\s*[\u2014-]\s*/, '');
   const numWord = stemTarget.num==='s' ? 'singular' : 'plural';
   document.getElementById('stemFormLabel').textContent = stemTarget.case+' '+numWord;
   ['stemBase','stemGender','stemForm'].forEach(id => {
