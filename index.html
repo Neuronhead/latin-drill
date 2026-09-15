@@ -10,8 +10,9 @@
   p.sub { text-align: center; color: #444; margin-bottom: 12px; font-size: 0.95rem; }
 
   .tabs { display: flex; justify-content: center; gap: 0; margin-bottom: 20px; flex-wrap: wrap; }
-  .tab { padding: 10px 24px; font-family: Tahoma, Arial, sans-serif; font-size: 0.9rem; border: 2px solid #8b2e0f; cursor: pointer; background: white; color: #8b2e0f; transition: all 0.2s; border-left: none; }
-  .tab:first-child { border-radius: 4px 0 0 4px; border-left: 2px solid #8b2e0f; }
+  .tab { padding: 10px 24px; font-family: Tahoma, Arial, sans-serif; font-size: 0.9rem; border: 2px solid #8b2e0f; cursor: pointer; background: white; color: #8b2e0f; transition: all 0.2s; }
+  .tab + .tab { margin-left: -2px; }
+  .tab:first-child { border-radius: 4px 0 0 4px; }
   .tab:last-child { border-radius: 0 4px 4px 0; }
   .tab.active { background: #8b2e0f; color: white; }
 
