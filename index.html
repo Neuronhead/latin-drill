@@ -47,6 +47,8 @@
   input.vocab-full { background: #a8dfb4; border-color: #1c6b2e; color: #12511f; font-weight: bold; }
   tr.vocab-solved td.label, tr.vocab-solved td.given { background: #f3fbf4; }
   tr.vocab-solved { box-shadow: inset 3px 0 0 #1c6b2e; }
+  tr.vocab-complete { box-shadow: inset 5px 0 0 #c9a96e, inset 8px 0 0 #1c6b2e; }
+  .vocab-group { display: inline-block; vertical-align: top; margin-right: 10px; }
   .vocab-derivs { font-size: 0.78rem; color: #4a4a4a; background: #fff8e8; border-left: 3px solid #c9a96e; padding: 5px 10px; margin-top: 3px; text-align: left; }
   .vocab-derivs strong { color: #8b2e0f; }
   .vocab-note { font-size: 0.72rem; color: #777; margin-top: 2px; text-align: left; }
@@ -615,7 +617,7 @@ function loadFallbackData() {
   agreePhrases = FALLBACK_AGREE;
   agreeExceptions = FALLBACK_AGREE_EX;
   nouns3 = FALLBACK_NOUNS3;
-  vocab = FALLBACK_VOCAB;
+  vocab = FALLBACK_VOCAB.map(v=>Object.assign({}, v, {meanings: dedupeMeanings(v.meanings)}));
 }
 
 async function loadDrillData() {
@@ -671,7 +673,7 @@ async function loadDrillData() {
     lemma:       d.content.lemma,
     forms:       d.content.forms || [],
     gender:      d.content.gender,
-    meanings:    d.content.meanings || [],
+    meanings:    dedupeMeanings(d.content.meanings || []),
     derivatives: d.content.derivatives || [],
     cf:          d.content.cf || [],
     note:        d.content.note || null,
@@ -852,7 +854,7 @@ const LIVE_CFG = {
   q2ex:  { inputs: ()=>['q2excase','q2exgender','q2exnumber'].map(id=>document.getElementById(id)), scoreId:'q2ExScore' },
   decl3: { inputs: ()=>[...document.querySelectorAll('#decl3Table input')], scoreId:'decl3Score' },
   stem:  { inputs: ()=>['stemBase','stemGender','stemForm'].map(id=>document.getElementById(id)), scoreId:'stemScore' },
-  vocab: { inputs: ()=>[...document.querySelectorAll('#panel-vocab input[data-lemma]')], scoreId:'vocabScore' },
+  vocab: { inputs: ()=>[...document.querySelectorAll('#panel-vocab input[data-lemma]')].filter(i=>i.dataset.optional!=='1'||i.value.trim()!==''), scoreId:'vocabScore' },
 };
 
 function liveKey(inp){ return inp.id || JSON.stringify(inp.dataset); }
@@ -1855,8 +1857,11 @@ function undoStem(){
 
 // ── VOCABULARY DRILL ──────────────────────────────────────────────────────────
 // Two tables per chapter: nouns, then other parts of speech.
-// One answer cell per SENSE GROUP (Wheelock's semicolons). Gender is always
-// answered. Derivatives reveal once the whole row is correct.
+// One answer GROUP per sense group (Wheelock's semicolons). Within a group the
+// boxes appear progressively: get one right and the next box ("2 of 3") opens.
+// Extra boxes are optional — a blank one is never scored, a filled one is.
+// Derivatives reveal once the row is right; the deeper green marks a row where
+// every listed synonym has been supplied.
 
 let vocabChapter = null;
 let vocabDirection = 'la2en';   // 'la2en' = Latin given; 'en2la' = English given
@@ -1870,6 +1875,24 @@ function normEng(v){
     .replace(/^(a|an|the)\s+/,'')
     .replace(/^to\s+/,'')
     .replace(/\s+/g,' ');
+}
+
+// Two listed synonyms can normalise to the same string ("to dare" / "dare").
+// Keep the first of each; otherwise the extra box could never be answered.
+function dedupeMeanings(meanings){
+  return (meanings||[]).map(g=>{
+    const seen=new Set(), items=[];
+    (g.items||[]).forEach(it=>{
+      const k=normEng(it);
+      if(k && !seen.has(k)){ seen.add(k); items.push(it); }
+    });
+    return Object.assign({}, g, {items});
+  });
+}
+
+function vocabKey(inp){
+  const d=inp.dataset;
+  return [d.lemma,d.kind,d.slot||'',d.idx||''].join('|');
 }
 
 function vocabChaptersAvailable(){
@@ -1921,6 +1944,59 @@ function vocabRows(group){
   return vocab.filter(v => v.chapter===vocabChapter && v.group===group);
 }
 
+function vocabEntry(lemma){
+  return vocab.find(v=>v.lemma===lemma && v.chapter===vocabChapter);
+}
+
+// One English answer box. idx 0 is required; later boxes are optional.
+function vocabEngCell(v, gi, idx){
+  const cell=document.createElement('div'); cell.className='vocab-cell';
+  const inp=document.createElement('input');
+  inp.type='text'; inp.autocomplete='off'; inp.spellcheck=false;
+  inp.dataset.lemma=v.lemma; inp.dataset.kind='eng';
+  inp.dataset.slot=String(gi); inp.dataset.idx=String(idx);
+  if(idx>0) inp.dataset.optional='1';
+  cell.appendChild(inp);
+  const n=v.meanings[gi].items.length;
+  const note=document.createElement('div'); note.className='cell-note';
+  note.textContent = n>1 ? (idx+1)+' of '+n : '';
+  cell.appendChild(note);
+  return cell;
+}
+
+function vocabGroupEl(lemma, gi){
+  return document.querySelector('#panel-vocab .vocab-group[data-lemma="'+CSS.escape(lemma)+'"][data-slot="'+gi+'"]');
+}
+
+// Open the next box in a group once every box already shown is correct.
+function ensureNextVocabBox(inp){
+  if(inp.dataset.kind!=='eng') return;
+  const v=vocabEntry(inp.dataset.lemma); if(!v) return;
+  const gi=+inp.dataset.slot;
+  const g=v.meanings[gi]; if(!g) return;
+  const grp=vocabGroupEl(v.lemma, gi); if(!grp) return;
+  const existing=[...grp.querySelectorAll('input')];
+  if(existing.length>=g.items.length) return;
+  if(!existing.every(x=>vocabFieldCorrect(x))) return;
+  const cell=vocabEngCell(v, gi, existing.length);
+  const noteEl=grp.querySelector('.vocab-note');
+  if(noteEl) grp.insertBefore(cell, noteEl); else grp.appendChild(cell);
+}
+
+// Used by Show Answers: open every box in every group.
+function expandAllVocabBoxes(){
+  vocab.filter(v=>v.chapter===vocabChapter).forEach(v=>{
+    v.meanings.forEach((g,gi)=>{
+      const grp=vocabGroupEl(v.lemma, gi); if(!grp) return;
+      while(grp.querySelectorAll('input').length < g.items.length){
+        const cell=vocabEngCell(v, gi, grp.querySelectorAll('input').length);
+        const noteEl=grp.querySelector('.vocab-note');
+        if(noteEl) grp.insertBefore(cell, noteEl); else grp.appendChild(cell);
+      }
+    });
+  });
+}
+
 // Build one <table>. group: 'noun' | 'other'
 function buildVocabTable(tableId, group){
   const table=document.getElementById(tableId);
@@ -1943,7 +2019,6 @@ function buildVocabTable(tableId, group){
     const tr=document.createElement('tr');
     tr.dataset.lemma=v.lemma;
 
-    // Column 1 & 2: Latin forms — given text in la2en, inputs in en2la
     [0,1].forEach(fi => {
       const td=document.createElement('td');
       const val = fi===0 ? v.forms[0] : v.forms.slice(1).join(', ');
@@ -1962,27 +2037,24 @@ function buildVocabTable(tableId, group){
       tr.appendChild(td);
     });
 
-    // Column 3: Gender / Type — always an input
     const tdG=document.createElement('td');
     const gi=document.createElement('input');
     gi.type='text'; gi.autocomplete='off'; gi.spellcheck=false;
     gi.dataset.lemma=v.lemma; gi.dataset.kind='gender';
     tdG.appendChild(gi); tr.appendChild(tdG);
 
-    // Column 4: English — inputs in la2en, given text in en2la
     const tdE=document.createElement('td');
     if(vocabDirection==='la2en'){
       tdE.className='vocab-eng';
-      v.meanings.forEach((g,gi2)=>{
-        const cell=document.createElement('div'); cell.className='vocab-cell';
-        const inp=document.createElement('input');
-        inp.type='text'; inp.autocomplete='off'; inp.spellcheck=false;
-        inp.dataset.lemma=v.lemma; inp.dataset.kind='eng'; inp.dataset.slot=String(gi2);
-        cell.appendChild(inp);
-        const note=document.createElement('div'); note.className='cell-note';
-        note.textContent=g.note||'';
-        cell.appendChild(note);
-        tdE.appendChild(cell);
+      v.meanings.forEach((g,gidx)=>{
+        const grp=document.createElement('div'); grp.className='vocab-group';
+        grp.dataset.lemma=v.lemma; grp.dataset.slot=String(gidx);
+        grp.appendChild(vocabEngCell(v, gidx, 0));
+        if(g.note){
+          const gn=document.createElement('div'); gn.className='vocab-note';
+          gn.textContent=g.note; grp.appendChild(gn);
+        }
+        tdE.appendChild(grp);
       });
     } else {
       tdE.className='given-eng';
@@ -1990,7 +2062,6 @@ function buildVocabTable(tableId, group){
         g.items.join(', ') + (g.note ? ' <span style="color:#888">('+g.note+')</span>' : '')
       ).join('; ');
     }
-    // derivatives holder (hidden until the row is solved)
     const dv=document.createElement('div'); dv.className='vocab-derivs';
     dv.style.display='none'; dv.dataset.derivFor=v.lemma;
     tdE.appendChild(dv);
@@ -2011,15 +2082,10 @@ function buildVocabTables(){
   buildVocabTable('vocabOtherTable','other');
   document.getElementById('vocabSubtitle').textContent =
     vocabDirection==='la2en'
-      ? 'Latin is given \u2014 supply the gender and every English meaning listed'
+      ? 'Latin is given \u2014 supply the gender and at least one English meaning per sense'
       : 'English is given \u2014 supply the Latin forms and the gender';
 }
 
-function vocabEntry(lemma){
-  return vocab.find(v=>v.lemma===lemma && v.chapter===vocabChapter);
-}
-
-// Gender / type accepts the letter or the word.
 const GENDER_ACCEPT = {
   m:['m','masc','masculine'], f:['f','fem','feminine'], n:['n','neut','neuter'],
   adj:['adj','adjective'], prep:['prep','preposition'], verb:['v','verb'],
@@ -2038,15 +2104,17 @@ function vocabFieldCorrect(inp){
     const want = slot===0 ? v.forms[0] : v.forms.slice(1).join(', ');
     return norm(val)===norm(want);
   }
-  // english: accept any listed meaning from ANY sense group of this word,
-  // but each meaning may only be used once per row.
-  const all=[]; v.meanings.forEach(g=>g.items.forEach(i=>all.push(normEng(i))));
+  // english: must match a meaning from ITS OWN sense group, and each meaning
+  // may only be used once within that group.
+  const gi=+inp.dataset.slot;
+  const g=v.meanings[gi]; if(!g) return false;
+  const items=g.items.map(normEng);
   const mine=normEng(val);
-  if(!mine || !all.includes(mine)) return false;
-  const siblings=[...document.querySelectorAll('input[data-kind="eng"][data-lemma="'+CSS.escape(v.lemma)+'"]')];
-  for(const sib of siblings){
-    if(sib===inp) break;                        // only earlier cells claim first
-    if(normEng(sib.value)===mine) return false; // duplicate
+  if(!mine || !items.includes(mine)) return false;
+  const sibs=[...document.querySelectorAll('#panel-vocab input[data-kind="eng"][data-lemma="'+CSS.escape(v.lemma)+'"][data-slot="'+gi+'"]')];
+  for(const sib of sibs){
+    if(sib===inp) break;
+    if(normEng(sib.value)===mine) return false;
   }
   return true;
 }
@@ -2055,21 +2123,42 @@ function vocabRowInputs(lemma){
   return [...document.querySelectorAll('#panel-vocab input[data-lemma="'+CSS.escape(lemma)+'"]')];
 }
 
-// A row is solved when every input in it is correct.
+// rowCorrect  = every non-English field right AND at least one meaning per sense group
+// rowComplete = every non-English field right AND every listed meaning supplied
 function updateVocabRow(lemma){
-  const inputs=vocabRowInputs(lemma);
-  if(!inputs.length) return false;
-  const solved=inputs.every(i=>vocabFieldCorrect(i));
+  const v=vocabEntry(lemma); if(!v) return false;
+  const all=vocabRowInputs(lemma);
+  if(!all.length) return false;
+
+  const nonEng=all.filter(i=>i.dataset.kind!=='eng');
+  const nonEngOK=nonEng.every(i=>vocabFieldCorrect(i));
+
+  const hasEng=all.some(i=>i.dataset.kind==='eng');
+  let satisfied=true, complete=true;
+  if(hasEng){
+    v.meanings.forEach((g,gi)=>{
+      const ins=all.filter(i=>i.dataset.kind==='eng' && +i.dataset.slot===gi);
+      const ok=ins.filter(i=>vocabFieldCorrect(i)).length;
+      if(ok<1) satisfied=false;
+      if(ok<g.items.length) complete=false;
+    });
+  }
+
+  const rowCorrect  = nonEngOK && satisfied;
+  const rowComplete = nonEngOK && complete;
+
   const tr=document.querySelector('#panel-vocab tr[data-lemma="'+CSS.escape(lemma)+'"]');
-  if(tr) tr.classList.toggle('vocab-solved', solved);
-  // upgrade every english cell to the stronger green when fully solved
-  inputs.filter(i=>i.dataset.kind==='eng').forEach(i=>{
-    i.classList.toggle('vocab-full', solved && i.classList.contains('correct'));
+  if(tr){
+    tr.classList.toggle('vocab-solved', rowCorrect);
+    tr.classList.toggle('vocab-complete', rowComplete);
+  }
+  all.filter(i=>i.dataset.kind==='eng').forEach(i=>{
+    i.classList.toggle('vocab-full', rowComplete && i.classList.contains('correct'));
   });
+
   const dv=document.querySelector('#panel-vocab [data-deriv-for="'+CSS.escape(lemma)+'"]');
-  const v=vocabEntry(lemma);
-  if(dv && v){
-    if(solved){
+  if(dv){
+    if(rowCorrect){
       let html='';
       if(v.derivatives && v.derivatives.length) html+='<strong>English derivatives:</strong> '+v.derivatives.join(', ');
       if(v.cf && v.cf.length) html+=(html?'<br>':'')+'<strong>cf.</strong> '+v.cf.join(', ');
@@ -2080,7 +2169,7 @@ function updateVocabRow(lemma){
       dv.style.display='none';
     }
   }
-  return solved;
+  return rowCorrect;
 }
 
 function updateAllVocabRows(){
@@ -2101,12 +2190,17 @@ function vocabExpected(inp){
 }
 
 function checkVocabCell(inp, finalSweep){
+  // an untouched optional box is simply not scored
+  if(inp.dataset.optional==='1' && !inp.value.trim()){
+    inp.classList.remove('correct','wrong','corrected','vocab-full'); inp.title=''; return;
+  }
   if(!inp.value && !finalSweep && !liveAttempted('vocab', inp)){
     inp.classList.remove('correct','wrong','corrected','vocab-full'); inp.title=''; return;
   }
   const ok=vocabFieldCorrect(inp);
   liveMark('vocab', inp, ok);
   inp.title = ok ? '' : 'Expected: '+vocabExpected(inp);
+  if(ok) ensureNextVocabBox(inp);
 }
 
 function checkVocab(){
@@ -2116,39 +2210,46 @@ function checkVocab(){
     saveScore('vocabulary', 'Vocabulary '+vocabChapter, c.green, c.total);
     return;
   }
-  const inputs=[...document.querySelectorAll('#panel-vocab input[data-lemma]')];
+  const inputs=LIVE_CFG.vocab.inputs();
   let correct=0;
   inputs.forEach(inp=>{
     inp.classList.remove('correct','wrong','corrected','vocab-full');
-    if(vocabFieldCorrect(inp)){ inp.classList.add('correct'); correct++; }
+    if(vocabFieldCorrect(inp)){ inp.classList.add('correct'); correct++; ensureNextVocabBox(inp); }
     else { inp.classList.add('wrong'); inp.title='Expected: '+vocabExpected(inp); }
   });
   updateAllVocabRows();
-  const solved=[...document.querySelectorAll('#panel-vocab tr.vocab-solved')].length;
+  const solved=document.querySelectorAll('#panel-vocab tr.vocab-solved').length;
+  const total=inputs.length;
   const scr=document.getElementById('vocabScore');
-  scr.style.color = correct===inputs.length ? 'green' : 'red';
-  scr.textContent = correct===inputs.length
-    ? 'Optime! '+correct+'/'+inputs.length+' \u2014 every word complete.'
-    : correct+'/'+inputs.length+' fields \u00b7 '+solved+' words fully solved \u2014 hover red cells for the expected answer.';
-  saveScore('vocabulary', 'Vocabulary '+vocabChapter, correct, inputs.length);
+  scr.style.color = correct===total ? 'green' : 'red';
+  scr.textContent = correct===total
+    ? 'Optime! '+correct+'/'+total+' \u00b7 '+solved+' words correct.'
+    : correct+'/'+total+' fields \u00b7 '+solved+' words correct \u2014 hover red cells for the expected answer.';
+  saveScore('vocabulary', 'Vocabulary '+vocabChapter, correct, total);
+}
+
+function takeVocabSnapshot(){
+  const snap={ values:{}, classes:{}, liveMap:{...liveAttempts.vocab} };
+  [...document.querySelectorAll('#panel-vocab input[data-lemma]')].forEach(inp=>{
+    const k=vocabKey(inp);
+    snap.values[k]=inp.value;
+    snap.classes[k]=[...inp.classList];
+  });
+  return snap;
 }
 
 function revealVocab(){
-  vocabSnapshot={ values:{}, classes:{}, liveMap:{...liveAttempts.vocab} };
-  const inputs=[...document.querySelectorAll('#panel-vocab input[data-lemma]')];
-  inputs.forEach((inp,i)=>{
-    vocabSnapshot.values[i]=inp.value;
-    vocabSnapshot.classes[i]=[...inp.classList];
-  });
+  vocabSnapshot=takeVocabSnapshot();
+  expandAllVocabBoxes();
   const live=document.getElementById('liveVocab').checked;
-  inputs.forEach(inp=>{
+  [...document.querySelectorAll('#panel-vocab input[data-lemma]')].forEach(inp=>{
     const v=vocabEntry(inp.dataset.lemma);
     if(!v) return;
     if(inp.dataset.kind==='gender')      inp.value=v.gender;
     else if(inp.dataset.kind==='latin')  inp.value=(+inp.dataset.slot===0)?v.forms[0]:v.forms.slice(1).join(', ');
     else {
       const g=v.meanings[+inp.dataset.slot];
-      inp.value=g?g.items[0]:'';
+      inp.value=g?(g.items[+inp.dataset.idx]||g.items[0]):'';
     }
     inp.title='';
     if(live){
@@ -2166,13 +2267,7 @@ function revealVocab(){
 }
 
 function resetVocab(silent){
-  if(!silent){
-    vocabSnapshot={ values:{}, classes:{}, liveMap:{...liveAttempts.vocab} };
-    [...document.querySelectorAll('#panel-vocab input[data-lemma]')].forEach((inp,i)=>{
-      vocabSnapshot.values[i]=inp.value;
-      vocabSnapshot.classes[i]=[...inp.classList];
-    });
-  }
+  if(!silent) vocabSnapshot=takeVocabSnapshot();
   liveReset('vocab');
   buildVocabTables();
   document.getElementById('vocabScore').textContent='';
@@ -2183,12 +2278,22 @@ function resetVocab(silent){
 function undoVocab(){
   if(!vocabSnapshot) return;
   buildVocabTables();
-  const inputs=[...document.querySelectorAll('#panel-vocab input[data-lemma]')];
-  inputs.forEach((inp,i)=>{
-    if(vocabSnapshot.values[i]!==undefined) inp.value=vocabSnapshot.values[i];
-    (vocabSnapshot.classes[i]||[]).forEach(c=>{
+  expandAllVocabBoxes();
+  [...document.querySelectorAll('#panel-vocab input[data-lemma]')].forEach(inp=>{
+    const k=vocabKey(inp);
+    if(vocabSnapshot.values[k]!==undefined) inp.value=vocabSnapshot.values[k];
+    (vocabSnapshot.classes[k]||[]).forEach(c=>{
       if(c==='correct'||c==='wrong'||c==='corrected'||c==='vocab-full') inp.classList.add(c);
     });
+  });
+  // drop trailing optional boxes left empty by the restore
+  [...document.querySelectorAll('#panel-vocab .vocab-group')].forEach(grp=>{
+    let boxes=[...grp.querySelectorAll('input')];
+    for(let i=boxes.length-1;i>0;i--){
+      const inp=boxes[i];
+      if(inp.value.trim()) break;
+      inp.closest('.vocab-cell').remove();
+    }
   });
   liveAttempts.vocab = vocabSnapshot.liveMap ? {...vocabSnapshot.liveMap} : {};
   updateAllVocabRows();
@@ -2196,6 +2301,33 @@ function undoVocab(){
   document.getElementById('undoVocabBtn').style.display='none';
   vocabSnapshot=null;
 }
+
+// Tab out of an English box that has just been answered correctly: create the
+// next box BEFORE the browser resolves where to move focus, then land in it.
+document.getElementById('panel-vocab').addEventListener('keydown', e=>{
+  if(e.key!=='Tab' || e.shiftKey || e.altKey || e.ctrlKey || e.metaKey) return;
+  const inp=e.target;
+  if(!inp || inp.tagName!=='INPUT' || inp.dataset.kind!=='eng') return;
+  const v=vocabEntry(inp.dataset.lemma); if(!v) return;
+  const gi=+inp.dataset.slot;
+  const g=v.meanings[gi]; if(!g) return;
+  const grp=vocabGroupEl(v.lemma, gi); if(!grp) return;
+  const before=grp.querySelectorAll('input').length;
+  if(before >= g.items.length) return;        // group already fully open
+  if(!vocabFieldCorrect(inp)) return;         // wrong answer: normal tab order
+  if(document.getElementById('liveVocab').checked){
+    checkVocabCell(inp);
+    updateVocabRow(inp.dataset.lemma);
+    liveScoreLine('vocab');
+  } else {
+    ensureNextVocabBox(inp);
+  }
+  const boxes=[...grp.querySelectorAll('input')];
+  if(boxes.length>before){
+    e.preventDefault();
+    boxes[boxes.length-1].focus();
+  }
+});
 
 document.getElementById('panel-vocab').addEventListener('focusout', e=>{
   if(e.target.tagName==='INPUT' && e.target.dataset.lemma
@@ -2205,7 +2337,6 @@ document.getElementById('panel-vocab').addEventListener('focusout', e=>{
     liveScoreLine('vocab');
   }
 });
-
 
 // ── TAB SWITCHING ─────────────────────────────────────────────────────────────
 
