@@ -38,9 +38,14 @@
   input.corrected { background: #fff3cd; border-color: #b8860b; color: #8a6d00; font-weight: bold; }
 
   /* Vocabulary drill */
+  /* The global input rule adds padding+border on top of its width, so an input
+     overflows its cell. Scope border-box to this table so the Gender/Type box
+     stays inside its column. */
+  .vocab-table input { box-sizing: border-box; }
+  .vocab-table td { vertical-align: middle; }
   .vocab-table td.vocab-eng { text-align: left; padding: 4px 6px; }
   .vocab-cell { display: inline-flex; flex-direction: column; gap: 2px; margin: 2px 6px 2px 0; vertical-align: top; }
-  .vocab-cell input { width: 150px; }
+  .vocab-cell input { width: 160px; }
   .vocab-cell .cell-note { font-size: 0.68rem; color: #777; text-align: center; min-height: 0.9em; }
   .vocab-table td.given { font-weight: bold; color: #8b2e0f; }
   .vocab-table td.given-eng { text-align: left; color: #333; font-size: 0.9rem; }
