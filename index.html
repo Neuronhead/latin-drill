@@ -906,10 +906,37 @@ function liveMark(section, inp, isCorrect){
   const map = liveAttempts[section];
   const key = liveKey(inp);
   if(!(key in map)) map[key] = isCorrect;
+  if(!isCorrect && (inp.value||'').trim()!=='') liveNoteWrong(section, inp);
   inp.classList.remove('correct','wrong','corrected');
   if(isCorrect) inp.classList.add(map[key] ? 'correct' : 'corrected');
   else inp.classList.add('wrong');
 }
+
+// ── ERROR TRACKING ──
+// Stored in the same per-section map as the first-try flags, under reserved
+// "__" keys, so the existing snapshot / undo / reset code carries it along.
+//   errors   = distinct wrong answers entered (a blank field at Finish = 1)
+//   revealed = fields filled by Show Answers that weren't already correct
+// Read both via liveCounts(section) — that is the reusable source of truth.
+function liveNoteWrong(section, inp){
+  const map = liveAttempts[section];
+  const lastKey = '__last:' + liveKey(inp);
+  const val = norm(inp.value || '');
+  if(map[lastKey] === val) return;      // same wrong answer again: not a new error
+  map[lastKey] = val;
+  map.__errors = (map.__errors || 0) + 1;
+}
+
+function liveReveal(section, inp){
+  const map = liveAttempts[section];
+  const key = liveKey(inp);
+  if(!inp.classList.contains('correct') && !inp.classList.contains('corrected'))
+    map.__revealed = (map.__revealed || 0) + 1;
+  if(!(key in map)) map[key] = false;   // revealed fields earn no first-try credit
+  liveMark(section, inp, true);
+}
+
+function plural(n, word){ return n + ' ' + word + (n===1 ? '' : 's'); }
 
 function liveCounts(section){
   let green=0, yellow=0, red=0;
@@ -919,26 +946,32 @@ function liveCounts(section){
     else if(i.classList.contains('corrected')) yellow++;
     else if(i.classList.contains('wrong')) red++;
   });
-  return { green, yellow, red, total: ins.length };
+  const map = liveAttempts[section];
+  return { green, yellow, red, total: ins.length,
+           errors: map.__errors || 0, revealed: map.__revealed || 0 };
 }
 
 function liveScoreLine(section){
   const c = liveCounts(section);
   const s = document.getElementById(LIVE_CFG[section].scoreId);
   s.style.color = '#555';
-  s.textContent = 'First try: '+c.green+' · Corrected: '+c.yellow+' · Wrong: '+c.red+' · Remaining: '+(c.total-c.green-c.yellow-c.red);
+  s.textContent = 'First try: '+c.green+' · Corrected: '+c.yellow+' · Wrong: '+c.red+' · Remaining: '+(c.total-c.green-c.yellow-c.red)+' · Errors: '+c.errors;
 }
 
 // Final sweep for "Finish & Save Score": grade every field (blanks count as
 // missed), report, and return the counts for saving.
 function liveFinish(section, gradeFn){
-  LIVE_CFG[section].inputs().forEach((inp,i)=>gradeFn(inp,i));
+  LIVE_CFG[section].inputs().forEach((inp,i)=>{
+    gradeFn(inp,i);
+    if((inp.value||'').trim()==='') liveNoteWrong(section, inp);  // blank at Finish = 1 error
+  });
   const c = liveCounts(section);
   const s = document.getElementById(LIVE_CFG[section].scoreId);
   s.style.color = c.green===c.total ? 'green' : 'red';
   s.textContent = c.green===c.total
-    ? 'Optime! '+c.green+'/'+c.total+' right first try.'
-    : c.green+'/'+c.total+' right first try ('+c.yellow+' corrected) — hover red cells to see the expected answer.';
+    ? 'Optime! '+c.green+'/'+c.total+' right first try.' + (c.errors ? ' ('+plural(c.errors,'error')+')' : '')
+    : c.green+'/'+c.total+' right first try ('+c.yellow+' corrected, '+plural(c.errors,'error')
+      + (c.revealed ? ', '+c.revealed+' revealed' : '') + ') — hover red cells to see the expected answer.';
   return c;
 }
 
@@ -1017,7 +1050,7 @@ function declAnswer(inp){
 function checkDecl(){
   if(document.getElementById('liveDecl').checked){
     const c=liveFinish('decl', inp=>checkDeclCell(inp, true));
-    saveScore('declensions', words[currentWord].display, c.green, c.total);
+    saveScore('declensions', words[currentWord].display, c.green, c.total, c.errors, c.revealed);
     return;
   }
   const inputs=document.querySelectorAll('#declTable input');
@@ -1031,7 +1064,7 @@ function checkDecl(){
   const s=document.getElementById('declScore');
   s.style.color=correct===total?'green':'red';
   s.textContent=correct===total?'Optime! '+correct+'/'+total+' — perfect.':correct+'/'+total+' — hover red cells to see the expected answer.';
-  saveScore('declensions', words[currentWord].display, correct, total);
+  saveScore('declensions', words[currentWord].display, correct, total, total-correct, null);
 }
 
 function checkDeclCell(inp, finalSweep){
@@ -1059,10 +1092,7 @@ function revealDecl(){
     inp.value=declAnswer(inp);
     inp.title='';
     if(live){
-      // Revealed fields earn no first-try credit
-      const key=liveKey(inp);
-      if(!(key in liveAttempts.decl)) liveAttempts.decl[key]=false;
-      liveMark('decl', inp, true);
+      liveReveal('decl', inp);
     } else {
       inp.classList.remove('wrong','corrected');inp.classList.add('correct');
     }
@@ -1181,7 +1211,7 @@ function getVerbAnswer(tense,num,pi){
 function checkVerb(){
   if(document.getElementById('liveVerb').checked){
     const c=liveFinish('verb', inp=>checkVerbCell(inp, true));
-    saveScore('verbs', verbs[currentVerb].display, c.green, c.total);
+    saveScore('verbs', verbs[currentVerb].display, c.green, c.total, c.errors, c.revealed);
     return;
   }
   const inputs=document.querySelectorAll('#verbTable input');
@@ -1195,7 +1225,7 @@ function checkVerb(){
   const s=document.getElementById('verbScore');
   s.style.color=correct===total?'green':'red';
   s.textContent=correct===total?'Optime! '+correct+'/'+total+' — perfect.':correct+'/'+total+' — hover red cells to see the expected answer.';
-  saveScore('verbs', verbs[currentVerb].display, correct, total);
+  saveScore('verbs', verbs[currentVerb].display, correct, total, total-correct, null);
 }
 
 function checkVerbCell(inp, finalSweep){
@@ -1223,10 +1253,7 @@ function revealVerb(){
     inp.value=getVerbAnswer(inp.dataset.tense,inp.dataset.num,parseInt(inp.dataset.person));
     inp.title='';
     if(live){
-      // Revealed fields earn no first-try credit
-      const key=liveKey(inp);
-      if(!(key in liveAttempts.verb)) liveAttempts.verb[key]=false;
-      liveMark('verb', inp, true);
+      liveReveal('verb', inp);
     } else {
       inp.classList.remove('wrong','corrected');inp.classList.add('correct');
     }
@@ -1402,7 +1429,7 @@ function checkQ2(type){
   const ids=getAgreeIds(type);
   if(q2LiveBox(type).checked){
     const c=liveFinish(q2Section(type), (inp,i)=>checkQ2Cell(type, Q2_KEYS[i], true));
-    saveScore('agreement', (type==='ex'?'exceptions: ':'standard: ')+item.phrase, c.green, c.total);
+    saveScore('agreement', (type==='ex'?'exceptions: ':'standard: ')+item.phrase, c.green, c.total, c.errors, c.revealed);
     return;
   }
   const fields=[
@@ -1420,7 +1447,7 @@ function checkQ2(type){
   const s=document.getElementById(ids.score);
   s.style.color=correct===3?'green':'red';
   s.textContent=correct===3?'Optime! All correct.':correct+'/3 — hover red boxes to see the expected answer.';
-  saveScore('agreement', (type==='ex'?'exceptions: ':'standard: ')+item.phrase, correct, 3);
+  saveScore('agreement', (type==='ex'?'exceptions: ':'standard: ')+item.phrase, correct, 3, 3-correct, null);
 }
 
 function checkQ2Cell(type, key, finalSweep){
@@ -1500,10 +1527,7 @@ function revealQ2(type){
     const el=document.getElementById(f.id);
     el.value=f.v; el.title='';
     if(live){
-      // Revealed fields earn no first-try credit
-      const key=liveKey(el);
-      if(!(key in liveAttempts[section])) liveAttempts[section][key]=false;
-      liveMark(section, el, true);
+      liveReveal(section, el);
     } else {
       el.classList.remove('wrong','corrected'); el.classList.add('correct');
     }
@@ -1649,7 +1673,7 @@ function decl3Answer(inp){
 function checkDecl3(){
   if(document.getElementById('liveDecl3').checked){
     const c = liveFinish('decl3', inp=>checkDecl3Cell(inp, true));
-    saveScore('declension3', nouns3[currentNoun3].display, c.green, c.total);
+    saveScore('declension3', nouns3[currentNoun3].display, c.green, c.total, c.errors, c.revealed);
     return;
   }
   const inputs = document.querySelectorAll('#decl3Table input');
@@ -1665,7 +1689,7 @@ function checkDecl3(){
   scr.textContent = correct===total
     ? 'Optime! '+correct+'/'+total+' — perfect.'
     : correct+'/'+total+' — hover red cells to see the expected answer.';
-  saveScore('declension3', nouns3[currentNoun3].display, correct, total);
+  saveScore('declension3', nouns3[currentNoun3].display, correct, total, total-correct, null);
 }
 
 function checkDecl3Cell(inp, finalSweep){
@@ -1692,9 +1716,7 @@ function revealDecl3(){
   document.querySelectorAll('#decl3Table input').forEach(inp => {
     inp.value = decl3Answer(inp); inp.title='';
     if(live){
-      const key = liveKey(inp);
-      if(!(key in liveAttempts.decl3)) liveAttempts.decl3[key]=false;
-      liveMark('decl3', inp, true);
+      liveReveal('decl3', inp);
     } else {
       inp.classList.remove('wrong','corrected'); inp.classList.add('correct');
     }
@@ -1799,7 +1821,7 @@ function checkStem(){
   const exp = stemExpected();
   if(document.getElementById('liveStem').checked){
     const c = liveFinish('stem', (inp)=>stemCheckField(inp.id, true));
-    saveScore('declension3', 'stem: '+currentStemNoun().display, c.green, c.total);
+    saveScore('declension3', 'stem: '+currentStemNoun().display, c.green, c.total, c.errors, c.revealed);
     return;
   }
   let correct=0;
@@ -1815,7 +1837,7 @@ function checkStem(){
   const scr=document.getElementById('stemScore');
   scr.style.color = correct===3 ? 'green' : 'red';
   scr.textContent = correct===3 ? 'Optime! All correct.' : correct+'/3 — hover red boxes to see the expected answer.';
-  saveScore('declension3', 'stem: '+currentStemNoun().display, correct, 3);
+  saveScore('declension3', 'stem: '+currentStemNoun().display, correct, 3, 3-correct, null);
 }
 
 ['stemBase','stemGender','stemForm'].forEach(id => {
@@ -1845,9 +1867,7 @@ function revealStem(){
     const el=document.getElementById(id);
     el.value=exp[id]; el.title='';
     if(live){
-      const key=liveKey(el);
-      if(!(key in liveAttempts.stem)) liveAttempts.stem[key]=false;
-      liveMark('stem', el, true);
+      liveReveal('stem', el);
     } else {
       el.classList.remove('wrong','corrected'); el.classList.add('correct');
     }
@@ -2249,7 +2269,7 @@ function checkVocab(){
   if(document.getElementById('liveVocab').checked){
     const c=liveFinish('vocab', inp=>checkVocabCell(inp,true));
     updateAllVocabRows();
-    saveScore('vocabulary', 'Vocabulary '+vocabChapter, c.green, c.total);
+    saveScore('vocabulary', 'Vocabulary '+vocabChapter, c.green, c.total, c.errors, c.revealed);
     return;
   }
   const inputs=LIVE_CFG.vocab.inputs();
@@ -2267,7 +2287,7 @@ function checkVocab(){
   scr.textContent = correct===total
     ? 'Optime! '+correct+'/'+total+' \u00b7 '+solved+' words correct.'
     : correct+'/'+total+' fields \u00b7 '+solved+' words correct \u2014 hover red cells for the expected answer.';
-  saveScore('vocabulary', 'Vocabulary '+vocabChapter, correct, total);
+  saveScore('vocabulary', 'Vocabulary '+vocabChapter, correct, total, total-correct, null);
 }
 
 function takeVocabSnapshot(){
@@ -2295,9 +2315,7 @@ function revealVocab(){
     }
     inp.title='';
     if(live){
-      const key=liveKey(inp);
-      if(!(key in liveAttempts.vocab)) liveAttempts.vocab[key]=false;
-      liveMark('vocab', inp, true);
+      liveReveal('vocab', inp);
     } else {
       inp.classList.remove('wrong','corrected'); inp.classList.add('correct');
     }
@@ -2500,15 +2518,21 @@ async function signOut() {
 
 // ── SCORE SAVING ──────────────────────────────────────────────────────────────
 
-async function saveScore(tab, drillName, correct, total) {
+// errors:   distinct wrong answers (see ERROR TRACKING); in plain Check mode
+//           this is simply the number of fields wrong at check.
+// revealed: fields filled by Show Answers (Check-as-I-go only; null otherwise).
+async function saveScore(tab, drillName, correct, total, errors, revealed) {
   if (!currentUser) return;
-  await supa.from('scores').insert({
+  const { error } = await supa.from('scores').insert({
     user_id:    currentUser.id,
     tab,
     drill_name: drillName,
     correct,
-    total
+    total,
+    errors:     errors ?? null,
+    revealed:   revealed ?? null
   });
+  if (error) console.warn('saveScore failed:', error.message);
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
