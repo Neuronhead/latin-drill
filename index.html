@@ -68,6 +68,9 @@
   button.secondary:hover { background: #8b2e0f; color: white; }
 
   .score { text-align: center; margin-top: 14px; font-size: 1.1rem; min-height: 1.5rem; }
+  .mastery-hint { text-align: center; margin-top: 6px; font-size: 0.95rem; font-style: italic; }
+  .mastery-hint.move-on { color: green; }
+  .mastery-hint.repeat  { color: #8B2500; }
   .panel-subtitle { text-align: center; font-size: 0.82rem; color: #555; margin-bottom: 10px; letter-spacing: 0.03em; }
   .panel { display: none; }
   .panel.active { display: block; }
@@ -938,6 +941,50 @@ function liveReveal(section, inp){
 
 function plural(n, word){ return n + ' ' + word + (n===1 ? '' : 's'); }
 
+// ── MASTERY SUGGESTION ──
+// One counter per drill panel (keyed by its score element id), in the page only.
+//   new word            → counter = MASTERY_START
+//   perfect run         → counter + 1          (0 errors and 0 revealed)
+//   run with mistakes   → counter − (errors + revealed), never below MASTERY_FLOOR
+//   counter ≥ 0 → suggest moving on;  counter < 0 → suggest (−counter) more runs
+// A run is counted once: pressing Finish again before Clear doesn't count twice.
+const MASTERY_START = -1, MASTERY_FLOOR = -3;
+const mastery = {};   // scoreId -> { word, counter }
+
+function masteryReset(scoreId){
+  delete mastery[scoreId];
+  const h = document.getElementById(scoreId + 'Hint');
+  if(h){ h.textContent = ''; h.className = 'mastery-hint'; }
+}
+
+function masteryRecord(section, scoreId, word, errors, revealed, noun){
+  const map = liveAttempts[section];
+  let m = mastery[scoreId];
+  if(!m || m.word !== word) m = mastery[scoreId] = { word, counter: MASTERY_START };
+  if(!map.__counted){
+    map.__counted = true;
+    const penalty = (errors || 0) + (revealed || 0);
+    m.counter = penalty === 0 ? m.counter + 1 : Math.max(MASTERY_FLOOR, m.counter - penalty);
+  }
+  let h = document.getElementById(scoreId + 'Hint');
+  if(!h){
+    h = document.createElement('div');
+    h.id = scoreId + 'Hint';
+    document.getElementById(scoreId).after(h);
+  }
+  const runs = -m.counter;
+  h.className = 'mastery-hint ' + (runs <= 0 ? 'move-on' : 'repeat');
+  h.textContent = runs <= 0
+    ? 'Suggestion: move on to the next ' + noun + '.'
+    : 'Suggestion: do this ' + noun + ' ' + (runs === 1 ? '1 more time' : runs + ' more times') + ' before moving on.';
+}
+
+// Every Finish / Check goes through here: update the suggestion, then save.
+function recordRun(section, scoreId, noun, tab, drillName, correct, total, errors, revealed){
+  masteryRecord(section, scoreId, drillName, errors, revealed, noun);
+  saveScore(tab, drillName, correct, total, errors, revealed);
+}
+
 function liveCounts(section){
   let green=0, yellow=0, red=0;
   const ins = LIVE_CFG[section].inputs();
@@ -982,6 +1029,7 @@ const ALL_GENDERS = [{label:'Male',idx:0},{label:'Female',idx:1},{label:'Neuter'
 let currentWord=0, declCases=shuffle(ALL_CASES), declGenders=shuffle(ALL_GENDERS);
 
 function setWord(idx){
+  masteryReset('declScore');
   currentWord=idx;
   const label = words[idx].display.split('/')[0].trim().split(',')[0].trim();
   document.querySelectorAll('#declSelectors .sel-btn').forEach(btn => {
@@ -1050,7 +1098,7 @@ function declAnswer(inp){
 function checkDecl(){
   if(document.getElementById('liveDecl').checked){
     const c=liveFinish('decl', inp=>checkDeclCell(inp, true));
-    saveScore('declensions', words[currentWord].display, c.green, c.total, c.errors, c.revealed);
+    recordRun('decl', 'declScore', 'word', 'declensions', words[currentWord].display, c.green, c.total, c.errors, c.revealed);
     return;
   }
   const inputs=document.querySelectorAll('#declTable input');
@@ -1064,7 +1112,7 @@ function checkDecl(){
   const s=document.getElementById('declScore');
   s.style.color=correct===total?'green':'red';
   s.textContent=correct===total?'Optime! '+correct+'/'+total+' — perfect.':correct+'/'+total+' — hover red cells to see the expected answer.';
-  saveScore('declensions', words[currentWord].display, correct, total, total-correct, null);
+  recordRun('decl', 'declScore', 'word', 'declensions', words[currentWord].display, correct, total, total-correct, null);
 }
 
 function checkDeclCell(inp, finalSweep){
@@ -1141,6 +1189,7 @@ function buildVerbTenses(verb) {
 }
 
 function setVerb(idx){
+  masteryReset('verbScore');
   currentVerb=idx;
   // Highlight by matching display name, not array position
   document.querySelectorAll('#verbSelectors .sel-btn').forEach(btn => {
@@ -1211,7 +1260,7 @@ function getVerbAnswer(tense,num,pi){
 function checkVerb(){
   if(document.getElementById('liveVerb').checked){
     const c=liveFinish('verb', inp=>checkVerbCell(inp, true));
-    saveScore('verbs', verbs[currentVerb].display, c.green, c.total, c.errors, c.revealed);
+    recordRun('verb', 'verbScore', 'verb', 'verbs', verbs[currentVerb].display, c.green, c.total, c.errors, c.revealed);
     return;
   }
   const inputs=document.querySelectorAll('#verbTable input');
@@ -1225,7 +1274,7 @@ function checkVerb(){
   const s=document.getElementById('verbScore');
   s.style.color=correct===total?'green':'red';
   s.textContent=correct===total?'Optime! '+correct+'/'+total+' — perfect.':correct+'/'+total+' — hover red cells to see the expected answer.';
-  saveScore('verbs', verbs[currentVerb].display, correct, total, total-correct, null);
+  recordRun('verb', 'verbScore', 'verb', 'verbs', verbs[currentVerb].display, correct, total, total-correct, null);
 }
 
 function checkVerbCell(inp, finalSweep){
@@ -1403,6 +1452,7 @@ function getAgreeIds(type){
 }
 
 function loadAgreePhraseType(type){
+  masteryReset(getAgreeIds(type).score);
   if(type==='ex'){ if(agreeExIndex>=agreeExQueue.length) initAgreeExQueue(); }
   else            { if(agreeIndex>=agreeQueue.length) initAgreeQueue(); }
   const item=getAgreeItem(type);
@@ -1429,7 +1479,7 @@ function checkQ2(type){
   const ids=getAgreeIds(type);
   if(q2LiveBox(type).checked){
     const c=liveFinish(q2Section(type), (inp,i)=>checkQ2Cell(type, Q2_KEYS[i], true));
-    saveScore('agreement', (type==='ex'?'exceptions: ':'standard: ')+item.phrase, c.green, c.total, c.errors, c.revealed);
+    recordRun(q2Section(type), ids.score, 'phrase', 'agreement', (type==='ex'?'exceptions: ':'standard: ')+item.phrase, c.green, c.total, c.errors, c.revealed);
     return;
   }
   const fields=[
@@ -1447,7 +1497,7 @@ function checkQ2(type){
   const s=document.getElementById(ids.score);
   s.style.color=correct===3?'green':'red';
   s.textContent=correct===3?'Optime! All correct.':correct+'/3 — hover red boxes to see the expected answer.';
-  saveScore('agreement', (type==='ex'?'exceptions: ':'standard: ')+item.phrase, correct, 3, 3-correct, null);
+  recordRun(q2Section(type), ids.score, 'phrase', 'agreement', (type==='ex'?'exceptions: ':'standard: ')+item.phrase, correct, 3, 3-correct, null);
 }
 
 function checkQ2Cell(type, key, finalSweep){
@@ -1618,6 +1668,7 @@ function buildDecl3Selectors(){
 }
 
 function setNoun3(idx){
+  masteryReset('decl3Score');
   currentNoun3 = idx;
   const label = nouns3[idx].display.split(',')[0].trim();
   document.querySelectorAll('#decl3Selectors .sel-btn').forEach(btn => {
@@ -1673,7 +1724,7 @@ function decl3Answer(inp){
 function checkDecl3(){
   if(document.getElementById('liveDecl3').checked){
     const c = liveFinish('decl3', inp=>checkDecl3Cell(inp, true));
-    saveScore('declension3', nouns3[currentNoun3].display, c.green, c.total, c.errors, c.revealed);
+    recordRun('decl3', 'decl3Score', 'word', 'declension3', nouns3[currentNoun3].display, c.green, c.total, c.errors, c.revealed);
     return;
   }
   const inputs = document.querySelectorAll('#decl3Table input');
@@ -1689,7 +1740,7 @@ function checkDecl3(){
   scr.textContent = correct===total
     ? 'Optime! '+correct+'/'+total+' — perfect.'
     : correct+'/'+total+' — hover red cells to see the expected answer.';
-  saveScore('declension3', nouns3[currentNoun3].display, correct, total, total-correct, null);
+  recordRun('decl3', 'decl3Score', 'word', 'declension3', nouns3[currentNoun3].display, correct, total, total-correct, null);
 }
 
 function checkDecl3Cell(inp, finalSweep){
@@ -1775,6 +1826,7 @@ function pickStemTarget(n){
 }
 
 function loadStem(){
+  masteryReset('stemScore');
   if(!nouns3.length) return;
   if(stemIndex >= stemQueue.length) initStemQueue();
   const n = nouns3[stemQueue[stemIndex]];
@@ -1821,7 +1873,7 @@ function checkStem(){
   const exp = stemExpected();
   if(document.getElementById('liveStem').checked){
     const c = liveFinish('stem', (inp)=>stemCheckField(inp.id, true));
-    saveScore('declension3', 'stem: '+currentStemNoun().display, c.green, c.total, c.errors, c.revealed);
+    recordRun('stem', 'stemScore', 'word', 'declension3', 'stem: '+currentStemNoun().display, c.green, c.total, c.errors, c.revealed);
     return;
   }
   let correct=0;
@@ -1837,7 +1889,7 @@ function checkStem(){
   const scr=document.getElementById('stemScore');
   scr.style.color = correct===3 ? 'green' : 'red';
   scr.textContent = correct===3 ? 'Optime! All correct.' : correct+'/3 — hover red boxes to see the expected answer.';
-  saveScore('declension3', 'stem: '+currentStemNoun().display, correct, 3, 3-correct, null);
+  recordRun('stem', 'stemScore', 'word', 'declension3', 'stem: '+currentStemNoun().display, correct, 3, 3-correct, null);
 }
 
 ['stemBase','stemGender','stemForm'].forEach(id => {
@@ -1981,6 +2033,7 @@ function buildVocabChapters(){
 }
 
 function setVocabChapter(ch){
+  masteryReset('vocabScore');
   vocabChapter = ch;
   buildVocabChapters();
   buildVocabTables();
@@ -1991,6 +2044,7 @@ function setVocabChapter(ch){
 }
 
 function setVocabDirection(dir){
+  masteryReset('vocabScore');
   vocabDirection = dir;
   document.getElementById('dirLa2En').classList.toggle('active', dir==='la2en');
   document.getElementById('dirEn2La').classList.toggle('active', dir==='en2la');
@@ -2269,7 +2323,7 @@ function checkVocab(){
   if(document.getElementById('liveVocab').checked){
     const c=liveFinish('vocab', inp=>checkVocabCell(inp,true));
     updateAllVocabRows();
-    saveScore('vocabulary', 'Vocabulary '+vocabChapter, c.green, c.total, c.errors, c.revealed);
+    recordRun('vocab', 'vocabScore', 'chapter', 'vocabulary', 'Vocabulary '+vocabChapter, c.green, c.total, c.errors, c.revealed);
     return;
   }
   const inputs=LIVE_CFG.vocab.inputs();
@@ -2287,7 +2341,7 @@ function checkVocab(){
   scr.textContent = correct===total
     ? 'Optime! '+correct+'/'+total+' \u00b7 '+solved+' words correct.'
     : correct+'/'+total+' fields \u00b7 '+solved+' words correct \u2014 hover red cells for the expected answer.';
-  saveScore('vocabulary', 'Vocabulary '+vocabChapter, correct, total, total-correct, null);
+  recordRun('vocab', 'vocabScore', 'chapter', 'vocabulary', 'Vocabulary '+vocabChapter, correct, total, total-correct, null);
 }
 
 function takeVocabSnapshot(){
