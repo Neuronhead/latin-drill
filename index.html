@@ -2005,7 +2005,7 @@ function dedupeMeanings(meanings){
 
 function vocabKey(inp){
   const d=inp.dataset;
-  return [d.lemma,d.kind,d.slot||'',d.idx||''].join('|');
+  return [d.lemma,d.kind,d.slot||d.block||'',d.idx||''].join('|');
 }
 
 function vocabChaptersAvailable(){
@@ -2063,37 +2063,149 @@ function vocabEntry(lemma){
   return vocab.find(v=>v.lemma===lemma && v.chapter===vocabChapter);
 }
 
+// ── DYNAMIC SENSE GROUPS ──
+// A row shows one block per sense group, but a block is not tied to a group.
+// The first answer typed into a block claims whichever unclaimed group contains
+// it (exact wording preferred, then normalised); the block then belongs to that
+// group and claimed blocks sort to the top in the order they were claimed.
+// vocabClaim[lemma] = { gi: [group index per block, -1 = unclaimed], seq: [claim order], next }
+const vocabClaim = {};
+
+function vocabClaimState(v){
+  if(!vocabClaim[v.lemma])
+    vocabClaim[v.lemma] = { gi: v.meanings.map(()=>-1), seq: v.meanings.map(()=>0), next: 1 };
+  return vocabClaim[v.lemma];
+}
+function vocabClaimReset(){ for(const k in vocabClaim) delete vocabClaim[k]; }
+
+// The group a block currently owns, or -1.
+function vocabGiOf(inp){
+  const v=vocabEntry(inp.dataset.lemma);
+  if(!v || inp.dataset.kind!=='eng') return -1;
+  return vocabClaimState(v).gi[+inp.dataset.block];
+}
+
+// Find an unclaimed group whose items contain this answer: exact wording first,
+// so labor's "work" and "a work" land in different groups despite normalising alike.
+function vocabFreeGroupFor(v, val){
+  const st=vocabClaimState(v);
+  const exact=(val||'').toLowerCase().trim();
+  const loose=normEng(val);
+  if(!loose) return -1;
+  let hit=-1;
+  v.meanings.forEach((g,i)=>{
+    if(st.gi.includes(i)) return;
+    if(hit<0 && g.items.some(it=>it.toLowerCase().trim()===exact)) hit=i;
+  });
+  if(hit>=0) return hit;
+  for(let i=0;i<v.meanings.length;i++){
+    if(st.gi.includes(i)) continue;
+    if(v.meanings[i].items.some(it=>normEng(it)===loose)) return i;
+  }
+  return -1;
+}
+
+// Re-evaluate which group a block owns, from the answer in its first box.
+function vocabApplyClaim(inp){
+  if(inp.dataset.kind!=='eng' || +inp.dataset.idx!==0) return false;
+  const v=vocabEntry(inp.dataset.lemma); if(!v) return false;
+  const st=vocabClaimState(v);
+  const k=+inp.dataset.block, cur=st.gi[k];
+  const val=inp.value;
+  if(cur>=0){
+    const items=v.meanings[cur].items;
+    const exact=(val||'').toLowerCase().trim(), loose=normEng(val);
+    if(loose && (items.some(it=>it.toLowerCase().trim()===exact) || items.some(it=>normEng(it)===loose)))
+      return false;                                  // still fits the group it owns
+    st.gi[k]=-1; st.seq[k]=0;                        // released
+  }
+  const gi=vocabFreeGroupFor(v, val);
+  if(gi>=0){ st.gi[k]=gi; st.seq[k]=st.next++; }
+  vocabRenderBlock(v,k); vocabOrderBlocks(v);
+  return true;
+}
+
+// Give every unclaimed block a remaining group, in order (used by Show Answers).
+function vocabClaimRemaining(v){
+  const st=vocabClaimState(v);
+  v.meanings.forEach((g,gi)=>{
+    if(st.gi.includes(gi)) return;
+    const k=st.gi.indexOf(-1);
+    if(k<0) return;
+    st.gi[k]=gi; st.seq[k]=st.next++;
+    vocabRenderBlock(v,k);
+  });
+  vocabOrderBlocks(v);
+}
+
+// Show the claimed group's counters ("2 of 4") and its note; strip them when unclaimed.
+function vocabRenderBlock(v, k){
+  const grp=vocabGroupEl(v.lemma, k); if(!grp) return;
+  const gi=vocabClaimState(v).gi[k];
+  const g=gi>=0 ? v.meanings[gi] : null;
+  [...grp.querySelectorAll('.vocab-cell')].forEach((cell,idx)=>{
+    const note=cell.querySelector('.cell-note');
+    if(note) note.textContent = (g && g.items.length>1) ? (idx+1)+' of '+g.items.length : '';
+  });
+  const existing=grp.querySelector('.vocab-note');
+  if(g && g.note){
+    if(existing) existing.textContent=g.note;
+    else { const gn=document.createElement('div'); gn.className='vocab-note'; gn.textContent=g.note; grp.appendChild(gn); }
+  } else if(existing) existing.remove();
+}
+
+// Claimed blocks first, in claim order; unclaimed blocks keep their original order below.
+function vocabOrderBlocks(v){
+  const st=vocabClaimState(v);
+  const blocks=[...document.querySelectorAll('#panel-vocab .vocab-group[data-lemma="'+CSS.escape(v.lemma)+'"]')];
+  if(!blocks.length) return;
+  const td=blocks[0].parentElement;
+  const dv=td.querySelector('[data-deriv-for]');
+  blocks
+    .map(b=>({b, k:+b.dataset.block}))
+    .sort((a,c)=>{
+      const sa=st.gi[a.k]>=0 ? st.seq[a.k] : Infinity;
+      const sc=st.gi[c.k]>=0 ? st.seq[c.k] : Infinity;
+      return sa===sc ? a.k-c.k : sa-sc;
+    })
+    .forEach(({b})=>{ if(dv) td.insertBefore(b,dv); else td.appendChild(b); });
+}
+
 // One English answer box. idx 0 is required; later boxes are optional.
-function vocabEngCell(v, gi, idx){
+// k is the BLOCK number, which never changes; the group it owns can.
+function vocabEngCell(v, k, idx){
   const cell=document.createElement('div'); cell.className='vocab-cell';
   const inp=document.createElement('input');
   inp.type='text'; inp.autocomplete='off'; inp.spellcheck=false;
   inp.dataset.lemma=v.lemma; inp.dataset.kind='eng';
-  inp.dataset.slot=String(gi); inp.dataset.idx=String(idx);
+  inp.dataset.block=String(k); inp.dataset.idx=String(idx);
+  inp.id='vocabEng_'+v.lemma+'_'+k+'_'+idx;     // stable key for first-try tracking
   if(idx>0) inp.dataset.optional='1';
   cell.appendChild(inp);
-  const n=v.meanings[gi].items.length;
+  const gi=vocabClaimState(v).gi[k];
+  const n=gi>=0 ? v.meanings[gi].items.length : 0;
   const note=document.createElement('div'); note.className='cell-note';
   note.textContent = n>1 ? (idx+1)+' of '+n : '';
   cell.appendChild(note);
   return cell;
 }
 
-function vocabGroupEl(lemma, gi){
-  return document.querySelector('#panel-vocab .vocab-group[data-lemma="'+CSS.escape(lemma)+'"][data-slot="'+gi+'"]');
+function vocabGroupEl(lemma, k){
+  return document.querySelector('#panel-vocab .vocab-group[data-lemma="'+CSS.escape(lemma)+'"][data-block="'+k+'"]');
 }
 
 // Open the next box in a group once every box already shown is correct.
 function ensureNextVocabBox(inp){
   if(inp.dataset.kind!=='eng') return;
   const v=vocabEntry(inp.dataset.lemma); if(!v) return;
-  const gi=+inp.dataset.slot;
+  const k=+inp.dataset.block;
+  const gi=vocabGiOf(inp); if(gi<0) return;         // unclaimed block: no extra boxes yet
   const g=v.meanings[gi]; if(!g) return;
-  const grp=vocabGroupEl(v.lemma, gi); if(!grp) return;
+  const grp=vocabGroupEl(v.lemma, k); if(!grp) return;
   const existing=[...grp.querySelectorAll('input')];
   if(existing.length>=g.items.length) return;
   if(!existing.every(x=>vocabFieldCorrect(x))) return;
-  const cell=vocabEngCell(v, gi, existing.length);
+  const cell=vocabEngCell(v, k, existing.length);
   const noteEl=grp.querySelector('.vocab-note');
   if(noteEl) grp.insertBefore(cell, noteEl); else grp.appendChild(cell);
 }
@@ -2101,10 +2213,13 @@ function ensureNextVocabBox(inp){
 // Used by Show Answers: open every box in every group.
 function expandAllVocabBoxes(){
   vocab.filter(v=>v.chapter===vocabChapter).forEach(v=>{
-    v.meanings.forEach((g,gi)=>{
-      const grp=vocabGroupEl(v.lemma, gi); if(!grp) return;
+    vocabClaimRemaining(v);
+    const st=vocabClaimState(v);
+    st.gi.forEach((gi,k)=>{
+      const g=v.meanings[gi]; if(!g) return;
+      const grp=vocabGroupEl(v.lemma, k); if(!grp) return;
       while(grp.querySelectorAll('input').length < g.items.length){
-        const cell=vocabEngCell(v, gi, grp.querySelectorAll('input').length);
+        const cell=vocabEngCell(v, k, grp.querySelectorAll('input').length);
         const noteEl=grp.querySelector('.vocab-note');
         if(noteEl) grp.insertBefore(cell, noteEl); else grp.appendChild(cell);
       }
@@ -2161,14 +2276,10 @@ function buildVocabTable(tableId, group){
     const tdE=document.createElement('td');
     if(vocabDirection==='la2en'){
       tdE.className='vocab-eng';
-      v.meanings.forEach((g,gidx)=>{
+      v.meanings.forEach((g,k)=>{
         const grp=document.createElement('div'); grp.className='vocab-group';
-        grp.dataset.lemma=v.lemma; grp.dataset.slot=String(gidx);
-        grp.appendChild(vocabEngCell(v, gidx, 0));
-        if(g.note){
-          const gn=document.createElement('div'); gn.className='vocab-note';
-          gn.textContent=g.note; grp.appendChild(gn);
-        }
+        grp.dataset.lemma=v.lemma; grp.dataset.block=String(k);
+        grp.appendChild(vocabEngCell(v, k, 0));
         tdE.appendChild(grp);
       });
     } else {
@@ -2189,6 +2300,7 @@ function buildVocabTable(tableId, group){
 
 function buildVocabTables(){
   if(!vocab.length) return;
+  vocabClaimReset();
   if(vocabChapter===null){
     const chs=vocabChaptersAvailable();
     if(chs.length) vocabChapter=chs[0]; else return;
@@ -2220,14 +2332,17 @@ function vocabFieldCorrect(inp){
     const want = slot===0 ? v.forms[0] : v.forms.slice(1).join(', ');
     return norm(val)===norm(want);
   }
-  // english: must match a meaning from ITS OWN sense group, and each meaning
-  // may only be used once within that group.
-  const gi=+inp.dataset.slot;
+  // english: a block that has claimed a group must be answered from that group,
+  // each meaning once. A block with no claim yet is right if the answer belongs
+  // to any group no other block has claimed.
+  const mine=normEng(val);
+  if(!mine) return false;
+  const gi=vocabGiOf(inp);
+  if(gi<0) return +inp.dataset.idx===0 && vocabFreeGroupFor(v, val)>=0;
   const g=v.meanings[gi]; if(!g) return false;
   const items=g.items.map(normEng);
-  const mine=normEng(val);
-  if(!mine || !items.includes(mine)) return false;
-  const sibs=[...document.querySelectorAll('#panel-vocab input[data-kind="eng"][data-lemma="'+CSS.escape(v.lemma)+'"][data-slot="'+gi+'"]')];
+  if(!items.includes(mine)) return false;
+  const sibs=[...document.querySelectorAll('#panel-vocab input[data-kind="eng"][data-lemma="'+CSS.escape(v.lemma)+'"][data-block="'+inp.dataset.block+'"]')];
   for(const sib of sibs){
     if(sib===inp) break;
     if(normEng(sib.value)===mine) return false;
@@ -2253,7 +2368,7 @@ function updateVocabRow(lemma){
   let satisfied=true, complete=true;
   if(hasEng){
     v.meanings.forEach((g,gi)=>{
-      const ins=all.filter(i=>i.dataset.kind==='eng' && +i.dataset.slot===gi);
+      const ins=all.filter(i=>i.dataset.kind==='eng' && vocabGiOf(i)===gi);
       const ok=ins.filter(i=>vocabFieldCorrect(i)).length;
       if(ok<1) satisfied=false;
       if(ok<g.items.length) complete=false;
@@ -2301,10 +2416,18 @@ function vocabExpected(inp){
     const slot=+inp.dataset.slot;
     return slot===0 ? v.forms[0] : v.forms.slice(1).join(', ');
   }
-  const g=v.meanings[+inp.dataset.slot];
-  return g ? g.items.join(' / ') : '';
+  const used=new Set(
+    [...document.querySelectorAll('#panel-vocab input[data-kind="eng"][data-lemma="'+CSS.escape(v.lemma)+'"]')]
+      .filter(i=>i!==inp && vocabFieldCorrect(i))
+      .map(i=>normEng(i.value))
+  );
+  return v.meanings
+    .map(g=>g.items.filter(it=>!used.has(normEng(it))).join(' / '))
+    .filter(line=>line)
+    .join('\n');
 }
 
+let vocabRegrading=false;
 function checkVocabCell(inp, finalSweep){
   // an untouched optional box is simply not scored
   if(inp.dataset.optional==='1' && !inp.value.trim()){
@@ -2313,10 +2436,19 @@ function checkVocabCell(inp, finalSweep){
   if(!inp.value && !finalSweep && !liveAttempted('vocab', inp)){
     inp.classList.remove('correct','wrong','corrected','vocab-full'); inp.title=''; return;
   }
+  const claimChanged = !vocabRegrading && vocabApplyClaim(inp);
   const ok=vocabFieldCorrect(inp);
   liveMark('vocab', inp, ok);
   inp.title = ok ? '' : 'Expected: '+vocabExpected(inp);
   if(ok) ensureNextVocabBox(inp);
+  // A changed claim can make other answers in the row right or wrong, so re-mark them.
+  if(claimChanged){
+    vocabRegrading=true;
+    vocabRowInputs(inp.dataset.lemma)
+      .filter(x=>x!==inp && x.dataset.kind==='eng')
+      .forEach(x=>checkVocabCell(x, finalSweep));
+    vocabRegrading=false;
+  }
 }
 
 function checkVocab(){
@@ -2326,6 +2458,7 @@ function checkVocab(){
     recordRun('vocab', 'vocabScore', 'chapter', 'vocabulary', 'Vocabulary '+vocabChapter, c.green, c.total, c.errors, c.revealed);
     return;
   }
+  LIVE_CFG.vocab.inputs().forEach(inp=>{ if(inp.dataset.kind==='eng') vocabApplyClaim(inp); });
   const inputs=LIVE_CFG.vocab.inputs();
   let correct=0;
   inputs.forEach(inp=>{
@@ -2345,7 +2478,8 @@ function checkVocab(){
 }
 
 function takeVocabSnapshot(){
-  const snap={ values:{}, classes:{}, liveMap:{...liveAttempts.vocab} };
+  const snap={ values:{}, classes:{}, liveMap:{...liveAttempts.vocab},
+               claims: JSON.parse(JSON.stringify(vocabClaim)) };
   [...document.querySelectorAll('#panel-vocab input[data-lemma]')].forEach(inp=>{
     const k=vocabKey(inp);
     snap.values[k]=inp.value;
@@ -2364,7 +2498,7 @@ function revealVocab(){
     if(inp.dataset.kind==='gender')      inp.value=v.gender;
     else if(inp.dataset.kind==='latin')  inp.value=(+inp.dataset.slot===0)?v.forms[0]:v.forms.slice(1).join(', ');
     else {
-      const g=v.meanings[+inp.dataset.slot];
+      const g=v.meanings[vocabGiOf(inp)];
       inp.value=g?(g.items[+inp.dataset.idx]||g.items[0]):'';
     }
     inp.title='';
@@ -2392,7 +2526,12 @@ function resetVocab(silent){
 function undoVocab(){
   if(!vocabSnapshot) return;
   buildVocabTables();
+  if(vocabSnapshot.claims){
+    vocabClaimReset();
+    Object.assign(vocabClaim, JSON.parse(JSON.stringify(vocabSnapshot.claims)));
+  }
   expandAllVocabBoxes();
+  vocab.filter(v=>v.chapter===vocabChapter).forEach(v=>{ vocabOrderBlocks(v); });
   [...document.querySelectorAll('#panel-vocab input[data-lemma]')].forEach(inp=>{
     const k=vocabKey(inp);
     if(vocabSnapshot.values[k]!==undefined) inp.value=vocabSnapshot.values[k];
@@ -2423,9 +2562,11 @@ document.getElementById('panel-vocab').addEventListener('keydown', e=>{
   const inp=e.target;
   if(!inp || inp.tagName!=='INPUT' || inp.dataset.kind!=='eng') return;
   const v=vocabEntry(inp.dataset.lemma); if(!v) return;
-  const gi=+inp.dataset.slot;
+  vocabApplyClaim(inp);
+  const k=+inp.dataset.block;
+  const gi=vocabGiOf(inp); if(gi<0) return;
   const g=v.meanings[gi]; if(!g) return;
-  const grp=vocabGroupEl(v.lemma, gi); if(!grp) return;
+  const grp=vocabGroupEl(v.lemma, k); if(!grp) return;
   const before=grp.querySelectorAll('input').length;
   if(before >= g.items.length) return;        // group already fully open
   if(!vocabFieldCorrect(inp)) return;         // wrong answer: normal tab order
