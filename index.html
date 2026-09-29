@@ -2562,26 +2562,25 @@ document.getElementById('panel-vocab').addEventListener('keydown', e=>{
   const inp=e.target;
   if(!inp || inp.tagName!=='INPUT' || inp.dataset.kind!=='eng') return;
   const v=vocabEntry(inp.dataset.lemma); if(!v) return;
-  vocabApplyClaim(inp);
-  const k=+inp.dataset.block;
-  const gi=vocabGiOf(inp); if(gi<0) return;
-  const g=v.meanings[gi]; if(!g) return;
-  const grp=vocabGroupEl(v.lemma, k); if(!grp) return;
-  const before=grp.querySelectorAll('input').length;
-  if(before >= g.items.length) return;        // group already fully open
-  if(!vocabFieldCorrect(inp)) return;         // wrong answer: normal tab order
+
+  // Settle the claim and open any new box BEFORE choosing where to go. Claiming
+  // re-orders the blocks, so the browser's own idea of the next field would be
+  // based on where this block used to sit and could send focus backwards.
   if(document.getElementById('liveVocab').checked){
     checkVocabCell(inp);
     updateVocabRow(inp.dataset.lemma);
     liveScoreLine('vocab');
   } else {
-    ensureNextVocabBox(inp);
+    vocabApplyClaim(inp);
+    if(vocabFieldCorrect(inp)) ensureNextVocabBox(inp);
   }
-  const boxes=[...grp.querySelectorAll('input')];
-  if(boxes.length>before){
-    e.preventDefault();
-    boxes[boxes.length-1].focus();
-  }
+
+  // Always move to the next box in visible order (document order matches it).
+  const all=[...document.querySelectorAll('#panel-vocab input[data-lemma]')];
+  const i=all.indexOf(inp);
+  if(i<0 || i+1>=all.length) return;          // last field: let Tab leave the table
+  e.preventDefault();
+  all[i+1].focus();
 });
 
 document.getElementById('panel-vocab').addEventListener('focusout', e=>{
