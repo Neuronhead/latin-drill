@@ -2009,7 +2009,13 @@ function vocabKey(inp){
 }
 
 function vocabChaptersAvailable(){
-  return [...new Set(vocab.map(v=>v.chapter))].sort((a,b)=>a-b);
+  // Chapters can be a number (8) or a label ("8R" for reading-passage vocabulary),
+  // so sort by the leading number first, then by the label.
+  return [...new Set(vocab.map(v=>v.chapter))].sort((a,b)=>{
+    const na=parseInt(a,10), nb=parseInt(b,10);
+    if(na!==nb) return na-nb;
+    return String(a).localeCompare(String(b));
+  });
 }
 
 function buildVocabChapters(){
@@ -2421,10 +2427,28 @@ function vocabExpected(inp){
       .filter(i=>i!==inp && vocabFieldCorrect(i))
       .map(i=>normEng(i.value))
   );
-  return v.meanings
-    .map(g=>g.items.filter(it=>!used.has(normEng(it))).join(' / '))
-    .filter(line=>line)
-    .join('\n');
+  // Native tooltips are plain text, so the block's own sense group is called out
+  // by position and label rather than by styling.
+  const lines=v.meanings.map(g=>g.items.filter(it=>!used.has(normEng(it))).join(' / '));
+  const gi=vocabGiOf(inp);
+  const others=lines.filter((line,i)=>line && i!==gi);
+  if(gi<0){
+    if(!others.length) return '';
+    return 'Any of these senses:\n   ' + others.join('\n   ');
+  }
+  const out=[];
+  if(lines[gi]) out.push('This sense: '+lines[gi]);
+  if(others.length) out.push(others.length===1
+    ? 'Other sense: '+others[0]
+    : 'Other senses:\n   '+others.join('\n   '));
+  return out.join('\n');
+}
+
+// English cells label their own senses; every other field just names what was wanted.
+function vocabTitle(inp){
+  const txt=vocabExpected(inp);
+  if(!txt) return '';
+  return inp.dataset.kind==='eng' ? txt : 'Expected: '+txt;
 }
 
 let vocabRegrading=false;
@@ -2439,7 +2463,7 @@ function checkVocabCell(inp, finalSweep){
   const claimChanged = !vocabRegrading && vocabApplyClaim(inp);
   const ok=vocabFieldCorrect(inp);
   liveMark('vocab', inp, ok);
-  inp.title = ok ? '' : 'Expected: '+vocabExpected(inp);
+  inp.title = ok ? '' : vocabTitle(inp);
   if(ok) ensureNextVocabBox(inp);
   // A changed claim can make other answers in the row right or wrong, so re-mark them.
   if(claimChanged){
@@ -2464,7 +2488,7 @@ function checkVocab(){
   inputs.forEach(inp=>{
     inp.classList.remove('correct','wrong','corrected','vocab-full');
     if(vocabFieldCorrect(inp)){ inp.classList.add('correct'); correct++; ensureNextVocabBox(inp); }
-    else { inp.classList.add('wrong'); inp.title='Expected: '+vocabExpected(inp); }
+    else { inp.classList.add('wrong'); inp.title=vocabTitle(inp); }
   });
   updateAllVocabRows();
   const solved=document.querySelectorAll('#panel-vocab tr.vocab-solved').length;
