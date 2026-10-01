@@ -711,7 +711,7 @@ async function loadDrillData() {
 
   vocab = vocabRowsRaw.map(d => ({
     id:          d.id,
-    chapter:     Number(d.content.chapter),
+    chapter:     vocabChapterValue(d.content.chapter),
     group:       d.content.group,
     pos:         d.content.pos,
     lemma:       d.content.lemma,
@@ -2006,6 +2006,13 @@ function dedupeMeanings(meanings){
 function vocabKey(inp){
   const d=inp.dataset;
   return [d.lemma,d.kind,d.slot||d.block||'',d.idx||''].join('|');
+}
+
+// Chapters are usually numbers (8) but can be labels ("8R" for reading-passage
+// vocabulary). Keep numbers as numbers so sorting and existing data are unchanged.
+function vocabChapterValue(ch){
+  const n=Number(ch);
+  return (ch===null || ch==='' || Number.isNaN(n)) ? String(ch) : n;
 }
 
 function vocabChaptersAvailable(){
