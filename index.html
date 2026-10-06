@@ -234,6 +234,7 @@
 <div class="tabs">
   <div class="tab active" onclick="switchTab('decl')">1st &amp; 2nd Declension</div>
   <div class="tab"        onclick="switchTab('decl3')">3rd Declension</div>
+  <div class="tab"        onclick="switchTab('dem')">Demonstratives</div>
   <div class="tab"        onclick="switchTab('verb')">Verb Conjugations</div>
   <div class="tab"        onclick="switchTab('agree')">Adjective/Noun Agreement</div>
   <div class="tab"        onclick="switchTab('vocab')">Vocabulary</div>
@@ -303,6 +304,23 @@
 </div>
 
 <!-- ── VERB PANEL ────────────────────────────────────────────── -->
+<div class="panel" id="panel-dem">
+  <div id="demSelectors"></div>
+  <div class="panel-subtitle">Demonstrative Pronouns &amp; Adjectives</div>
+  <div class="word-display" id="demDisplay"></div>
+  <div class="meaning" id="demMeaning"></div>
+  <div id="demNote" style="display:none; background:#fff8e8; border:1px solid #c9a96e; border-radius:4px; padding:10px 14px; margin-bottom:12px; font-size:0.88rem; color:#333; line-height:1.5;"></div>
+  <table id="demTable"></table>
+  <div class="buttons">
+    <button class="primary"   id="checkDemBtn" onclick="checkDem()">Check Answers</button>
+    <button class="secondary" onclick="revealDem()">Show Answers</button>
+    <button class="secondary" id="undoDemBtn" onclick="undoDem()" style="display:none;" title="Restore your previous answers">Undo</button>
+    <button class="secondary" onclick="resetDem()">Clear &amp; Shuffle</button>
+    <label class="livecheck-label" title="Check each answer as soon as you leave its field"><input type="checkbox" id="liveDem" checked>Check as I go</label>
+  </div>
+  <div class="score" id="demScore"></div>
+</div>
+
 <div class="panel" id="panel-verb">
   <div id="verbSelectors"></div>
   <div class="panel-subtitle">1st&ndash;4th Conjugation &mdash; Present, Imperfect &amp; Future Active Indicative, Imperative</div>
@@ -437,6 +455,7 @@ let currentUser = null;
 // ── DRILL DATA (populated from Supabase) ──────────────────────────────────────
 
 let words = [];
+let demWords = [];   // demonstrative pronouns/adjectives (type 'demonstrative')
 let verbs = [];
 let agreePhrases = [];
 let agreeExceptions = [];
@@ -679,6 +698,8 @@ async function loadDrillData() {
     buildVerbSelectors();
     verbTenses = buildVerbTenses(verbs[0]);
     buildDeclTable();
+    buildDemSelectors();
+    buildDemTable();
     buildVerbTable();
     buildDecl3Selectors();
     buildDecl3Table();
@@ -706,6 +727,16 @@ async function loadDrillData() {
     meaning: d.content.meaning,
     noun:    d.content.is_noun || false,
     note:    d.content.note || null,
+    data:    d.content.paradigm,
+  }));
+
+  demWords = data.filter(d => d.type === 'demonstrative').map(d => ({
+    id:      d.id,
+    display: d.content.display,
+    meaning: d.content.meaning,
+    noun:    d.content.is_noun || false,
+    note:    d.content.note || null,
+    group:   d.content.group || null,
     data:    d.content.paradigm,
   }));
 
@@ -771,6 +802,8 @@ async function loadDrillData() {
   // Initialise drills
   verbTenses = buildVerbTenses(verbs[0]);
   buildDeclTable();
+  buildDemSelectors();
+  buildDemTable();
   buildVerbTable();
   buildDecl3Selectors();
   buildDecl3Table();
@@ -821,6 +854,31 @@ function buildDeclSelectors() {
     });
     g.appendChild(s); container.appendChild(g);
   }
+}
+
+function buildDemSelectors() {
+  const container = document.getElementById('demSelectors');
+  container.innerHTML = '';
+  const groups = {};
+  demWords.forEach(w => {
+    const key = w.group || 'Demonstratives';
+    (groups[key] = groups[key] || []).push(w);
+  });
+  let first = true;
+  Object.entries(groups).forEach(([label, list]) => {
+    const g = document.createElement('div'); g.className = 'selector-group';
+    g.innerHTML = '<div class="selector-label">' + label + '</div>';
+    const s = document.createElement('div'); s.className = 'selector';
+    list.forEach(w => {
+      const btn = document.createElement('button');
+      btn.className = 'sel-btn' + (first ? ' active' : '');
+      first = false;
+      btn.textContent = w.display.split('/')[0].trim().split(',')[0].trim();
+      btn.onclick = () => setDem(demWords.indexOf(w));
+      s.appendChild(btn);
+    });
+    g.appendChild(s); container.appendChild(g);
+  });
 }
 
 function buildVerbSelectors() {
@@ -888,10 +946,11 @@ function applySnapshot(selector, snap, scoreId) {
 // try. Colours: green = right first try, yellow = right after a miss (or a
 // reveal), red = currently wrong. The saved score counts fields that are
 // correct at finish AND were right on the first attempt.
-const liveAttempts = { decl:{}, decl3:{}, stem:{}, vocab:{}, verb:{}, q1:{}, q2std:{}, q2ex:{} };
+const liveAttempts = { decl:{}, dem:{}, decl3:{}, stem:{}, vocab:{}, verb:{}, q1:{}, q2std:{}, q2ex:{} };
 
 const LIVE_CFG = {
   decl:  { inputs: ()=>[...document.querySelectorAll('#declTable input')], scoreId:'declScore' },
+  dem:   { inputs: ()=>[...document.querySelectorAll('#demTable input')], scoreId:'demScore' },
   verb:  { inputs: ()=>[...document.querySelectorAll('#verbTable input')], scoreId:'verbScore' },
   q1:    { inputs: ()=>['q1a','q1b','q1c'].map(id=>document.getElementById(id)), scoreId:'q1Score' },
   q2std: { inputs: ()=>['q2case','q2gender','q2number'].map(id=>document.getElementById(id)), scoreId:'q2Score' },
@@ -1170,6 +1229,169 @@ function undoDecl(){
   if(document.getElementById('liveDecl').checked) liveScoreLine('decl');
   document.getElementById('undoDeclBtn').style.display='none';
   declSnapshot = null;
+}
+
+// ── DEMONSTRATIVES LOGIC ──────────────────────────────────────────────────────────
+
+// Same drill as 1st & 2nd Declension, on its own data and IDs so the two tabs
+// never share state. Rows come from the cases the paradigm actually contains:
+// demonstratives have no vocative.
+let currentDem=0, demCases=[], demGenders=shuffle(ALL_GENDERS);
+
+function demCaseList(){
+  const w=demWords[currentDem];
+  if(!w || !w.data || !w.data.s) return [];
+  return ALL_CASES.filter(c => c in w.data.s);
+}
+
+function setDem(idx){
+  masteryReset('demScore');
+  currentDem=idx;
+  const label = demWords[idx].display.split('/')[0].trim().split(',')[0].trim();
+  document.querySelectorAll('#demSelectors .sel-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.textContent.trim() === label);
+  });
+  document.getElementById('demDisplay').textContent=demWords[idx].display;
+  document.getElementById('demMeaning').textContent=demWords[idx].meaning;
+  const noteEl=document.getElementById('demNote');
+  if(demWords[idx].note){ noteEl.textContent=demWords[idx].note; noteEl.style.display='block'; }
+  else { noteEl.style.display='none'; noteEl.textContent=''; }
+  demCases=shuffle(demCaseList()); demGenders=shuffle(ALL_GENDERS);
+  liveReset('dem');
+  buildDemTable(); document.getElementById('demScore').textContent='';
+}
+
+function buildDemTable(){
+  if(!demWords.length){
+    document.getElementById('demTable').innerHTML='';
+    document.getElementById('demDisplay').textContent='';
+    document.getElementById('demMeaning').textContent='No demonstratives loaded yet.';
+    return;
+  }
+  if(!demCases.length) demCases=shuffle(demCaseList());
+  const table=document.getElementById('demTable'); table.innerHTML='';
+  const w=demWords[currentDem];
+  const isNoun=!!w.noun;
+  const thead=document.createElement('thead'), hr=document.createElement('tr');
+  const th0=document.createElement('th'); th0.textContent='Case'; hr.appendChild(th0);
+  if(isNoun){
+    const th=document.createElement('th');th.textContent='Form';hr.appendChild(th);
+  } else {
+    demGenders.forEach(g=>{const th=document.createElement('th');th.textContent=g.label;hr.appendChild(th);});
+  }
+  thead.appendChild(hr); table.appendChild(thead);
+  const tbody=document.createElement('tbody');
+  ['s','p'].forEach(num=>{
+    const sr=document.createElement('tr'),st=document.createElement('td');
+    st.className='section';st.colSpan=isNoun?2:4;st.textContent=num==='s'?'Singular':'Plural';
+    sr.appendChild(st);tbody.appendChild(sr);
+    demCases.forEach(c=>{
+      const tr=document.createElement('tr');
+      const td0=document.createElement('td');td0.className='label';td0.textContent=c;tr.appendChild(td0);
+      if(isNoun){
+        const td=document.createElement('td'),inp=document.createElement('input');
+        inp.type='text';inp.autocomplete='off';inp.spellcheck=false;
+        inp.dataset.num=num;inp.dataset.case=c;inp.dataset.gi='noun';
+        td.appendChild(inp);tr.appendChild(td);
+      } else {
+        demGenders.forEach(g=>{
+          const td=document.createElement('td'),inp=document.createElement('input');
+          inp.type='text';inp.autocomplete='off';inp.spellcheck=false;
+          inp.dataset.num=num;inp.dataset.case=c;inp.dataset.gi=g.idx;
+          td.appendChild(inp);tr.appendChild(td);
+        });
+      }
+      tbody.appendChild(tr);
+    });
+  });
+  table.appendChild(tbody);
+  // Set display for first word if just loaded
+  if(!document.getElementById('demDisplay').textContent){
+    document.getElementById('demDisplay').textContent=demWords[0].display;
+    document.getElementById('demMeaning').textContent=demWords[0].meaning;
+  }
+}
+
+function demAnswer(inp){
+  const raw=demWords[currentDem].data[inp.dataset.num][inp.dataset.case];
+  return inp.dataset.gi==='noun'?raw:raw[parseInt(inp.dataset.gi)];
+}
+
+function checkDem(){
+  if(document.getElementById('liveDem').checked){
+    const c=liveFinish('dem', inp=>checkDemCell(inp, true));
+    recordRun('dem', 'demScore', 'word', 'demonstratives', demWords[currentDem].display, c.green, c.total, c.errors, c.revealed);
+    return;
+  }
+  const inputs=document.querySelectorAll('#demTable input');
+  let correct=0,total=0;
+  inputs.forEach(inp=>{
+    const ans=demAnswer(inp);
+    inp.classList.remove('correct','wrong','corrected'); total++;
+    if(norm(inp.value)===norm(ans)){inp.classList.add('correct');correct++;}
+    else{inp.classList.add('wrong');inp.title='Expected: '+ans;}
+  });
+  const s=document.getElementById('demScore');
+  s.style.color=correct===total?'green':'red';
+  s.textContent=correct===total?'Optime! '+correct+'/'+total+' — perfect.':correct+'/'+total+' — hover red cells to see the expected answer.';
+  recordRun('dem', 'demScore', 'word', 'demonstratives', demWords[currentDem].display, correct, total, total-correct, null);
+}
+
+function checkDemCell(inp, finalSweep){
+  const ans=demAnswer(inp);
+  if(!inp.value && !finalSweep && !liveAttempted('dem', inp)){
+    inp.classList.remove('correct','wrong','corrected'); inp.title=''; return;
+  }
+  const ok=norm(inp.value)===norm(ans);
+  liveMark('dem', inp, ok);
+  inp.title = ok ? '' : 'Expected: '+ans;
+}
+
+document.getElementById('demTable').addEventListener('focusout', e=>{
+  if(e.target.tagName==='INPUT' && document.getElementById('liveDem').checked){
+    checkDemCell(e.target);
+    liveScoreLine('dem');
+  }
+});
+
+function revealDem(){
+  demSnapshot = takeSnapshot('#demTable');
+  demSnapshot.liveMap = {...liveAttempts.dem};
+  const live=document.getElementById('liveDem').checked;
+  document.querySelectorAll('#demTable input').forEach(inp=>{
+    inp.value=demAnswer(inp);
+    inp.title='';
+    if(live){
+      liveReveal('dem', inp);
+    } else {
+      inp.classList.remove('wrong','corrected');inp.classList.add('correct');
+    }
+  });
+  if(live) liveScoreLine('dem');
+  else document.getElementById('demScore').textContent='';
+  document.getElementById('undoDemBtn').style.display='inline-block';
+}
+
+function resetDem(silent){
+  if(!silent){
+    demSnapshot = takeSnapshot('#demTable');
+    demSnapshot.liveMap = {...liveAttempts.dem};
+  }
+  demCases=shuffle(demCaseList()); demGenders=shuffle(ALL_GENDERS);
+  liveReset('dem');
+  buildDemTable(); document.getElementById('demScore').textContent='';
+  if(!silent) document.getElementById('undoDemBtn').style.display='inline-block';
+  else { document.getElementById('undoDemBtn').style.display='none'; demSnapshot=null; }
+}
+
+function undoDem(){
+  if(!demSnapshot) return;
+  buildDemTable(); // rebuild same layout
+  applySnapshot('#demTable', demSnapshot, 'demScore');
+  liveAttempts.dem = demSnapshot.liveMap ? {...demSnapshot.liveMap} : {};
+  if(document.getElementById('liveDem').checked) liveScoreLine('dem');
+  document.getElementById('undoDemBtn').style.display='none';
+  demSnapshot = null;
 }
 
 // ── VERB LOGIC ────────────────────────────────────────────────────────────────
@@ -1531,6 +1753,7 @@ function checkQ2Cell(type, key, finalSweep){
 // score. Toggling the box starts a fresh attempt history for that section.
 const LIVE_TOGGLES = [
  ['liveDecl','checkDeclBtn','decl','Finish & Save Score','Check Answers'],
+ ['liveDem','checkDemBtn','dem','Finish & Save Score','Check Answers'],
  ['liveDecl3','checkDecl3Btn','decl3','Finish & Save Score','Check Answers'],
  ['liveStem','checkStemBtn','stem','Finish & Save Score','Check Answers'],
  ['liveVocab','checkVocabBtn','vocab','Finish & Save Score','Check Answers'],
@@ -2626,16 +2849,17 @@ document.getElementById('panel-vocab').addEventListener('focusout', e=>{
 // ── TAB SWITCHING ─────────────────────────────────────────────────────────────
 
 function switchTab(tab){
-  const panels=['decl','decl3','verb','agree','vocab'];
+  const panels=['decl','decl3','dem','verb','agree','vocab'];
   document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',panels[i]===tab));
   panels.forEach(p=>document.getElementById('panel-'+p).classList.toggle('active',p===tab));
   resetDecl(true);
   resetDecl3(true);
+  resetDem(true);
   resetVocab(true);
   resetVerb(true);
   resetAgreeTab();
   // Hide all undo buttons on tab switch
-  ['undoDeclBtn','undoDecl3Btn','undoStemBtn','undoVocabBtn','undoVerbBtn','undoAgreestdBtn','undoAgreeexBtn'].forEach(id=>{
+  ['undoDeclBtn','undoDemBtn','undoDecl3Btn','undoStemBtn','undoVocabBtn','undoVerbBtn','undoAgreestdBtn','undoAgreeexBtn'].forEach(id=>{
     const el=document.getElementById(id);
     if(el) el.style.display='none';
   });
