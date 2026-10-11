@@ -1,13 +1,15 @@
 -- ── Latina Exercitia — Chapter 10 Vocabulary ─────────────────────────────
 -- Wheelock's Latin, 7th edition, Capvt X: fourth conjugation and -io verbs
 -- of the third.
--- Last updated: 2026-10-12
+-- Last updated: 2026-10-12 (quoniam: added "in as much as")
 --
 -- Appears in the Vocabulary tab as "Vocabulary 10". Chapter is numeric, so no
 -- index.html change is needed.
 --
 -- 9 nouns, 1 adjective, 1 conjunction, 1 preposition, 8 verbs.
 -- Semicolons in the textbook gloss become separate sense groups.
+-- "a|b" inside one meaning = alternative spellings of the SAME answer (one box,
+-- either accepted), e.g. quoniam: "inasmuch as|in as much as".
 --
 -- Reversible: delete from drills where session_tag = 'wheelock_ch10_vocab';
 
@@ -36,7 +38,7 @@ insert into drills (type, lp_multiplier, session_tag, content) values
   ('vocab', 1.0, 'wheelock_ch10_vocab',
    '{"chapter": 10, "group": "other", "pos": "adj", "lemma": "beatus", "forms": ["beatus", "beata", "beatum"], "gender": "adj", "meanings": [{"items": ["happy", "fortunate", "blessed"]}], "derivatives": ["beatific", "beatify", "beatitude", "Beatrice"], "type_label": "adj."}'),
   ('vocab', 1.0, 'wheelock_ch10_vocab',
-   '{"chapter": 10, "group": "other", "pos": "conj", "lemma": "quoniam", "forms": ["quoniam"], "gender": "conj", "meanings": [{"items": ["since", "inasmuch as"]}], "derivatives": [], "type_label": "conj."}'),
+   '{"chapter": 10, "group": "other", "pos": "conj", "lemma": "quoniam", "forms": ["quoniam"], "gender": "conj", "meanings": [{"items": ["since", "inasmuch as|in as much as"]}], "derivatives": [], "type_label": "conj."}'),
   ('vocab', 1.0, 'wheelock_ch10_vocab',
    '{"chapter": 10, "group": "other", "pos": "prep", "lemma": "cum", "forms": ["cum"], "gender": "prep", "meanings": [{"items": ["with"]}], "derivatives": ["complete", "connect", "corroborate", "collaborate"], "note": "As a prefix cum may appear as com-, con-, cor-, col- or co-, meaning with, together, completely, or simply intensive.", "type_label": "prep. + abl."}'),
 

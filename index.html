@@ -2214,6 +2214,27 @@ function normEng(v){
 }
 
 // Two listed synonyms can normalise to the same string ("to dare" / "dare").
+// ── ALTERNATIVE SPELLINGS ──
+// One meaning can accept several spellings, written in the data as
+// "inasmuch as|in as much as". It is still ONE answer: one box, and either
+// spelling marks it correct. The first spelling is the one Show Answers fills in.
+function vItemVariants(it){ return String(it||'').split('|').map(x=>x.trim()).filter(Boolean); }
+function vItemExact(it, exact){ return vItemVariants(it).some(x=>x.toLowerCase()===exact); }
+function vItemLoose(it, loose){ return !!loose && vItemVariants(it).some(x=>normEng(x)===loose); }
+function vItemFirst(it){ return vItemVariants(it)[0]||''; }
+function vItemLabel(it){
+  const vs=vItemVariants(it);
+  return vs.length>1 ? '['+vs.join(' or ')+']' : (vs[0]||'');
+}
+// Which meaning in a sense group this answer is (exact spelling first), or -1.
+function vItemIndex(g, val){
+  const exact=(val||'').toLowerCase().trim(), loose=normEng(val);
+  if(!loose) return -1;
+  let i=g.items.findIndex(it=>vItemExact(it, exact));
+  if(i<0) i=g.items.findIndex(it=>vItemLoose(it, loose));
+  return i;
+}
+
 // Keep the first of each; otherwise the extra box could never be answered.
 function dedupeMeanings(meanings){
   return (meanings||[]).map(g=>{
@@ -2331,12 +2352,12 @@ function vocabFreeGroupFor(v, val){
   let hit=-1;
   v.meanings.forEach((g,i)=>{
     if(st.gi.includes(i)) return;
-    if(hit<0 && g.items.some(it=>it.toLowerCase().trim()===exact)) hit=i;
+    if(hit<0 && g.items.some(it=>vItemExact(it, exact))) hit=i;
   });
   if(hit>=0) return hit;
   for(let i=0;i<v.meanings.length;i++){
     if(st.gi.includes(i)) continue;
-    if(v.meanings[i].items.some(it=>normEng(it)===loose)) return i;
+    if(v.meanings[i].items.some(it=>vItemLoose(it, loose))) return i;
   }
   return -1;
 }
@@ -2351,7 +2372,7 @@ function vocabApplyClaim(inp){
   if(cur>=0){
     const items=v.meanings[cur].items;
     const exact=(val||'').toLowerCase().trim(), loose=normEng(val);
-    if(loose && (items.some(it=>it.toLowerCase().trim()===exact) || items.some(it=>normEng(it)===loose)))
+    if(loose && (items.some(it=>vItemExact(it, exact)) || items.some(it=>vItemLoose(it, loose))))
       return false;                                  // still fits the group it owns
     st.gi[k]=-1; st.seq[k]=0;                        // released
   }
@@ -2521,7 +2542,7 @@ function buildVocabTable(tableId, group){
     } else {
       tdE.className='given-eng';
       tdE.innerHTML = v.meanings.map(g =>
-        g.items.join(', ') + (g.note ? ' <span style="color:#888">('+g.note+')</span>' : '')
+        g.items.map(vItemFirst).join(', ') + (g.note ? ' <span style="color:#888">('+g.note+')</span>' : '')
       ).join('; ');
     }
     const dv=document.createElement('div'); dv.className='vocab-derivs';
@@ -2576,12 +2597,14 @@ function vocabFieldCorrect(inp){
   const gi=vocabGiOf(inp);
   if(gi<0) return +inp.dataset.idx===0 && vocabFreeGroupFor(v, val)>=0;
   const g=v.meanings[gi]; if(!g) return false;
-  const items=g.items.map(normEng);
-  if(!items.includes(mine)) return false;
+  const which=vItemIndex(g, val);
+  if(which<0) return false;
+  // Each meaning once per sense group: typing both spellings of the same
+  // meaning in two boxes counts as a repeat.
   const sibs=[...document.querySelectorAll('#panel-vocab input[data-kind="eng"][data-lemma="'+CSS.escape(v.lemma)+'"][data-block="'+inp.dataset.block+'"]')];
   for(const sib of sibs){
     if(sib===inp) break;
-    if(normEng(sib.value)===mine) return false;
+    if(vItemIndex(g, sib.value)===which) return false;
   }
   return true;
 }
@@ -2659,7 +2682,9 @@ function vocabExpected(inp){
   );
   // Native tooltips are plain text, so the block's own sense group is called out
   // by position and label rather than by styling.
-  const lines=v.meanings.map(g=>g.items.filter(it=>!used.has(normEng(it))).join(' / '));
+  const lines=v.meanings.map(g=>g.items
+    .filter(it=>!vItemVariants(it).some(x=>used.has(normEng(x))))
+    .map(vItemLabel).join(' / '));
   const gi=vocabGiOf(inp);
   const others=lines.filter((line,i)=>line && i!==gi);
   if(gi<0){
@@ -2753,7 +2778,7 @@ function revealVocab(){
     else if(inp.dataset.kind==='latin')  inp.value=(+inp.dataset.slot===0)?v.forms[0]:v.forms.slice(1).join(', ');
     else {
       const g=v.meanings[vocabGiOf(inp)];
-      inp.value=g?(g.items[+inp.dataset.idx]||g.items[0]):'';
+      inp.value=g?vItemFirst(g.items[+inp.dataset.idx]||g.items[0]):'';
     }
     inp.title='';
     if(live){
