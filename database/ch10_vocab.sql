@@ -1,7 +1,7 @@
 -- ── Latina Exercitia — Chapter 10 Vocabulary ─────────────────────────────
 -- Wheelock's Latin, 7th edition, Capvt X: fourth conjugation and -io verbs
 -- of the third.
--- Last updated: 2026-10-12 (quoniam: added "in as much as")
+-- Last updated: 2026-10-12 (quoniam: added "in as much as"; fugio: four sense groups)
 --
 -- Appears in the Vocabulary tab as "Vocabulary 10". Chapter is numeric, so no
 -- index.html change is needed.
@@ -52,7 +52,7 @@ insert into drills (type, lp_multiplier, session_tag, content) values
   ('vocab', 1.0, 'wheelock_ch10_vocab',
    '{"chapter": 10, "group": "other", "pos": "verb", "lemma": "facio", "forms": ["facio", "facere", "feci", "factum"], "gender": "verb", "meanings": [{"items": ["to make", "to do", "to accomplish"]}], "derivatives": ["facile", "fact", "faction", "factotum", "facsimile", "faculty", "fashion", "feasible", "feat"], "cf": ["officium"], "note": "Irregular imperative fac. In compounds the -a- becomes -i-: conficio, perficio.", "type_label": "3rd conjugation (-io)"}'),
   ('vocab', 1.0, 'wheelock_ch10_vocab',
-   '{"chapter": 10, "group": "other", "pos": "verb", "lemma": "fugio", "forms": ["fugio", "fugere", "fugi", "fugiturum"], "gender": "verb", "meanings": [{"items": ["to flee", "to hurry away"]}, {"items": ["to escape", "to go into exile"]}, {"items": ["to avoid", "to shun"]}], "derivatives": ["fugitive", "fugue", "centrifugal", "refuge", "subterfuge"], "note": "The fourth principal part is the future active participle fugiturum.", "type_label": "3rd conjugation (-io)"}'),
+   '{"chapter": 10, "group": "other", "pos": "verb", "lemma": "fugio", "forms": ["fugio", "fugere", "fugi", "fugiturum"], "gender": "verb", "meanings": [{"items": ["to flee", "to hurry away"]}, {"items": ["to escape"]}, {"items": ["to go into exile"]}, {"items": ["to avoid", "to shun"]}], "derivatives": ["fugitive", "fugue", "centrifugal", "refuge", "subterfuge"], "note": "The fourth principal part is the future active participle fugiturum.", "type_label": "3rd conjugation (-io)"}'),
   ('vocab', 1.0, 'wheelock_ch10_vocab',
    '{"chapter": 10, "group": "other", "pos": "verb", "lemma": "venio", "forms": ["venio", "venire", "veni", "ventum"], "gender": "verb", "meanings": [{"items": ["to come"]}], "derivatives": ["advent", "adventure", "avenue", "convene", "contravene", "covenant", "event", "inconvenient", "intervene", "parvenu", "prevent", "provenience", "venue"], "type_label": "4th conjugation"}'),
   ('vocab', 1.0, 'wheelock_ch10_vocab',
