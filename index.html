@@ -9,6 +9,22 @@
   h2 { text-align: center; color: #8b2e0f; margin-bottom: 4px; }
   p.sub { text-align: center; color: #444; margin-bottom: 12px; font-size: 0.95rem; }
 
+  /* ── Search ───────────────────────────────────────── */
+  #searchWrap { position: relative; max-width: 480px; margin: 0 auto 16px; }
+  #appSearch { width: 100%; box-sizing: border-box; padding: 9px 12px; font-family: Tahoma, Arial, sans-serif; font-size: 0.95rem; border: 2px solid #c9a96e; border-radius: 4px; background: #fffdf7; color: #333; }
+  #appSearch:focus { outline: none; border-color: #8b2e0f; }
+  #searchResults { display: none; position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 150; background: white; border: 2px solid #c9a96e; border-radius: 4px; box-shadow: 0 6px 18px rgba(0,0,0,0.12); max-height: 60vh; overflow-y: auto; text-align: left; }
+  #searchResults.open { display: block; }
+  .search-item { padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #f0e6d0; font-family: Tahoma, Arial, sans-serif; }
+  .search-item:last-child { border-bottom: none; }
+  .search-item.active, .search-item:hover { background: #fdf3e1; }
+  .search-main { font-size: 0.92rem; color: #333; }
+  .search-main b { color: #8b2e0f; }
+  .search-meta { font-size: 0.75rem; color: #888; margin-top: 2px; }
+  .search-empty { padding: 10px 12px; font-size: 0.85rem; color: #888; font-family: Tahoma, Arial, sans-serif; }
+  .search-flash { animation: searchFlash 2.2s ease-out; }
+  @keyframes searchFlash { 0%, 35% { background-color: #ffe9a8; box-shadow: 0 0 0 3px #ffe9a8; } 100% { background-color: transparent; box-shadow: 0 0 0 0 transparent; } }
+
   .tabs { display: flex; justify-content: center; gap: 0; margin-bottom: 20px; flex-wrap: wrap; }
   .tab { padding: 10px 24px; font-family: Tahoma, Arial, sans-serif; font-size: 0.9rem; border: 2px solid #8b2e0f; cursor: pointer; background: white; color: #8b2e0f; transition: all 0.2s; }
   .tab + .tab { margin-left: -2px; }
@@ -230,6 +246,13 @@
 
 <h2>Latina Exercitia</h2>
 <p class="sub">Fill in all forms, then click Check Answers. Clear &amp; Shuffle randomises the order.</p>
+
+<div id="searchWrap">
+  <input type="search" id="appSearch" autocomplete="off" spellcheck="false"
+         placeholder="Search words, forms, meanings or sections&hellip;"
+         aria-label="Search the drills" aria-controls="searchResults" aria-expanded="false">
+  <div id="searchResults" role="listbox"></div>
+</div>
 
 <div class="tabs">
   <div class="tab active" onclick="switchTab('decl')">1st &amp; 2nd Declension</div>
@@ -2889,6 +2912,243 @@ function switchTab(tab){
     if(el) el.style.display='none';
   });
 }
+
+// ── SEARCH ────────────────────────────────────────────────────────────────────
+// One box that searches everything already loaded into the page: headwords,
+// every inflected/principal-part form, English meanings, and section titles.
+// Picking a result runs the same functions as the tabs and selector buttons,
+// so no per-section URLs are needed. The index is rebuilt on each search, so
+// it always reflects the data currently loaded.
+
+const SEARCH_TABS = [
+  ['decl',  '1st & 2nd Declension',     ['declension', 'adjectives', 'nouns']],
+  ['decl3', '3rd Declension',           ['declension', 'nouns']],
+  ['dem',   'Demonstratives',           ['demonstrative pronouns', 'pronouns']],
+  ['verb',  'Verb Conjugations',        ['verbs', 'conjugation']],
+  ['agree', 'Adjective/Noun Agreement', ['agreement']],
+  ['vocab', 'Vocabulary',               ['vocab', 'vocabula']],
+];
+const SEARCH_TAB_NAME = Object.fromEntries(SEARCH_TABS.map(([t, n]) => [t, n]));
+
+function sNorm(x){ return norm(String(x == null ? '' : x)).replace(/\s+/g, ' '); }
+
+// Every string inside a paradigm / forms object, flattened.
+function searchFlatten(o, out){
+  out = out || [];
+  if (o == null) return out;
+  if (typeof o === 'string') { if (o.trim()) out.push(o); }
+  else if (Array.isArray(o)) o.forEach(x => searchFlatten(x, out));
+  else if (typeof o === 'object') Object.values(o).forEach(x => searchFlatten(x, out));
+  return out;
+}
+
+// English gloss -> separate searchable pieces ("Adj. — great, large" -> great, large).
+function searchEnglishKeys(text){
+  const raw = String(text || '');
+  const parts = raw.split(/[,;()"—–\/|]+/).map(p => p.trim()).filter(Boolean);
+  return [raw].concat(parts).map(normEng).filter(Boolean);
+}
+
+function searchScrollFlash(el){
+  document.querySelectorAll('.search-flash').forEach(x => x.classList.remove('search-flash'));
+  if (!el) return;
+  if (el.scrollIntoView) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  void el.offsetWidth; el.classList.add('search-flash');
+}
+
+function searchFindHeading(tab, text){
+  const panel = document.getElementById('panel-' + tab);
+  if (!panel) return null;
+  return [...panel.querySelectorAll('.selector-label, .agree-section-title, .agree-subsection-title, .panel-subtitle')]
+    .find(el => sNorm(el.textContent) === sNorm(text)) || null;
+}
+
+function searchGoAgree(type, itemIdx){
+  switchTab('agree');
+  unlockQ2();                       // search opens the phrase directly, past Question 1
+  if (type === 'ex') {
+    let p = agreeExQueue.indexOf(itemIdx);
+    if (p < 0) { initAgreeExQueue(); p = agreeExQueue.indexOf(itemIdx); }
+    agreeExIndex = Math.max(0, p);
+  } else {
+    let p = agreeQueue.indexOf(itemIdx);
+    if (p < 0) { initAgreeQueue(); p = agreeQueue.indexOf(itemIdx); }
+    agreeIndex = Math.max(0, p);
+  }
+  loadAgreePhraseType(type);
+  searchScrollFlash(document.getElementById(getAgreeIds(type).phrase));
+}
+
+function searchGoVocab(chapter, lemma){
+  switchTab('vocab');
+  setVocabChapter(chapter);
+  if (lemma) {
+    const tr = document.querySelector('#panel-vocab tr[data-lemma="' + CSS.escape(lemma) + '"]');
+    searchScrollFlash(tr);
+  } else {
+    searchScrollFlash(document.querySelector('#vocabChapters .sel-btn.active'));
+  }
+}
+
+function buildSearchIndex(){
+  const E = [];
+  const add = (main, meta, rank, keys, go) => E.push({ main, meta, rank, keys, go });
+  const latin = (arr, weight) => arr.map(t => ({ t: sNorm(t), w: weight, kind: 'latin', raw: t }));
+  const eng   = (txt, weight) => searchEnglishKeys(txt).map(t => ({ t, w: weight, kind: 'eng', raw: t }));
+  const headwordOf = d => String(d || '').split('/')[0].split(',')[0].trim();
+
+  // Sections: tab names, then every heading/selector label inside each panel.
+  const seen = new Set();
+  SEARCH_TABS.forEach(([tab, name, aliases]) => {
+    add(name, 'Section', 3, latin([name], 1.0).concat(latin(aliases, 0.9)), () => {
+      switchTab(tab); searchScrollFlash(document.querySelector('.tab.active'));
+    });
+    seen.add(tab + '|' + sNorm(name));
+    const panel = document.getElementById('panel-' + tab);
+    if (!panel) return;
+    panel.querySelectorAll('.selector-label, .agree-section-title, .agree-subsection-title, .panel-subtitle').forEach(el => {
+      const text = el.textContent.trim();
+      if (!text || el.id === 'vocabSubtitle') return;
+      const key = tab + '|' + sNorm(text);
+      if (seen.has(key)) return;
+      seen.add(key);
+      add(text, name + ' · heading', 3, latin([text], 1.0), () => {
+        switchTab(tab); searchScrollFlash(searchFindHeading(tab, text));
+      });
+    });
+  });
+
+  // Vocabulary chapters.
+  (typeof vocabChaptersAvailable === 'function' ? vocabChaptersAvailable() : []).forEach(ch => {
+    add('Vocabulary ' + ch, 'Vocabulary · chapter', 3, latin(['Vocabulary ' + ch, 'chapter ' + ch, 'vocab ' + ch], 1.0),
+        () => searchGoVocab(ch, null));
+  });
+
+  // 1st & 2nd declension.
+  words.forEach((w, i) => add(w.display + ' — ' + w.meaning, SEARCH_TAB_NAME.decl, 1,
+    latin([headwordOf(w.display), w.display], 1.0).concat(latin(searchFlatten(w.data), 0.85), eng(w.meaning, 0.75)),
+    () => { switchTab('decl'); setWord(i); searchScrollFlash(document.getElementById('wordDisplay')); }));
+
+  // 3rd declension.
+  nouns3.forEach((n, i) => add(n.display + ' — ' + n.meaning, SEARCH_TAB_NAME.decl3, 1,
+    latin([headwordOf(n.display), n.display], 1.0).concat(latin(searchFlatten(n.data), 0.85), eng(n.meaning, 0.75)),
+    () => { switchTab('decl3'); setNoun3(i); searchScrollFlash(document.getElementById('decl3Display')); }));
+
+  // Demonstratives.
+  demWords.forEach((w, i) => add(w.display + ' — ' + w.meaning, SEARCH_TAB_NAME.dem, 1,
+    latin([headwordOf(w.display), w.display], 1.0).concat(latin(searchFlatten(w.data), 0.85), eng(w.meaning, 0.75)),
+    () => { switchTab('dem'); setDem(i); searchScrollFlash(document.getElementById('demDisplay')); }));
+
+  // Verbs.
+  verbs.forEach((v, i) => {
+    const forms = v.forms ? searchFlatten(v.forms) : searchFlatten([v.pres, v.fut, v.imp]);
+    add(v.display + ' — ' + v.meaning, SEARCH_TAB_NAME.verb + ' · ' + (v.conj || ''), 1,
+      latin([v.display], 1.0).concat(latin(forms, 0.85), eng(v.meaning, 0.75)),
+      () => { switchTab('verb'); setVerb(i); searchScrollFlash(document.getElementById('verbDisplay')); });
+  });
+
+  // Agreement phrases.
+  agreePhrases.forEach((a, i) => add(a.phrase + ' — ' + a.translation, SEARCH_TAB_NAME.agree + ' · standard phrase', 2,
+    latin([a.phrase], 1.0).concat(latin(a.phrase.split(/\s+/), 0.8), eng(a.translation, 0.7)),
+    () => searchGoAgree('std', i)));
+  agreeExceptions.forEach((a, i) => add(a.phrase + ' — ' + a.translation, SEARCH_TAB_NAME.agree + ' · exception', 2,
+    latin([a.phrase], 1.0).concat(latin(a.phrase.split(/\s+/), 0.8), eng(a.translation, 0.7)),
+    () => searchGoAgree('ex', i)));
+
+  // Vocabulary words.
+  vocab.forEach(v => {
+    const gloss = (v.meanings || []).map(g => (g.items || []).map(vItemFirst).join(', ')).join('; ');
+    const engKeys = [];
+    (v.meanings || []).forEach(g => (g.items || []).forEach(it => vItemVariants(it).forEach(x => engKeys.push(...eng(x, 0.75)))));
+    add(v.lemma + ' — ' + gloss, 'Vocabulary ' + v.chapter, 1,
+      latin([v.lemma], 1.0).concat(latin(v.forms || [], 0.85), engKeys),
+      () => searchGoVocab(v.chapter, v.lemma));
+  });
+  return E;
+}
+
+// Score: exact > starts with > a word starts with > contains, times the key's weight.
+function searchRun(query){
+  const qn = sNorm(query), qe = normEng(query);
+  if (!qn) return [];
+  const out = [];
+  buildSearchIndex().forEach(e => {
+    let best = 0, hit = null;
+    e.keys.forEach(k => {
+      const q = k.kind === 'eng' ? qe : qn;
+      if (!q || !k.t) return;
+      let sc = 0;
+      if (k.t === q) sc = 100;
+      else if (k.t.startsWith(q)) sc = 70;
+      else if ((' ' + k.t).includes(' ' + q)) sc = 50;
+      else if (q.length >= 3 && k.t.includes(q)) sc = 30;
+      sc *= k.w;
+      if (sc > best) { best = sc; hit = k; }
+    });
+    if (best > 0) out.push({ e, score: best - e.rank * 0.01, hit });
+  });
+  out.sort((a, b) => b.score - a.score || a.e.main.localeCompare(b.e.main));
+  return out.slice(0, 15);
+}
+
+let searchHits = [], searchActive = -1;
+
+function searchEsc(t){ return String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+
+function searchRender(){
+  const box = document.getElementById('searchResults');
+  const input = document.getElementById('appSearch');
+  const q = input.value.trim();
+  if (!q) { box.classList.remove('open'); input.setAttribute('aria-expanded', 'false'); return; }
+  if (!searchHits.length) {
+    box.innerHTML = '<div class="search-empty">No matches for “' + searchEsc(q) + '”</div>';
+  } else {
+    box.innerHTML = searchHits.map((h, i) => {
+      const parts = h.e.main.split(' — ');
+      const main = '<b>' + searchEsc(parts[0]) + '</b>' + (parts.length > 1 ? ' — ' + searchEsc(parts.slice(1).join(' — ')) : '');
+      const head = sNorm(parts[0]);
+      let why = '';
+      if (h.hit && h.hit.t !== head && h.hit.w < 1)
+        why = ' · ' + (h.hit.kind === 'eng' ? 'meaning' : 'form') + ': ' + searchEsc(h.hit.raw);
+      return '<div class="search-item' + (i === searchActive ? ' active' : '') + '" role="option" data-i="' + i + '">'
+           + '<div class="search-main">' + main + '</div><div class="search-meta">' + searchEsc(h.e.meta) + why + '</div></div>';
+    }).join('');
+  }
+  box.classList.add('open');
+  input.setAttribute('aria-expanded', 'true');
+}
+
+function searchClose(){
+  document.getElementById('searchResults').classList.remove('open');
+  document.getElementById('appSearch').setAttribute('aria-expanded', 'false');
+  searchActive = -1;
+}
+
+function searchPick(i){
+  const h = searchHits[i];
+  if (!h) return;
+  searchClose();
+  document.getElementById('appSearch').blur();
+  try { h.e.go(); } catch (err) { console.warn('search navigation failed:', err); }
+}
+
+(function initSearch(){
+  const input = document.getElementById('appSearch');
+  const box = document.getElementById('searchResults');
+  input.addEventListener('input', () => { searchHits = searchRun(input.value); searchActive = searchHits.length ? 0 : -1; searchRender(); });
+  input.addEventListener('focus', () => { if (input.value.trim()) { searchHits = searchRun(input.value); searchRender(); } });
+  input.addEventListener('keydown', e => {
+    if (e.key === 'ArrowDown') { e.preventDefault(); if (searchHits.length) { searchActive = (searchActive + 1) % searchHits.length; searchRender(); } }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); if (searchHits.length) { searchActive = (searchActive - 1 + searchHits.length) % searchHits.length; searchRender(); } }
+    else if (e.key === 'Enter') { e.preventDefault(); if (searchActive >= 0) searchPick(searchActive); }
+    else if (e.key === 'Escape') { searchClose(); input.blur(); }
+  });
+  box.addEventListener('mousedown', e => {          // mousedown so it fires before the input loses focus
+    const item = e.target.closest('.search-item');
+    if (item) { e.preventDefault(); searchPick(+item.dataset.i); }
+  });
+  document.addEventListener('click', e => { if (!e.target.closest('#searchWrap')) searchClose(); });
+})();
 
 // ── AUTH HELPERS ──────────────────────────────────────────────────────────────
 
