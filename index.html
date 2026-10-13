@@ -345,7 +345,7 @@
 
   <div class="agree-section" id="acroSection" style="display:none; margin-top:28px;">
     <div class="agree-section-title" id="acroTitle">UNUS NAUTA Recall</div>
-    <div class="panel-subtitle" id="acroHelp">Each letter starts one of the special -ius adjectives. Type the word (masculine nominative) and one meaning. Words sharing a letter can go in any order.</div>
+    <div class="panel-subtitle" id="acroHelp">Each letter starts one of the special -ius adjectives. Type the word (masculine nominative) and its meanings &mdash; each correct meaning opens another box. Words sharing a letter can go in any order.</div>
     <table id="acroTable"></table>
     <div class="buttons">
       <button class="primary"   id="checkAcroBtn" onclick="checkAcro()">Check Answers</button>
@@ -991,7 +991,7 @@ const liveAttempts = { decl:{}, dem:{}, acro:{}, decl3:{}, stem:{}, vocab:{}, ve
 const LIVE_CFG = {
   decl:  { inputs: ()=>[...document.querySelectorAll('#declTable input')], scoreId:'declScore' },
   dem:   { inputs: ()=>[...document.querySelectorAll('#demTable input')], scoreId:'demScore' },
-  acro:  { inputs: ()=>[...document.querySelectorAll('#acroTable input')], scoreId:'acroScore' },
+  acro:  { inputs: ()=>[...document.querySelectorAll('#acroTable input')].filter(i=>i.dataset.optional!=='1'||i.value.trim()!==''), scoreId:'acroScore' },
   verb:  { inputs: ()=>[...document.querySelectorAll('#verbTable input')], scoreId:'verbScore' },
   q1:    { inputs: ()=>['q1a','q1b','q1c'].map(id=>document.getElementById(id)), scoreId:'q1Score' },
   q2std: { inputs: ()=>['q2case','q2gender','q2number'].map(id=>document.getElementById(id)), scoreId:'q2Score' },
@@ -1437,15 +1437,35 @@ function undoDem(){
 
 // ── ACRONYM RECALL (UNUS NAUTA) ───────────────────────────────────────────────
 // Built from the demonstrative rows that carry an "acronym" field, in database
-// order. One row per letter: the word (masc. nom.) and one meaning. Where a
-// letter repeats (U, N, A) any unused word with that letter is accepted, so the
-// order within a letter doesn't matter.
+// order. One row per letter: the word (masc. nom.) and its meanings.
+// Word: where a letter repeats (U, N, A) any unused word with that letter is
+//   accepted, so the order within a letter doesn't matter.
+// Meanings: work like Vocabulary — one required box; each correct answer opens
+//   another (with an "N of M" counter) until that word's meanings are used up.
+//   Extra boxes are optional and only scored once something is typed in them.
 let acroSet = [];
 
 function acroWords(){ return demWords.filter(w => w.acronym); }
 
-function acroMeanings(w){
-  return String(w.meaning || '').split(/[;,]/).map(x => normEng(x.replace(/\(.*?\)/g, ''))).filter(Boolean);
+// "the other (of two), second" -> ["the other", "second"] (display form)
+function acroMeaningList(w){
+  return String(w.meaning || '').split(/[;,]/).map(x => x.replace(/\(.*?\)/g, '').trim()).filter(Boolean);
+}
+function acroMeanings(w){ return acroMeaningList(w).map(normEng).filter(Boolean); }
+
+function acroLetter(i){ const w = acroSet[i]; return (w.lemma || w.display)[0].toLowerCase(); }
+function acroWordInput(i){ return document.getElementById('acro_word_' + i); }
+function acroMeanBoxes(i){ return [...document.querySelectorAll('#acroMeans_' + i + ' input')]; }
+
+function acroMeanCell(i, j){
+  const cell = document.createElement('div'); cell.className = 'vocab-cell';
+  const inp = document.createElement('input');
+  inp.type = 'text'; inp.autocomplete = 'off'; inp.spellcheck = false;
+  inp.id = 'acro_mean_' + i + '_' + j; inp.dataset.row = String(i); inp.dataset.kind = 'mean'; inp.dataset.idx = String(j);
+  if (j > 0) inp.dataset.optional = '1';
+  const note = document.createElement('div'); note.className = 'cell-note';
+  cell.appendChild(inp); cell.appendChild(note);
+  return cell;
 }
 
 function buildAcro(){
@@ -1456,18 +1476,20 @@ function buildAcro(){
   sec.style.display = 'block';
   document.getElementById('acroTitle').textContent = acroSet[0].acronym + ' Recall';
   const t = document.getElementById('acroTable');
-  t.innerHTML = '<thead><tr><th>Letter</th><th>Word</th><th>Meaning</th></tr></thead>';
+  t.innerHTML = '<thead><tr><th>Letter</th><th>Word</th><th>Meanings</th></tr></thead>';
   const tb = document.createElement('tbody');
   acroSet.forEach((w, i) => {
     const tr = document.createElement('tr');
     const tdL = document.createElement('td'); tdL.className = 'label'; tdL.style.textAlign = 'center';
     tdL.textContent = (w.lemma || w.display)[0].toUpperCase(); tr.appendChild(tdL);
-    ['word', 'mean'].forEach(kind => {
-      const td = document.createElement('td'), inp = document.createElement('input');
-      inp.type = 'text'; inp.autocomplete = 'off'; inp.spellcheck = false;
-      inp.id = 'acro_' + kind + '_' + i; inp.dataset.row = String(i); inp.dataset.kind = kind;
-      td.appendChild(inp); tr.appendChild(td);
-    });
+    const tdW = document.createElement('td'), wi = document.createElement('input');
+    wi.type = 'text'; wi.autocomplete = 'off'; wi.spellcheck = false;
+    wi.id = 'acro_word_' + i; wi.dataset.row = String(i); wi.dataset.kind = 'word';
+    tdW.appendChild(wi); tr.appendChild(tdW);
+    const tdM = document.createElement('td'); tdM.style.textAlign = 'left';
+    const box = document.createElement('div'); box.id = 'acroMeans_' + i;
+    box.appendChild(acroMeanCell(i, 0));
+    tdM.appendChild(box); tr.appendChild(tdM);
     tb.appendChild(tr);
   });
   t.appendChild(tb);
@@ -1475,64 +1497,134 @@ function buildAcro(){
   document.getElementById('acroScore').textContent = '';
 }
 
-function acroLetter(i){ const w = acroSet[i]; return (w.lemma || w.display)[0].toLowerCase(); }
-function acroInput(kind, i){ return document.getElementById('acro_' + kind + '_' + i); }
-
 // Which word (index into acroSet) the word box in row i holds, or -1 if wrong.
 // A word already claimed by an earlier row with the same letter doesn't count twice.
 function acroWordIndex(i){
-  const val = norm(acroInput('word', i).value || '');
+  const val = norm(acroWordInput(i).value || '');
   if (!val) return -1;
   const L = acroLetter(i);
   const k = acroSet.findIndex(w => (w.lemma || '').toLowerCase() === val);
   if (k < 0 || (acroSet[k].lemma || '')[0].toLowerCase() !== L) return -1;
   for (let j = 0; j < i; j++) {
-    if (acroLetter(j) === L && norm(acroInput('word', j).value || '') === val) return -1;
+    if (acroLetter(j) === L && norm(acroWordInput(j).value || '') === val) return -1;
   }
   return k;
 }
+
+// The words a meaning in row i may come from: the row's word if it's right,
+// otherwise any word with that letter.
+function acroPool(i){
+  const k = acroWordIndex(i);
+  return k >= 0 ? [acroSet[k]] : acroSet.filter(w => (w.lemma || '')[0].toLowerCase() === acroLetter(i));
+}
+
+// How many meanings the row's word has (0 until the word is right).
+function acroMeanTotal(i){ const k = acroWordIndex(i); return k >= 0 ? acroMeanings(acroSet[k]).length : 0; }
 
 function acroCorrect(inp){
   const i = +inp.dataset.row;
   if (inp.dataset.kind === 'word') return acroWordIndex(i) >= 0;
   const v = normEng(inp.value || '');
   if (!v) return false;
-  const k = acroWordIndex(i);
-  const pool = k >= 0 ? [acroSet[k]] : acroSet.filter(w => (w.lemma || '')[0].toLowerCase() === acroLetter(i));
-  return pool.some(w => acroMeanings(w).includes(v));
+  if (!acroPool(i).some(w => acroMeanings(w).includes(v))) return false;
+  // each meaning once per row
+  for (const b of acroMeanBoxes(i)) {
+    if (b === inp) break;
+    if (normEng(b.value || '') === v) return false;
+  }
+  return true;
 }
 
 function acroExpected(inp){
   const i = +inp.dataset.row, L = acroLetter(i);
-  const used = new Set();
-  acroSet.forEach((_, j) => { if (j !== i && acroLetter(j) === L) { const k = acroWordIndex(j); if (k >= 0) used.add(k); } });
   if (inp.dataset.kind === 'word') {
+    const used = new Set();
+    acroSet.forEach((_, j) => { if (j !== i && acroLetter(j) === L) { const k = acroWordIndex(j); if (k >= 0) used.add(k); } });
     const opts = acroSet.map((w, k) => ({ w, k })).filter(x => (x.w.lemma || '')[0].toLowerCase() === L && !used.has(x.k)).map(x => x.w.lemma);
     return opts.length === 1 ? 'Expected: ' + opts[0] : 'Any of: ' + opts.join(' / ');
   }
+  const done = new Set(acroMeanBoxes(i).filter(b => b !== inp && acroCorrect(b)).map(b => normEng(b.value)));
   const k = acroWordIndex(i);
-  if (k >= 0) return 'Expected: ' + acroSet[k].meaning;
-  return 'Meanings for ' + L.toUpperCase() + ':\n   ' + acroSet.filter(w => (w.lemma || '')[0].toLowerCase() === L)
-    .map(w => w.lemma + ' — ' + w.meaning).join('\n   ');
+  if (k >= 0) {
+    const left = acroMeaningList(acroSet[k]).filter(m => !done.has(normEng(m)));
+    return left.length ? 'Expected: ' + left.join(' / ') : 'All meanings of ' + acroSet[k].lemma + ' already given';
+  }
+  return 'Meanings for ' + L.toUpperCase() + ':\n   ' + acroPool(i).map(w => w.lemma + ' — ' + acroMeaningList(w).join(' / ')).join('\n   ');
+}
+
+// Show "N of M" under each meaning box once the row's word is known.
+function acroUpdateNotes(i){
+  const total = acroMeanTotal(i);
+  acroMeanBoxes(i).forEach((b, j) => {
+    const note = b.parentElement.querySelector('.cell-note');
+    if (note) note.textContent = total > 1 ? (j + 1) + ' of ' + total : '';
+  });
+}
+
+// Open the next meaning box once every box shown is right and meanings remain.
+function acroEnsureNextBox(i){
+  const boxes = acroMeanBoxes(i);
+  const total = acroMeanTotal(i);
+  if (!total || boxes.length >= total) return false;
+  if (!boxes.every(b => acroCorrect(b))) return false;
+  document.getElementById('acroMeans_' + i).appendChild(acroMeanCell(i, boxes.length));
+  acroUpdateNotes(i);
+  return true;
+}
+
+// Drop trailing empty optional boxes (e.g. after the row's word changes).
+function acroTrimBoxes(i){
+  const boxes = acroMeanBoxes(i);
+  const total = Math.max(1, acroMeanTotal(i));
+  for (let j = boxes.length - 1; j > 0; j--) {
+    const b = boxes[j];
+    if (b.value.trim() || (j < total && boxes.slice(0, j).every(x => acroCorrect(x)))) break;
+    b.parentElement.remove();
+  }
+  acroUpdateNotes(i);
 }
 
 let acroRegrading = false;
 function checkAcroCell(inp, finalSweep){
+  if (inp.dataset.optional === '1' && !inp.value.trim()) {     // untouched extra box: not scored
+    inp.classList.remove('correct', 'wrong', 'corrected'); inp.title = ''; return;
+  }
   if (!inp.value && !finalSweep && !liveAttempted('acro', inp)) {
     inp.classList.remove('correct', 'wrong', 'corrected'); inp.title = ''; return;
   }
   const ok = acroCorrect(inp);
   liveMark('acro', inp, ok);
   inp.title = ok ? '' : acroExpected(inp);
-  // A word change can make this row's meaning (or another row's duplicate) right or wrong.
+  const i = +inp.dataset.row;
   if (inp.dataset.kind === 'word' && !acroRegrading) {
+    // A word change alters this row's meaning list, and may free or take a letter slot.
     acroRegrading = true;
+    acroTrimBoxes(i);
     document.querySelectorAll('#acroTable input').forEach(x => {
       if (x !== inp && (x.value || liveAttempted('acro', x))) checkAcroCell(x, finalSweep);
     });
     acroRegrading = false;
   }
+  if (ok && inp.dataset.kind === 'mean') acroEnsureNextBox(i);
+  acroUpdateNotes(i);
 }
+
+function acroSetFocusAfter(inp){
+  const all = [...document.querySelectorAll('#acroTable input')];
+  const n = all.indexOf(inp);
+  if (n >= 0 && n + 1 < all.length) { all[n + 1].focus(); return true; }
+  return false;
+}
+
+// Tab from a meaning box: settle it first, so a newly opened box is the next stop.
+document.getElementById('acroTable').addEventListener('keydown', e => {
+  if (e.key !== 'Tab' || e.shiftKey || e.altKey || e.ctrlKey || e.metaKey) return;
+  const inp = e.target;
+  if (!inp || inp.tagName !== 'INPUT') return;
+  if (document.getElementById('liveAcro').checked) { checkAcroCell(inp); liveScoreLine('acro'); }
+  else if (inp.dataset.kind === 'mean' && acroCorrect(inp)) acroEnsureNextBox(+inp.dataset.row);
+  if (acroSetFocusAfter(inp)) e.preventDefault();
+});
 
 document.getElementById('acroTable').addEventListener('focusout', e => {
   if (e.target.tagName === 'INPUT' && document.getElementById('liveAcro').checked) {
@@ -1548,13 +1640,14 @@ function checkAcro(){
     recordRun('acro', 'acroScore', 'set', 'demonstratives', name, c.green, c.total, c.errors, c.revealed);
     return;
   }
-  const inputs = [...document.querySelectorAll('#acroTable input')];
+  const inputs = LIVE_CFG.acro.inputs();
   let correct = 0;
   inputs.forEach(inp => {
     inp.classList.remove('correct', 'wrong', 'corrected');
-    if (acroCorrect(inp)) { inp.classList.add('correct'); inp.title = ''; correct++; }
+    if (acroCorrect(inp)) { inp.classList.add('correct'); inp.title = ''; correct++; if (inp.dataset.kind === 'mean') acroEnsureNextBox(+inp.dataset.row); }
     else { inp.classList.add('wrong'); inp.title = acroExpected(inp); }
   });
+  acroSet.forEach((_, i) => acroUpdateNotes(i));
   const total = inputs.length, s = document.getElementById('acroScore');
   s.style.color = correct === total ? 'green' : 'red';
   s.textContent = correct === total ? 'Optime! ' + correct + '/' + total + ' — perfect.' : correct + '/' + total + ' — hover red cells to see the expected answer.';
@@ -1564,20 +1657,29 @@ function checkAcro(){
 function revealAcro(){
   const live = document.getElementById('liveAcro').checked;
   acroSet.forEach((w, i) => {
-    acroInput('word', i).value = w.lemma;
-    acroInput('mean', i).value = (String(w.meaning).split(/[;,]/)[0] || '').replace(/\(.*?\)/g, '').trim();
+    acroWordInput(i).value = w.lemma;
+    const list = acroMeaningList(w);
+    const box = document.getElementById('acroMeans_' + i);
+    while (acroMeanBoxes(i).length < list.length) box.appendChild(acroMeanCell(i, acroMeanBoxes(i).length));
+    acroMeanBoxes(i).forEach((b, j) => { b.value = list[j] || ''; });
   });
   document.querySelectorAll('#acroTable input').forEach(inp => {
     inp.title = '';
+    if (!inp.value) return;
     if (live) liveReveal('acro', inp);
     else { inp.classList.remove('wrong', 'corrected'); inp.classList.add('correct'); }
   });
+  acroSet.forEach((_, i) => acroUpdateNotes(i));
   if (live) liveScoreLine('acro'); else document.getElementById('acroScore').textContent = '';
 }
 
-function resetAcro(silent){
-  document.querySelectorAll('#acroTable input').forEach(inp => {
-    inp.value = ''; inp.classList.remove('correct', 'wrong', 'corrected'); inp.title = '';
+function resetAcro(){
+  if (!acroSet.length) return;
+  acroSet.forEach((_, i) => {
+    const w = acroWordInput(i);
+    if (w) { w.value = ''; w.classList.remove('correct', 'wrong', 'corrected'); w.title = ''; }
+    const box = document.getElementById('acroMeans_' + i);
+    if (box) { box.innerHTML = ''; box.appendChild(acroMeanCell(i, 0)); }
   });
   liveReset('acro');
   document.getElementById('acroScore').textContent = '';
