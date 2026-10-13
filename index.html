@@ -342,6 +342,19 @@
     <label class="livecheck-label" title="Check each answer as soon as you leave its field"><input type="checkbox" id="liveDem" checked>Check as I go</label>
   </div>
   <div class="score" id="demScore"></div>
+
+  <div class="agree-section" id="acroSection" style="display:none; margin-top:28px;">
+    <div class="agree-section-title" id="acroTitle">UNUS NAUTA Recall</div>
+    <div class="panel-subtitle" id="acroHelp">Each letter starts one of the special -ius adjectives. Type the word (masculine nominative) and one meaning. Words sharing a letter can go in any order.</div>
+    <table id="acroTable"></table>
+    <div class="buttons">
+      <button class="primary"   id="checkAcroBtn" onclick="checkAcro()">Check Answers</button>
+      <button class="secondary" onclick="revealAcro()">Show Answers</button>
+      <button class="secondary" onclick="resetAcro()">Clear</button>
+      <label class="livecheck-label" title="Check each answer as soon as you leave its field"><input type="checkbox" id="liveAcro" checked>Check as I go</label>
+    </div>
+    <div class="score" id="acroScore"></div>
+  </div>
 </div>
 
 <div class="panel" id="panel-verb">
@@ -722,6 +735,7 @@ async function loadDrillData() {
     verbTenses = buildVerbTenses(verbs[0]);
     buildDeclTable();
     buildDemSelectors();
+    buildAcro();
     buildDemTable();
     buildVerbTable();
     buildDecl3Selectors();
@@ -760,6 +774,8 @@ async function loadDrillData() {
     noun:    d.content.is_noun || false,
     note:    d.content.note || null,
     group:   d.content.group || null,
+    lemma:   d.content.lemma || null,
+    acronym: d.content.acronym || null,
     data:    d.content.paradigm,
   }));
 
@@ -826,6 +842,7 @@ async function loadDrillData() {
   verbTenses = buildVerbTenses(verbs[0]);
   buildDeclTable();
   buildDemSelectors();
+  buildAcro();
   buildDemTable();
   buildVerbTable();
   buildDecl3Selectors();
@@ -969,11 +986,12 @@ function applySnapshot(selector, snap, scoreId) {
 // try. Colours: green = right first try, yellow = right after a miss (or a
 // reveal), red = currently wrong. The saved score counts fields that are
 // correct at finish AND were right on the first attempt.
-const liveAttempts = { decl:{}, dem:{}, decl3:{}, stem:{}, vocab:{}, verb:{}, q1:{}, q2std:{}, q2ex:{} };
+const liveAttempts = { decl:{}, dem:{}, acro:{}, decl3:{}, stem:{}, vocab:{}, verb:{}, q1:{}, q2std:{}, q2ex:{} };
 
 const LIVE_CFG = {
   decl:  { inputs: ()=>[...document.querySelectorAll('#declTable input')], scoreId:'declScore' },
   dem:   { inputs: ()=>[...document.querySelectorAll('#demTable input')], scoreId:'demScore' },
+  acro:  { inputs: ()=>[...document.querySelectorAll('#acroTable input')], scoreId:'acroScore' },
   verb:  { inputs: ()=>[...document.querySelectorAll('#verbTable input')], scoreId:'verbScore' },
   q1:    { inputs: ()=>['q1a','q1b','q1c'].map(id=>document.getElementById(id)), scoreId:'q1Score' },
   q2std: { inputs: ()=>['q2case','q2gender','q2number'].map(id=>document.getElementById(id)), scoreId:'q2Score' },
@@ -1417,6 +1435,154 @@ function undoDem(){
   demSnapshot = null;
 }
 
+// ── ACRONYM RECALL (UNUS NAUTA) ───────────────────────────────────────────────
+// Built from the demonstrative rows that carry an "acronym" field, in database
+// order. One row per letter: the word (masc. nom.) and one meaning. Where a
+// letter repeats (U, N, A) any unused word with that letter is accepted, so the
+// order within a letter doesn't matter.
+let acroSet = [];
+
+function acroWords(){ return demWords.filter(w => w.acronym); }
+
+function acroMeanings(w){
+  return String(w.meaning || '').split(/[;,]/).map(x => normEng(x.replace(/\(.*?\)/g, ''))).filter(Boolean);
+}
+
+function buildAcro(){
+  acroSet = acroWords();
+  const sec = document.getElementById('acroSection');
+  if (!sec) return;
+  if (!acroSet.length) { sec.style.display = 'none'; return; }
+  sec.style.display = 'block';
+  document.getElementById('acroTitle').textContent = acroSet[0].acronym + ' Recall';
+  const t = document.getElementById('acroTable');
+  t.innerHTML = '<thead><tr><th>Letter</th><th>Word</th><th>Meaning</th></tr></thead>';
+  const tb = document.createElement('tbody');
+  acroSet.forEach((w, i) => {
+    const tr = document.createElement('tr');
+    const tdL = document.createElement('td'); tdL.className = 'label'; tdL.style.textAlign = 'center';
+    tdL.textContent = (w.lemma || w.display)[0].toUpperCase(); tr.appendChild(tdL);
+    ['word', 'mean'].forEach(kind => {
+      const td = document.createElement('td'), inp = document.createElement('input');
+      inp.type = 'text'; inp.autocomplete = 'off'; inp.spellcheck = false;
+      inp.id = 'acro_' + kind + '_' + i; inp.dataset.row = String(i); inp.dataset.kind = kind;
+      td.appendChild(inp); tr.appendChild(td);
+    });
+    tb.appendChild(tr);
+  });
+  t.appendChild(tb);
+  liveReset('acro');
+  document.getElementById('acroScore').textContent = '';
+}
+
+function acroLetter(i){ const w = acroSet[i]; return (w.lemma || w.display)[0].toLowerCase(); }
+function acroInput(kind, i){ return document.getElementById('acro_' + kind + '_' + i); }
+
+// Which word (index into acroSet) the word box in row i holds, or -1 if wrong.
+// A word already claimed by an earlier row with the same letter doesn't count twice.
+function acroWordIndex(i){
+  const val = norm(acroInput('word', i).value || '');
+  if (!val) return -1;
+  const L = acroLetter(i);
+  const k = acroSet.findIndex(w => (w.lemma || '').toLowerCase() === val);
+  if (k < 0 || (acroSet[k].lemma || '')[0].toLowerCase() !== L) return -1;
+  for (let j = 0; j < i; j++) {
+    if (acroLetter(j) === L && norm(acroInput('word', j).value || '') === val) return -1;
+  }
+  return k;
+}
+
+function acroCorrect(inp){
+  const i = +inp.dataset.row;
+  if (inp.dataset.kind === 'word') return acroWordIndex(i) >= 0;
+  const v = normEng(inp.value || '');
+  if (!v) return false;
+  const k = acroWordIndex(i);
+  const pool = k >= 0 ? [acroSet[k]] : acroSet.filter(w => (w.lemma || '')[0].toLowerCase() === acroLetter(i));
+  return pool.some(w => acroMeanings(w).includes(v));
+}
+
+function acroExpected(inp){
+  const i = +inp.dataset.row, L = acroLetter(i);
+  const used = new Set();
+  acroSet.forEach((_, j) => { if (j !== i && acroLetter(j) === L) { const k = acroWordIndex(j); if (k >= 0) used.add(k); } });
+  if (inp.dataset.kind === 'word') {
+    const opts = acroSet.map((w, k) => ({ w, k })).filter(x => (x.w.lemma || '')[0].toLowerCase() === L && !used.has(x.k)).map(x => x.w.lemma);
+    return opts.length === 1 ? 'Expected: ' + opts[0] : 'Any of: ' + opts.join(' / ');
+  }
+  const k = acroWordIndex(i);
+  if (k >= 0) return 'Expected: ' + acroSet[k].meaning;
+  return 'Meanings for ' + L.toUpperCase() + ':\n   ' + acroSet.filter(w => (w.lemma || '')[0].toLowerCase() === L)
+    .map(w => w.lemma + ' — ' + w.meaning).join('\n   ');
+}
+
+let acroRegrading = false;
+function checkAcroCell(inp, finalSweep){
+  if (!inp.value && !finalSweep && !liveAttempted('acro', inp)) {
+    inp.classList.remove('correct', 'wrong', 'corrected'); inp.title = ''; return;
+  }
+  const ok = acroCorrect(inp);
+  liveMark('acro', inp, ok);
+  inp.title = ok ? '' : acroExpected(inp);
+  // A word change can make this row's meaning (or another row's duplicate) right or wrong.
+  if (inp.dataset.kind === 'word' && !acroRegrading) {
+    acroRegrading = true;
+    document.querySelectorAll('#acroTable input').forEach(x => {
+      if (x !== inp && (x.value || liveAttempted('acro', x))) checkAcroCell(x, finalSweep);
+    });
+    acroRegrading = false;
+  }
+}
+
+document.getElementById('acroTable').addEventListener('focusout', e => {
+  if (e.target.tagName === 'INPUT' && document.getElementById('liveAcro').checked) {
+    checkAcroCell(e.target);
+    liveScoreLine('acro');
+  }
+});
+
+function checkAcro(){
+  const name = (acroSet[0] && acroSet[0].acronym ? acroSet[0].acronym : 'acronym') + ' recall';
+  if (document.getElementById('liveAcro').checked) {
+    const c = liveFinish('acro', inp => checkAcroCell(inp, true));
+    recordRun('acro', 'acroScore', 'set', 'demonstratives', name, c.green, c.total, c.errors, c.revealed);
+    return;
+  }
+  const inputs = [...document.querySelectorAll('#acroTable input')];
+  let correct = 0;
+  inputs.forEach(inp => {
+    inp.classList.remove('correct', 'wrong', 'corrected');
+    if (acroCorrect(inp)) { inp.classList.add('correct'); inp.title = ''; correct++; }
+    else { inp.classList.add('wrong'); inp.title = acroExpected(inp); }
+  });
+  const total = inputs.length, s = document.getElementById('acroScore');
+  s.style.color = correct === total ? 'green' : 'red';
+  s.textContent = correct === total ? 'Optime! ' + correct + '/' + total + ' — perfect.' : correct + '/' + total + ' — hover red cells to see the expected answer.';
+  recordRun('acro', 'acroScore', 'set', 'demonstratives', name, correct, total, total - correct, null);
+}
+
+function revealAcro(){
+  const live = document.getElementById('liveAcro').checked;
+  acroSet.forEach((w, i) => {
+    acroInput('word', i).value = w.lemma;
+    acroInput('mean', i).value = (String(w.meaning).split(/[;,]/)[0] || '').replace(/\(.*?\)/g, '').trim();
+  });
+  document.querySelectorAll('#acroTable input').forEach(inp => {
+    inp.title = '';
+    if (live) liveReveal('acro', inp);
+    else { inp.classList.remove('wrong', 'corrected'); inp.classList.add('correct'); }
+  });
+  if (live) liveScoreLine('acro'); else document.getElementById('acroScore').textContent = '';
+}
+
+function resetAcro(silent){
+  document.querySelectorAll('#acroTable input').forEach(inp => {
+    inp.value = ''; inp.classList.remove('correct', 'wrong', 'corrected'); inp.title = '';
+  });
+  liveReset('acro');
+  document.getElementById('acroScore').textContent = '';
+}
+
 // ── VERB LOGIC ────────────────────────────────────────────────────────────────
 
 const ALL_PERSONS=[{label:'1st',idx:0},{label:'2nd',idx:1},{label:'3rd',idx:2}];
@@ -1777,6 +1943,7 @@ function checkQ2Cell(type, key, finalSweep){
 const LIVE_TOGGLES = [
  ['liveDecl','checkDeclBtn','decl','Finish & Save Score','Check Answers'],
  ['liveDem','checkDemBtn','dem','Finish & Save Score','Check Answers'],
+ ['liveAcro','checkAcroBtn','acro','Finish & Save Score','Check Answers'],
  ['liveDecl3','checkDecl3Btn','decl3','Finish & Save Score','Check Answers'],
  ['liveStem','checkStemBtn','stem','Finish & Save Score','Check Answers'],
  ['liveVocab','checkVocabBtn','vocab','Finish & Save Score','Check Answers'],
@@ -2903,6 +3070,7 @@ function switchTab(tab){
   resetDecl(true);
   resetDecl3(true);
   resetDem(true);
+  resetAcro(true);
   resetVocab(true);
   resetVerb(true);
   resetAgreeTab();
