@@ -24,6 +24,23 @@
   .search-empty { padding: 10px 12px; font-size: 0.85rem; color: #888; font-family: Tahoma, Arial, sans-serif; }
   .search-flash { animation: searchFlash 2.2s ease-out; }
   @keyframes searchFlash { 0%, 35% { background-color: #ffe9a8; box-shadow: 0 0 0 3px #ffe9a8; } 100% { background-color: transparent; box-shadow: 0 0 0 0 transparent; } }
+  /* ── Dictionary (search results group + entry pop-up) ── */
+  .search-group { padding: 6px 12px 4px; font-size: 0.7rem; font-weight: bold; letter-spacing: 0.06em; text-transform: uppercase; color: #8b2e0f; background: #f5edd6; border-top: 1px solid #e3d3ad; border-bottom: 1px solid #f0e6d0; font-family: Tahoma, Arial, sans-serif; }
+  .search-group span { font-weight: normal; text-transform: none; letter-spacing: 0; color: #888; }
+  .search-pending { padding: 8px 12px; font-size: 0.8rem; color: #999; font-style: italic; font-family: Tahoma, Arial, sans-serif; }
+  #dictOverlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 300; align-items: center; justify-content: center; }
+  #dictOverlay.open { display: flex; }
+  #dictModal { background: #f5edd6; border: 2px solid #c9a96e; border-radius: 6px; padding: 22px 26px; width: 460px; max-width: 92vw; max-height: 82vh; overflow-y: auto; position: relative; box-sizing: border-box; text-align: left; font-family: Tahoma, Arial, sans-serif; }
+  #dictModal .dict-close { position: absolute; top: 8px; right: 12px; background: none; border: none; font-size: 1.4rem; line-height: 1; color: #8b2e0f; cursor: pointer; padding: 2px 6px; }
+  #dictModal .dict-head { font-size: 1.35rem; font-weight: bold; color: #8b2e0f; margin: 0 28px 2px 0; font-family: Georgia, 'Times New Roman', serif; }
+  #dictModal .dict-parts { font-size: 1rem; color: #333; font-family: Georgia, 'Times New Roman', serif; margin-bottom: 6px; }
+  #dictModal .dict-type { font-size: 0.8rem; color: #666; margin-bottom: 12px; }
+  #dictModal ol { margin: 0 0 12px 0; padding-left: 22px; }
+  #dictModal li { font-size: 0.9rem; color: #333; margin-bottom: 4px; line-height: 1.35; }
+  #dictModal .dict-practise { margin: 12px 0 4px; display: flex; flex-wrap: wrap; gap: 6px; }
+  #dictModal .dict-practise button { background: white; color: #8b2e0f; border: 2px solid #8b2e0f; padding: 5px 12px; font-family: Tahoma, Arial, sans-serif; font-size: 0.8rem; border-radius: 3px; cursor: pointer; }
+  #dictModal .dict-practise button:hover { background: #8b2e0f; color: white; }
+  #dictModal .dict-source { margin-top: 14px; padding-top: 8px; border-top: 1px solid #e3d3ad; font-size: 0.72rem; color: #888; }
 
   .tabs { display: flex; justify-content: center; gap: 0; margin-bottom: 20px; flex-wrap: wrap; }
   .tab { padding: 10px 24px; font-family: Tahoma, Arial, sans-serif; font-size: 0.9rem; border: 2px solid #8b2e0f; cursor: pointer; background: white; color: #8b2e0f; transition: all 0.2s; }
@@ -252,6 +269,13 @@
          placeholder="Search words, forms, meanings or sections&hellip;"
          aria-label="Search the drills" aria-controls="searchResults" aria-expanded="false">
   <div id="searchResults" role="listbox"></div>
+</div>
+
+<div id="dictOverlay" onclick="if (event.target === this) dictClose()">
+  <div id="dictModal" role="dialog" aria-modal="true" aria-labelledby="dictHead">
+    <button class="dict-close" onclick="dictClose()" aria-label="Close">&times;</button>
+    <div id="dictBody"></div>
+  </div>
 </div>
 
 <div class="tabs">
@@ -3365,15 +3389,66 @@ let searchHits = [], searchActive = -1;
 
 function searchEsc(t){ return String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
 
+// ── Dictionary results (Whitaker's Words, table "dictionary", via dict_search) ──
+// Drill results render instantly; dictionary results are fetched after a short pause
+// and appended under their own heading. Stale responses are ignored.
+let dictHits = [], dictState = 'idle', dictSeq = 0, dictTimer = null;
+const DICT_LIMIT = 8;
+const DICT_POS = { n: 'noun', v: 'verb', adj: 'adjective', adv: 'adverb', prep: 'preposition',
+                   conj: 'conjunction', pron: 'pronoun', num: 'numeral', interj: 'interjection' };
+
+function dictQuery(q){ return String(q || '').trim().replace(/^(to|a|an|the)\s+/i, ''); }
+
+function dictSchedule(query){
+  clearTimeout(dictTimer);
+  const q = dictQuery(query);
+  const seq = ++dictSeq;
+  dictHits = [];
+  if (q.length < 2) { dictState = 'idle'; return; }
+  dictState = 'loading';
+  dictTimer = setTimeout(async () => {
+    try {
+      const { data, error } = await supa.rpc('dict_search', { q, lim: DICT_LIMIT });
+      if (seq !== dictSeq) return;                       // a newer query has started
+      if (error) throw error;
+      dictHits = data || [];
+      dictState = 'done';
+    } catch (err) {
+      if (seq !== dictSeq) return;
+      console.warn('dictionary search failed:', err);
+      dictHits = []; dictState = 'error';
+    }
+    const inp = document.getElementById('appSearch');
+    if (inp.value.trim() && document.activeElement === inp) {
+      if (searchActive < 0 && (searchHits.length + dictHits.length)) searchActive = 0;
+      searchRender();
+    }
+  }, 250);
+}
+
+function dictTypeLine(d){
+  const bits = [];
+  if (d.pos) bits.push(DICT_POS[d.pos] || d.pos);
+  if (d.gender) bits.push(d.gender);
+  if (d.note) bits.push(d.note);
+  return bits.join(' · ');
+}
+
+function dictGlossList(d){
+  return String(d.glosses || '').split(/;\s*/).map(g => g.trim()).filter(Boolean)
+    .map(g => g.replace(/=>/g, '→').replace(/~/g, d.headword));
+}
+
+function searchTotal(){ return searchHits.length + dictHits.length; }
+
 function searchRender(){
   const box = document.getElementById('searchResults');
   const input = document.getElementById('appSearch');
   const q = input.value.trim();
   if (!q) { box.classList.remove('open'); input.setAttribute('aria-expanded', 'false'); return; }
-  if (!searchHits.length) {
-    box.innerHTML = '<div class="search-empty">No matches for “' + searchEsc(q) + '”</div>';
-  } else {
-    box.innerHTML = searchHits.map((h, i) => {
+  let html = '';
+  if (searchHits.length) {
+    html += searchHits.map((h, i) => {
       const parts = h.e.main.split(' — ');
       const main = '<b>' + searchEsc(parts[0]) + '</b>' + (parts.length > 1 ? ' — ' + searchEsc(parts.slice(1).join(' — ')) : '');
       const head = sNorm(parts[0]);
@@ -3384,8 +3459,28 @@ function searchRender(){
            + '<div class="search-main">' + main + '</div><div class="search-meta">' + searchEsc(h.e.meta) + why + '</div></div>';
     }).join('');
   }
+  if (dictHits.length) {
+    html += '<div class="search-group">General dictionary <span>· Whitaker’s Words</span></div>';
+    html += dictHits.map((d, j) => {
+      const i = searchHits.length + j;
+      const head = '<b>' + searchEsc(d.headword) + '</b>' + (d.parts ? ', ' + searchEsc(d.parts) : '');
+      const gloss = dictGlossList(d).slice(0, 2).join('; ');
+      return '<div class="search-item' + (i === searchActive ? ' active' : '') + '" role="option" data-i="' + i + '">'
+           + '<div class="search-main">' + head + ' — ' + searchEsc(gloss) + '</div>'
+           + '<div class="search-meta">Dictionary · ' + searchEsc(dictTypeLine(d)) + '</div></div>';
+    }).join('');
+  } else if (dictState === 'loading' && dictQuery(q).length >= 2) {
+    html += '<div class="search-pending">Searching the dictionary…</div>';
+  }
+  if (!html) {
+    html = '<div class="search-empty">No matches for “' + searchEsc(q) + '”'
+         + (dictState === 'error' ? ' (dictionary unavailable)' : '') + '</div>';
+  }
+  box.innerHTML = html;
   box.classList.add('open');
   input.setAttribute('aria-expanded', 'true');
+  const act = box.querySelector('.search-item.active');
+  if (act && act.scrollIntoView) act.scrollIntoView({ block: 'nearest' });
 }
 
 function searchClose(){
@@ -3395,6 +3490,14 @@ function searchClose(){
 }
 
 function searchPick(i){
+  if (i >= searchHits.length) {                         // a dictionary result
+    const d = dictHits[i - searchHits.length];
+    if (!d) return;
+    searchClose();
+    document.getElementById('appSearch').blur();
+    dictOpen(d);
+    return;
+  }
   const h = searchHits[i];
   if (!h) return;
   searchClose();
@@ -3402,14 +3505,75 @@ function searchPick(i){
   try { h.e.go(); } catch (err) { console.warn('search navigation failed:', err); }
 }
 
+// Drill items whose headword is this dictionary headword (for "Practise this word").
+function dictDrillMatches(headword){
+  const head = sNorm(headword).replace(/j/g, 'i');
+  if (!head) return [];
+  const out = [], seen = new Set();
+  buildSearchIndex().forEach(e => {
+    if (e.rank === 3) return;                           // section headings, not words
+    const first = sNorm(e.main.split(' — ')[0].split('/')[0].split(',')[0]).replace(/j/g, 'i');
+    if (first !== head) return;
+    const label = e.meta.split(' · ')[0];
+    if (seen.has(label)) return;
+    seen.add(label);
+    out.push({ label, go: e.go });
+  });
+  return out;
+}
+
+let dictPractise = [];
+
+function dictOpen(d){
+  const glosses = dictGlossList(d);
+  dictPractise = dictDrillMatches(d.headword);
+  const extra = [d.freq_code && 'ABCDEF'.includes(d.freq_code) ? ({ A: 'very frequent', B: 'frequent', C: 'common', D: 'less common', E: 'uncommon', F: 'very rare' })[d.freq_code] : '',
+                 d.age].filter(Boolean).join(' · ');
+  let html = '<div class="dict-head" id="dictHead">' + searchEsc(d.headword) + '</div>';
+  if (d.parts) html += '<div class="dict-parts">' + searchEsc(d.headword) + ', ' + searchEsc(d.parts) + '</div>';
+  html += '<div class="dict-type">' + searchEsc(dictTypeLine(d)) + (extra ? ' &nbsp;|&nbsp; ' + searchEsc(extra) : '') + '</div>';
+  html += '<ol>' + glosses.map(g => '<li>' + searchEsc(g) + '</li>').join('') + '</ol>';
+  if (dictPractise.length) {
+    html += '<div class="dict-practise">' + dictPractise.map((m, k) =>
+      '<button onclick="dictGoPractise(' + k + ')">Practise this word · ' + searchEsc(m.label) + '</button>').join('') + '</div>';
+  }
+  html += '<div class="dict-source">General dictionary: Whitaker’s Words (free for any use). '
+        + 'Wording may differ from Wheelock’s; macrons are not shown.</div>';
+  document.getElementById('dictBody').innerHTML = html;
+  document.getElementById('dictOverlay').classList.add('open');
+  const btn = document.querySelector('#dictModal .dict-close');
+  if (btn) btn.focus();
+}
+
+function dictClose(){
+  document.getElementById('dictOverlay').classList.remove('open');
+}
+
+function dictGoPractise(k){
+  const m = dictPractise[k];
+  dictClose();
+  if (m) { try { m.go(); } catch (err) { console.warn('practise navigation failed:', err); } }
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && document.getElementById('dictOverlay').classList.contains('open')) dictClose();
+});
+
 (function initSearch(){
   const input = document.getElementById('appSearch');
   const box = document.getElementById('searchResults');
-  input.addEventListener('input', () => { searchHits = searchRun(input.value); searchActive = searchHits.length ? 0 : -1; searchRender(); });
-  input.addEventListener('focus', () => { if (input.value.trim()) { searchHits = searchRun(input.value); searchRender(); } });
+  const refresh = () => {
+    searchHits = searchRun(input.value);
+    dictSchedule(input.value);
+    searchActive = searchHits.length ? 0 : -1;
+    searchRender();
+  };
+  input.addEventListener('input', refresh);
+  input.addEventListener('focus', () => { if (input.value.trim()) refresh(); });
   input.addEventListener('keydown', e => {
-    if (e.key === 'ArrowDown') { e.preventDefault(); if (searchHits.length) { searchActive = (searchActive + 1) % searchHits.length; searchRender(); } }
-    else if (e.key === 'ArrowUp') { e.preventDefault(); if (searchHits.length) { searchActive = (searchActive - 1 + searchHits.length) % searchHits.length; searchRender(); } }
+    const n = searchTotal();
+    if (e.key === 'ArrowDown') { e.preventDefault(); if (n) { searchActive = (searchActive + 1) % n; searchRender(); } }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); if (n) { searchActive = (searchActive - 1 + n) % n; searchRender(); } }
     else if (e.key === 'Enter') { e.preventDefault(); if (searchActive >= 0) searchPick(searchActive); }
     else if (e.key === 'Escape') { searchClose(); input.blur(); }
   });
