@@ -144,6 +144,23 @@
   .agree-phrase-meaning { text-align: center; color: #444; font-size: 0.9rem; margin-bottom: 16px; }
   .agree-subsection { border: 1px solid #e8d9b8; border-radius: 4px; padding: 14px; margin-bottom: 16px; background: #fffdf7; }
   .agree-subsection-title { font-family: Tahoma, Arial, sans-serif; font-size: 0.72rem; font-weight: bold; letter-spacing: 0.07em; text-transform: uppercase; color: #8b2e0f; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid #e8d9b8; }
+  /* ── Quick Reference tab ─────────────────────────── */
+  .ref-intro { font-size: 0.9rem; color: #2a1a08; line-height: 1.5; margin: 0 0 12px 0; text-align: left; }
+  .ref-wrap { overflow-x: auto; margin-bottom: 12px; }
+  table.ref-table { margin-bottom: 0; font-size: 0.85rem; }
+  table.ref-table.ref-wide { min-width: 620px; }
+  table.ref-table th { font-size: 0.78rem; padding: 7px 6px; }
+  table.ref-table td { text-align: left; padding: 6px 8px; line-height: 1.35; color: #2a1a08; }
+  table.ref-table td.label { white-space: nowrap; }
+  table.ref-table td.end { text-align: center; white-space: nowrap; font-family: Georgia, 'Times New Roman', serif; }
+  .ref-table i, .ref-intro i, .ref-list i { font-family: Georgia, 'Times New Roman', serif; color: #8b2e0f; }
+  .ref-compressed { background: #fffdf7; border: 1px solid #e8d9b8; border-left: 4px solid #8b2e0f; border-radius: 4px; padding: 10px 12px; font-size: 0.88rem; color: #2a1a08; line-height: 1.6; text-align: left; }
+  .ref-compressed b { color: #8b2e0f; }
+  .ref-list { margin: 6px 0 0 0; padding-left: 20px; text-align: left; font-size: 0.88rem; color: #2a1a08; line-height: 1.5; }
+  .ref-list li { margin-bottom: 6px; }
+  .ref-list b { color: #8b2e0f; }
+  .ref-wrong { color: #b02a1a; } .ref-right { color: #2e7d32; font-weight: bold; }
+  .agree-subsection .ref-intro { margin-bottom: 8px; }
   .agree-locked { text-align: center; color: #aaa; font-size: 0.9rem; padding: 16px 0; }
   .agree-counter { text-align: right; font-size: 0.78rem; color: #555; margin-bottom: 6px; }
 
@@ -285,6 +302,7 @@
   <div class="tab"        onclick="switchTab('verb')">Verb Conjugations</div>
   <div class="tab"        onclick="switchTab('agree')">Adjective/Noun Agreement</div>
   <div class="tab"        onclick="switchTab('vocab')">Vocabulary</div>
+  <div class="tab"        onclick="switchTab('ref')">Quick Reference</div>
 </div>
 
 <!-- ── DECLENSION PANEL ──────────────────────────────────────── -->
@@ -495,6 +513,132 @@
   <div class="score" id="vocabScore"></div>
 
 </div><!-- end panel-vocab -->
+
+<!-- ── QUICK REFERENCE PANEL ─────────────────────────────────────
+     Static reference notes. Headings (.agree-section-title / .agree-subsection-title)
+     are searchable automatically; any element with data-ref-topic becomes a search
+     result too (data-ref-gloss = short meaning shown in results, data-ref-keys = extra
+     comma-separated search words). -->
+<div class="panel" id="panel-ref">
+  <div class="panel-subtitle">Quick Reference &mdash; grammar notes for looking things up</div>
+
+  <div class="agree-section" id="ref-cases">
+    <div class="agree-section-title">The six noun cases</div>
+    <p class="ref-intro">A noun&rsquo;s ending tells you its job in the sentence; word order does not. Endings below are 1st declension (<i>puella</i>, girl).</p>
+    <div class="ref-wrap">
+      <table class="ref-table ref-wide">
+        <tr><th>Case</th><th>Question it answers</th><th>Core job</th><th>Sg.</th><th>Pl.</th><th>Example</th></tr>
+        <tr data-ref-topic="Nominative" data-ref-gloss="subject of the verb (who/what does it?)" data-ref-keys="nom, nominative case, subject">
+          <td class="label">Nominative</td><td>Who/what does it?</td><td>Subject of the verb</td><td class="end">-a</td><td class="end">-ae</td>
+          <td><i>Puella</i> cantat. <b>The girl</b> sings.</td></tr>
+        <tr data-ref-topic="Genitive" data-ref-gloss="possession, &ldquo;of&rdquo; (of whom/what?)" data-ref-keys="gen, genitive case, possession, possessive">
+          <td class="label">Genitive</td><td>Of whom/what?</td><td>Possession, &ldquo;of&rdquo;</td><td class="end">-ae</td><td class="end">-&#257;rum</td>
+          <td>Rosa <i>puellae</i>. The rose <b>of the girl</b>.</td></tr>
+        <tr data-ref-topic="Dative" data-ref-gloss="indirect object: receiver or beneficiary (to/for whom?)" data-ref-keys="dat, dative case, indirect object">
+          <td class="label">Dative</td><td>To/for whom?</td><td>Indirect object: the receiver or beneficiary</td><td class="end">-ae</td><td class="end">-&#299;s</td>
+          <td><i>Puellae</i> rosam d&#333;. I give a rose <b>to the girl</b>.</td></tr>
+        <tr data-ref-topic="Accusative" data-ref-gloss="direct object; destination of motion (whom/what? where to?)" data-ref-keys="acc, accusative case, direct object">
+          <td class="label">Accusative</td><td>Whom/what? Where to?</td><td>Direct object; destination of motion</td><td class="end">-am</td><td class="end">-&#257;s</td>
+          <td><i>Puellam</i> vide&#333;. I see <b>the girl</b>.</td></tr>
+        <tr data-ref-topic="Ablative" data-ref-gloss="circumstances: means, company, origin, place, time (by/with/from/in/on what?)" data-ref-keys="abl, ablative case">
+          <td class="label">Ablative</td><td>By/with/from/in/on what?</td><td>Circumstances: means, company, origin, place, time</td><td class="end">-&#257;</td><td class="end">-&#299;s</td>
+          <td>Cum <i>puell&#257;</i> ambul&#333;. I walk <b>with the girl</b>.</td></tr>
+        <tr data-ref-topic="Vocative" data-ref-gloss="direct address: calling someone by name" data-ref-keys="voc, vocative case, direct address">
+          <td class="label">Vocative</td><td>(Direct address)</td><td>Calling someone by name</td><td class="end">-a</td><td class="end">-ae</td>
+          <td><i>Puella</i>, ven&#299;! <b>Girl</b>, come!</td></tr>
+      </table>
+    </div>
+    <div class="ref-compressed" data-ref-topic="Cases in one line" data-ref-gloss="nominative = doer · accusative = target · dative = receiver …" data-ref-keys="cases summary, compressed, noun cases">
+      <b>Compressed:</b> nominative = doer &middot; accusative = target &middot; dative = receiver &middot; genitive = owner &middot; ablative = circumstances &middot; vocative = name called.
+    </div>
+  </div>
+
+  <div class="agree-section" id="ref-trouble">
+    <div class="agree-section-title">Trouble spots</div>
+
+    <div class="agree-subsection">
+      <div class="agree-subsection-title">1. The direct object goes in the accusative</div>
+      <p class="ref-intro">The thing acted on takes <b>-am / -&#257;s</b>, even when English gives no signal.</p>
+      <ul class="ref-list">
+        <li><span class="ref-wrong"><i>fortuna vol&#333;</i> &#10007;</span> &rarr; <span class="ref-right"><i>Fort&#363;nam vol&#333;</i> &#10003;</span> &ldquo;I want luck&rdquo;</li>
+        <li>Test: ask &ldquo;what is being wanted/given/seen?&rdquo; That noun is accusative.</li>
+      </ul>
+    </div>
+
+    <div class="agree-subsection">
+      <div class="agree-subsection-title">2. Agreement: case + number + gender, all three</div>
+      <p class="ref-intro">Adjectives and demonstratives copy all three from their noun. Endings need not look alike across declensions.</p>
+      <ul class="ref-list">
+        <li><i>fort&#363;nam bonam</i>: fem. acc. sg. + fem. acc. sg.</li>
+        <li><i>huic c&#333;nsili&#333;</i>: neut. dat. sg. + neut. dat. sg.</li>
+        <li>A demonstrative can settle an ambiguous noun: <i>c&#333;nsili&#333;</i> alone is dative or ablative; <i>huic</i> is dative only.</li>
+      </ul>
+    </div>
+
+    <div class="agree-subsection">
+      <div class="agree-subsection-title">3. In + accusative vs in + ablative</div>
+      <p class="ref-intro">Accusative = where <b>to</b>. Ablative = where <b>at</b> or where <b>from</b>.</p>
+      <div class="ref-wrap">
+        <table class="ref-table">
+          <tr><th>Latin</th><th>Case</th><th>Meaning</th></tr>
+          <tr><td><i>ex urbe</i></td><td>ablative</td><td>from the city</td></tr>
+          <tr><td><i>in urbe</i></td><td>ablative</td><td>in the city (already there)</td></tr>
+          <tr><td><i>in urbem</i></td><td>accusative</td><td>into the city (arriving)</td></tr>
+          <tr><td><i>in terr&#257;</i></td><td>ablative</td><td>on the land</td></tr>
+          <tr><td><i>in terram</i></td><td>accusative</td><td>onto the land</td></tr>
+        </table>
+      </div>
+      <p class="ref-intro">English splits these with two prepositions (in/into, on/onto). Latin uses one preposition and changes the noun ending.</p>
+    </div>
+
+    <div class="agree-subsection">
+      <div class="agree-subsection-title">4. Prepositions take only accusative or ablative</div>
+      <p class="ref-intro">Never nominative or vocative. A one-case preposition tells you the case before you read the ending.</p>
+      <div class="ref-wrap">
+        <table class="ref-table">
+          <tr><th>Case</th><th>Prepositions</th></tr>
+          <tr data-ref-topic="Prepositions with the accusative" data-ref-gloss="ad, ante, apud, circum, contra, inter, ob, per, post, propter, trans" data-ref-keys="accusative prepositions">
+            <td class="label">Accusative only</td><td><i>ad, ante, apud, circum, contr&#257;, inter, ob, per, post, propter, tr&#257;ns</i></td></tr>
+          <tr data-ref-topic="Prepositions with the ablative" data-ref-gloss="a/ab, cum, de, e/ex, prae, pro, sine" data-ref-keys="ablative prepositions">
+            <td class="label">Ablative only</td><td><i>&#257;/ab, cum, d&#275;, &#275;/ex, prae, pr&#333;, sine</i></td></tr>
+          <tr><td class="label">Either (motion = acc., rest = abl.)</td><td><i>in, sub</i></td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="agree-subsection">
+      <div class="agree-subsection-title">5. Endings that look alike</div>
+      <p class="ref-intro">Without macrons, these forms overlap. Use the preposition, agreement or verb to decide.</p>
+      <div class="ref-wrap">
+        <table class="ref-table">
+          <tr><th>Ending</th><th>Possible cases</th></tr>
+          <tr><td class="end">-a / -&#257;</td><td>nom. sg., voc. sg., abl. sg. (-&#257;)</td></tr>
+          <tr><td class="end">-ae</td><td>gen. sg., dat. sg., nom. pl., voc. pl.</td></tr>
+          <tr><td class="end">-&#299;s</td><td>dat. pl., abl. pl.</td></tr>
+          <tr><td class="end">-a (plural)</td><td><b>Neuter</b> nom./acc./voc. pl. only: 2nd declension (<i>c&#333;nsilia</i>) and 3rd declension (<i>tempora</i>); never 1st declension</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="agree-section" id="ref-notes">
+    <div class="agree-section-title">Other notes</div>
+    <p class="ref-intro">Smaller points from questions so far. New topics get added here or as new sections.</p>
+    <ul class="ref-list">
+      <li data-ref-topic="Idioms translate as a unit" data-ref-gloss="in matrimonium ducere = to marry" data-ref-keys="idiom, idioms, matrimonium">
+        <b>Idioms translate as a unit.</b> <i>In matrim&#333;nium d&#363;cere</i> is literally &ldquo;to lead into marriage&rdquo; and idiomatically &ldquo;to marry&rdquo; (a man as subject). The literal version proves the parse; check which your course expects.</li>
+      <li data-ref-topic="Two verbs spelled volo" data-ref-gloss="volo, velle = want · volo, volare = fly" data-ref-keys="volo, velle, volare">
+        <b>Two verbs spelled <i>vol&#333;</i>.</b> <i>Vol&#333;, velle</i> = want (irregular). <i>Vol&#333;, vol&#257;re</i> = fly (1st conj.). Context decides.</li>
+      <li data-ref-topic="3rd-conjugation future vs 2nd-conjugation present" data-ref-gloss="ducet = he will lead; monet = he warns" data-ref-keys="future tense, ducet, monet, third conjugation future">
+        <b>3rd-conjugation future looks like a 2nd-conjugation present.</b> <i>D&#363;cet</i> = he <b>will</b> lead (future: <i>-am, -&#275;s, -et</i>). The present is <i>d&#363;cit</i>. Compare <i>monet</i> (2nd conj.), which is present.</li>
+      <li data-ref-topic="Hic vs hīc" data-ref-gloss="hic = this (pronoun) · hīc = here (adverb)" data-ref-keys="hic, here">
+        <b><i>Hic</i> vs <i>h&#299;c</i>.</b> <i>Hic</i> = this man (pronoun). <i>H&#299;c</i> = here (adverb). Macrons settle it.</li>
+      <li data-ref-topic="Commands (imperative)" data-ref-gloss="opta! (sg.) · optate! (pl.)" data-ref-keys="imperative, command, commands">
+        <b>Commands:</b> singular imperative <i>Opt&#257;!</i>, plural <i>Opt&#257;te!</i> (<i>Opt&#257; mihi fort&#363;nam</i>, wish me luck).</li>
+    </ul>
+  </div>
+</div><!-- end panel-ref -->
+
 
 <footer>
   &copy; Copyright 2026 Dan Berge. All rights reserved. &mdash; v2.2
@@ -3190,7 +3334,7 @@ document.getElementById('panel-vocab').addEventListener('focusout', e=>{
 // ── TAB SWITCHING ─────────────────────────────────────────────────────────────
 
 function switchTab(tab){
-  const panels=['decl','decl3','dem','verb','agree','vocab'];
+  const panels=['decl','decl3','dem','verb','agree','vocab','ref'];
   document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',panels[i]===tab));
   panels.forEach(p=>document.getElementById('panel-'+p).classList.toggle('active',p===tab));
   resetDecl(true);
@@ -3221,6 +3365,7 @@ const SEARCH_TABS = [
   ['verb',  'Verb Conjugations',        ['verbs', 'conjugation']],
   ['agree', 'Adjective/Noun Agreement', ['agreement']],
   ['vocab', 'Vocabulary',               ['vocab', 'vocabula']],
+  ['ref',   'Quick Reference',          ['reference', 'grammar', 'noun cases', 'cases', 'quick ref', 'cheat sheet']],
 ];
 const SEARCH_TAB_NAME = Object.fromEntries(SEARCH_TABS.map(([t, n]) => [t, n]));
 
@@ -3310,6 +3455,16 @@ function buildSearchIndex(){
         switchTab(tab); searchScrollFlash(searchFindHeading(tab, text));
       });
     });
+  });
+
+  // Quick Reference topics: any element in the panel marked data-ref-topic.
+  document.querySelectorAll('#panel-ref [data-ref-topic]').forEach(el => {
+    const topic = el.dataset.refTopic;
+    const gloss = el.dataset.refGloss || '';
+    const extra = (el.dataset.refKeys || '').split(',').map(k => k.trim()).filter(Boolean);
+    add(topic + (gloss ? ' — ' + gloss : ''), SEARCH_TAB_NAME.ref, 2,
+        latin([topic], 1.0).concat(latin(extra, 0.95), gloss ? eng(gloss, 0.6) : []),
+        () => { switchTab('ref'); searchScrollFlash(el); });
   });
 
   // Vocabulary chapters.
@@ -3546,6 +3701,7 @@ function dictDrillMatches(d){
   buildSearchIndex().forEach(e => {
     if (e.rank === 3) return;                           // section headings, not words
     const label = e.meta.split(' · ')[0];
+    if (label === SEARCH_TAB_NAME.ref) return;          // reference notes, not a drill
     if (seen.has(label)) return;
     const [disp, meaning] = e.main.split(' — ');
     let hit;
