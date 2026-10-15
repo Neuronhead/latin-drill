@@ -128,6 +128,10 @@ def adj(s, d, v, cmp_):
             return s1, [s2 + 'a', s2 + 'um'], ''
         if v == '3':  # -ius genitive (unus, nauta group)
             return s1 + 'us', [s2 + 'a', s2 + 'um', 'gen. -ius'], ''
+        if v == '4':  # -er/-ra/-rum with -ius genitive: alter, neuter
+            return s1, [s2 + 'a', s2 + 'um', 'gen. -ius'], ''
+        if v == '5':  # alius, alia, aliud
+            return s1 + 'us', [s2 + 'a', s2 + 'ud', 'gen. -ius'], ''
         if v in ('6', '7'):
             return s1 + 'os', [s2 + 'a', s2 + 'on'], ''
         return s1 + 'us', [s2 + 'a', s2 + 'um'], ''
@@ -146,6 +150,27 @@ def adj(s, d, v, cmp_):
     if d == '9':
         return s1, [], 'indecl.'
     return s1, [], ''
+
+
+def num(s, d, v):
+    """Numerals: stems are cardinal / ordinal / distributive / numeral adverb."""
+    s1, s2, s3, s4 = s
+    extra = []
+    if s2: extra.append(s2 + 'us')        # ordinal: secundus
+    if s3: extra.append(s3 + 'i')         # distributive: bini
+    if s4:                                # adverb: semel, bis, ter; otherwise stem + ies (decies)
+        extra.append(s4 if (d == '1' and v in ('1', '2', '3')) else s4 + 'ies')
+    if d == '1' and v == '1':
+        return s1 + 'us', [s1 + 'a', s1 + 'um'] + extra, ''
+    if d == '1' and v == '2':
+        return s1 + 'o', [s1 + 'ae', s1 + 'o'] + extra, ''
+    if d == '1' and v == '3' and s1 == 'tr':
+        return 'tres', ['tria'] + extra, ''
+    if d == '1' and v == '4' and not (s2 or s3 or s4) and s1.endswith(('ensim', 'ensum')):
+        return s1 + 'us', [s1 + 'a', s1 + 'um'], 'ordinal'   # ducentensimus (two hundredth)
+    if d == '1' and v == '4':             # hundreds: ducenti, ducentae, ducenta
+        return s1 + 'i', [s1 + 'ae', s1 + 'a'] + extra, ''
+    return s1, extra, ''
 
 
 def strip_macrons(t):
@@ -227,6 +252,8 @@ def build(lineno, line):
     elif pos == 'PACK':
         head, gloss = pack(stems, kind, gloss)
         parts, note, pos = [], '', 'PRON'
+    elif pos == 'NUM':
+        head, parts, note = num(stems, codes[1], codes[2])
     elif pos == 'ADV' and len([x for x in stems if x]) > 1:
         ss = [x for x in stems if x]
         head, parts, note = ss[0], ss[1:], ''

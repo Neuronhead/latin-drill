@@ -2503,7 +2503,7 @@ id,headword,parts,pos,gender,note,glosses,freq_code,age,head_key
 2502,algorithmus,algorithmi,n,m,2nd decl.,algorithm,E,scholar,algorithmus
 2503,algosus,"algosa, algosum",adj,,,abounding in/covered with seaweed,E,,algosus
 2504,alium,alii,n,n,2nd decl.,"garlic, garlic plant",C,,alium
-2505,alius,"alia, alium",adj,,,"other, another; different, changed; [alii...alii => some...others]; (A+G)",A,,alius
+2505,alius,"alia, aliud, gen. -ius",adj,,,"other, another; different, changed; [alii...alii => some...others]; (A+G)",A,,alius
 2506,alia,,adv,,,by another/different way/route,C,,alia
 2507,alias,,adv,,,"at/in another time/place; previously, subsequently; elsewhere; otherwise",A,,alias
 2508,aliatum,aliati,n,n,2nd decl.,food made with garlic,F,,aliatum
@@ -2582,7 +2582,7 @@ id,headword,parts,pos,gender,note,glosses,freq_code,age,head_key
 2581,aliquotiens,,adv,,,"number of times, several times",C,,aliquotiens
 2582,aliquoties,,adv,,,"number of times, several times",C,,aliquoties
 2583,aliquovorsum,,adv,,,in some direction/quarter,F,,aliquouorsum
-2584,alisalius,"alisalia, alisalium",adj,,,one another; [alisalios/in alisalio => against one another - Vulgate 4 Ezra],E,later,alisalius
+2584,alisalius,"alisalia, alisaliud, gen. -ius",adj,,,one another; [alisalios/in alisalio => against one another - Vulgate 4 Ezra],E,later,alisalius
 2585,alisma,alismatis,n,n,3rd decl.,"aquatic plant, water plantain (Alisma plantago)",N,,alisma
 2586,alitus,alitus,n,m,4th decl.,"nourishment, sustenance; support",E,late,alitus
 2587,aliter,,adv,,,"otherwise, differently; in any other way [aliter ac =>  otherwise than]",A,,aliter
@@ -2712,7 +2712,7 @@ id,headword,parts,pos,gender,note,glosses,freq_code,age,head_key
 2711,altarista,altaristae,n,m,1st decl.,assistant priest,E,medieval,altarista
 2712,alte,"altius, altissime",adv,,,"high, on high, from above, loftily; deep, deeply; far, remotely; profoundly",A,,alte
 2713,alter,,conj,,,the_one ... the_other (alter ... alter); otherwise,C,,alter
-2714,alterus,"altera, alterum",adj,,,one (of two); second/another; former/latter; [unus et ~=> one or two/other]; second/further/next/other/latter/some person/thing (PRONominal ADJ); either,A,,alterus
+2714,alter,"altera, alterum, gen. -ius",adj,,,one (of two); second/another; former/latter; [unus et ~=> one or two/other]; second/further/next/other/latter/some person/thing (PRONominal ADJ); either,A,,alter
 2715,alteramentum,alteramenti,n,n,2nd decl.,"alteration, change",F,late,alteramentum
 2716,alteras,,adv,,,at another time; at one time ... at another,E,,alteras
 2717,alteratio,alterationis,n,f,3rd decl.,"alteration, change",D,medieval,alteratio
@@ -2734,7 +2734,7 @@ id,headword,parts,pos,gender,note,glosses,freq_code,age,head_key
 2733,alternis,,adv,,,"alternately; one after the other in turn, by turns; every other day/year",C,,alternis
 2734,alterorsus,,adv,,,in the other direction; on the other side,F,,alterorsus
 2735,alterplex,gen. alterplicis,adj,,one termination,"twofold, double; divided",F,late,alterplex
-2736,alteruterus,"alterutra, alterutrum",adj,,,"one (of two), one or the other; either; both; (PRONominal ADJ)",C,,alteruterus
+2736,alteruter,"alterutra, alterutrum, gen. -ius",adj,,,"one (of two), one or the other; either; both; (PRONominal ADJ)",C,,alteruter
 2737,alterutraque,,adv,,,"on both sides, in both cases",F,,alterutraque
 2738,alterutrique,,adv,,,"on both sides, in both cases",F,,alterutrique
 2739,alterutrum,,adv,,,one to another,E,medieval,alterutrum
@@ -2859,7 +2859,7 @@ id,headword,parts,pos,gender,note,glosses,freq_code,age,head_key
 2858,amaturio,"amaturire, amaturivi, amaturitus",v,,"4th conj., trans.",wish to love,F,late,amaturio
 2859,amaxites,amaxitae,n,m,1st decl.,"waggoner, carter, teamster",F,,amaxites
 2860,Amazon,Amazonis,n,f,3rd decl.,"Amazon, member of race of legendary female warriors; woman as man's antagonist",C,,amazon
-2861,amb,,num,,,"both; two of pair; two considered together, both parties; each of two",B,,amb
+2861,ambo,"ambae, ambo",num,,,"both; two of pair; two considered together, both parties; each of two",B,,ambo
 2862,ambactus,ambacti,n,m,2nd decl.,"vassal, dependent; retainer, servant",E,,ambactus
 2863,ambadedo,"ambadedere, ambadedi, ambadesus",v,,"3rd conj., trans.",eat/gnaw around; eat up entirely,E,,ambadedo
 2864,ambadedo,ambadesse,v,,"irregular (like edo), trans.",eat/gnaw around; eat up entirely,E,,ambadedo
@@ -6533,7 +6533,7 @@ id,headword,parts,pos,gender,note,glosses,freq_code,age,head_key
 6532,bisacutus,"bisacuta, bisacutum",adj,,,two-edged; twibill,E,medieval,bisacutus
 6533,bisaetus,"bisaeta, bisaetum",adj,,,"with hair/bristles down on both sides of neck, with double mane (horses)",F,,bisaetus
 6534,bisbellio,bisbellionis,n,f,3rd decl.,man with two skins; cunning man,F,late,bisbellio
-6535,biscentum,,num,,,two hundred,C,,biscentum
+6535,biscentum,"biscentesimus, biscenteni, biscenties",num,,,two hundred,C,,biscentum
 6536,biscoctus,biscocti,n,m,2nd decl.,toast,E,scholar,biscoctus
 6537,bisellium,bisellii,n,n,2nd decl.,seat for two persons; seat of honor awarded for municipal services in provinces,I,,bisellium
 6538,biselliarius,biselliarii,n,m,2nd decl.,one entitled to sit on bisellium seat (honor awarded for services in provinces),I,,biselliarius
@@ -8816,7 +8816,7 @@ id,headword,parts,pos,gender,note,glosses,freq_code,age,head_key
 8815,centrina,centrinae,n,m,1st decl.,kind of wasp or beetle (usu. pl.),N,,centrina
 8816,centripetus,"centripeta, centripetum",adj,,,centripetal,E,scholar,centripetus
 8817,centrosus,"centrosa, centrosum",adj,,,"characterized by knots/like flaws; at central point, inward, internal (L+S)",N,,centrosus
-8818,centum,,num,,,one hundred,A,,centum
+8818,centum,"centesimus, centeni, centies",num,,,one hundred,A,,centum
 8819,centumgeminus,"centumgemina, centumgeminum",adj,,,hundredfold; hundred-handed (Briareus); hundred-gated (Thebes),E,,centumgeminus
 8820,centumpeda,centumpedae,n,m,1st decl.,"hundred-footed; (e.g., a centipede)",F,late,centumpeda
 8821,centumplex,gen. centumplicis,adj,,one termination,hundredfold,F,,centumplex
@@ -15198,7 +15198,7 @@ id,headword,parts,pos,gender,note,glosses,freq_code,age,head_key
 15197,dececro,"dececrare, dececravi, dececratus",v,,"1st conj., trans.","consecrate, dedicate; assign/devote (to purpose/function); deify (person) (L+S)",E,,dececro
 15198,decedo,"decedere, decessi, decessus",v,,"3rd conj., intrans.","withdraw/retire, go off/away, depart, leave; relinquish/cease; desert/abandon; quit office and return home; make/get out of the way; yield; wane; fall short; stray/digress; pass away/depart life, die; subside/cease (feelings); disappear",A,,decedo
 15199,decello,"decellere, -",v,,"3rd conj., trans.","deviate, turn aside",E,late,decello
-15200,decem,,num,,,ten; (ten men),B,,decem
+15200,decem,"decimus, deni, decies",num,,,ten; (ten men),B,,decem
 15201,December,Decembris,n,m,3rd decl.,"December; (the 10th month of the old calender, 12th/last month after Caesar)",C,,december
 15202,December,"Decembris, Decembre",adj,,,December (month/mensis understood); abb. Dec.; of/pertaining to December,C,,december
 15203,decemjugis,decemjuge,adj,,,ten-horse (chariot/wagon); ten-yoked; equipped for yoking ten draught animals,E,,decemiugis
@@ -17695,7 +17695,7 @@ id,headword,parts,pos,gender,note,glosses,freq_code,age,head_key
 17694,Druida,Druidae,n,m,1st decl.,"druids (pl.), priests of the Gauls",D,,druida
 17695,Druis,Druidis,n,m,3rd decl.,"druids (pl.), priests of the Gauls",D,,druis
 17696,Dryas,Dryadis,n,f,3rd decl.,Dryad; wood-nymph,D,,dryas
-17697,du,,num,,,two (pl.),A,,du
+17697,duo,"duae, duo, secundus, bini, bis",num,,,two (pl.),A,,duo
 17698,dubium,dubii,n,n,2nd decl.,doubt; question,D,,dubium
 17699,dubius,"dubia, dubium",adj,,,"doubtful, dubious, uncertain; variable, dangerous; critical",A,,dubius
 17700,dubietas,dubietatis,n,f,3rd decl.,"doubt, irresolution, uncertainty; wavering, hesitation; questioning",D,medieval,dubietas
@@ -17706,9 +17706,9 @@ id,headword,parts,pos,gender,note,glosses,freq_code,age,head_key
 17705,ducamen,ducaminis,n,n,3rd decl.,guidance; duchy; ducal dignity (Nelson); molding,E,medieval,ducamen
 17706,ducatus,ducatus,n,m,4th decl.,leadership; position/function of a leader; generalship,D,classical,ducatus
 17707,ducenarius,"ducenaria, ducenarium",adj,,,"of/concerning two hundred; weighing 200 pounds; paid/owing 200,000 sesterces",C,,ducenarius
-17708,ducent,,num,,,two hundred,B,,ducent
-17709,ducentensim,,num,,,two hundredth,E,early,ducentensim
-17710,ducentensum,,num,,,two hundredth,E,early,ducentensum
+17708,ducenti,"ducentae, ducenta, ducentesimus, duceni, ducenties",num,,,two hundred,B,,ducenti
+17709,ducentensimus,"ducentensima, ducentensimum",num,,ordinal,two hundredth,E,early,ducentensimus
+17710,ducentensumus,"ducentensuma, ducentensumum",num,,ordinal,two hundredth,E,early,ducentensumus
 17711,ducianus,duciani,n,m,2nd decl.,commander's servant,E,,ducianus
 17712,ducianus,"duciana, ducianum",adj,,,leader-; of a leader,E,,ducianus
 17713,duciloquus,"duciloqua, duciloquum",adj,,,sweetly speaking; sweet talking,E,medieval,duciloquus
@@ -17754,15 +17754,15 @@ id,headword,parts,pos,gender,note,glosses,freq_code,age,head_key
 17753,dumosus,"dumosa, dumosum",adj,,,"overgrown with thorn, briar or the like",D,,dumosus
 17754,dumtaxat,,adv,,,"to this extent, no more than; as long as; only, precisely; merely; at any rate",B,,dumtaxat
 17755,duntaxat,,adv,,,"to this extent, no more than; as long as; only, precisely; merely; at any rate",E,later,duntaxat
-17756,duodecim,,num,,,twelve,A,,duodecim
+17756,duodecim,"duodecimus, duodeni, duodecies",num,,,twelve,A,,duodecim
 17757,duodecum,,num,,,twelve,C,early,duodecum
 17758,duodenarius,"duodenaria, duodenarium",adj,,,containing/consisting of 12; of order of 12; (water pipe w/diameter 12 digits),E,,duodenarius
-17759,duodetriginta,,num,,,twenty eight,E,,duodetriginta
+17759,duodetriginta,"duodetricesimus, duodetriceni, duodetricies",num,,,twenty eight,E,,duodetriginta
 17760,duodevicensim,,num,,,eighteen,C,early,duodeuicensim
 17761,duodevicensum,,num,,,eighteen,C,early,duodeuicensum
 17762,duodevigensim,,num,,,eighteenth,F,early,duodeuigensim
 17763,duodevigensum,,num,,,eighteenth,F,early,duodeuigensum
-17764,duodeviginti,,num,,,eighteen,D,,duodeuiginti
+17764,duodeviginti,"duodevicesimus, duodeviceni, duodevicies",num,,,eighteen,D,,duodeuiginti
 17765,duoetvicesimanus,duoetvicesimani,n,m,2nd decl.,soldiers of the 22nd legion,E,,duoetuicesimanus
 17766,duonus,"duona, duonum",adj,,,good; (archaic form of bonus),F,archaic,duonus
 17767,duovir,duoviri,n,m,2nd decl.,two man board/court (usu. pl.); (equip fleet/build temple); member thereof; special criminal court; keepers of Sibylline books; colony chief magistrates,C,,duouir
@@ -25869,7 +25869,7 @@ id,headword,parts,pos,gender,note,glosses,freq_code,age,head_key
 25868,mill,,num,,,thousand; a thousand; [mille passuum => thousand paces = a mile],A,,mill
 25869,mille,milis,n,n,3rd decl.,thousand; thousands (men/things); miles; [~ passuum => thousand paces = 1 mile],D,,mille
 25870,mille,millis,n,n,3rd decl.,thousand; thousands (men/things); miles; [~ passuum => thousand paces = 1 mile],B,,mille
-25871,mille,,num,,,thousand; a thousand; [mille passuum => thousand paces = a mile],A,,mille
+25871,mille,"millesimus, milleni, milies",num,,,thousand; a thousand; [mille passuum => thousand paces = a mile],A,,mille
 25872,millefolium,millefolii,n,n,2nd decl.,milfoil plant (Pliny),N,late,millefolium
 25873,millenus,"millena, millenum",adj,,,thousandth,E,medieval,millenus
 25874,millennium,millennii,n,n,2nd decl.,millennium,E,scholar,millennium
@@ -26750,7 +26750,7 @@ id,headword,parts,pos,gender,note,glosses,freq_code,age,head_key
 26749,neuma,neumae,n,f,1st decl.,spirit; [pneuma sacrum/sanctum => Holy Spirit/Ghost]; prolonged/breathing notes in plainsong; plainsong notation signs,D,medieval,neuma
 26750,neuma,neumatis,n,n,3rd decl.,neume/neum; prolonged group of notes sung to single syllable (in plainsong),D,medieval,neuma
 26751,neuronum,neuroni,n,n,2nd decl.,"neuron, nerve cell",E,modern,neuronum
-26752,neuterus,"neutra, neutrum",adj,,,neither,D,,neuterus
+26752,neuter,"neutra, neutrum, gen. -ius",adj,,,neither,D,,neuter
 26753,neutiquam,,adv,,,"by no means, not at all; (ne utiquam)",E,,neutiquam
 26754,neutralitas,neutralitatis,n,f,3rd decl.,neutrality,E,scholar,neutralitas
 26755,neutralizo,"neutralizare, neutralizavi, neutralizatus",v,,1st conj.,neutralize,E,scholar,neutralizo
@@ -26880,12 +26880,12 @@ id,headword,parts,pos,gender,note,glosses,freq_code,age,head_key
 26879,Nona,Nonae,n,f,1st decl.,"Nones (pl.), abb. Non.; 7th of month, March, May, July, Oct., 5th elsewhen",D,,nona
 26880,nonagensim,,num,,,ninetieth,E,early,nonagensim
 26881,nonagensum,,num,,,ninetieth,E,early,nonagensum
-26882,nonaginta,,num,,,ninety,B,,nonaginta
+26882,nonaginta,"nonagesimus, nonageni, nonagies",num,,,ninety,B,,nonaginta
 26883,nonanus,"nonana, nonanum",adj,,,of/belonging to ninth legion,E,,nonanus
 26884,nondum,,adv,,,not yet,B,,nondum
-26885,nongent,,num,,,nine hundred,B,,nongent
-26886,nongentensim,,num,,,nine hundredth,E,early,nongentensim
-26887,nongentensum,,num,,,nine hundredth,E,early,nongentensum
+26885,nongenti,"nongentae, nongenta, nongentesimus, nongeni, noningenties",num,,,nine hundred,B,,nongenti
+26886,nongentensimus,"nongentensima, nongentensimum",num,,ordinal,nine hundredth,E,early,nongentensimus
+26887,nongentensumus,"nongentensuma, nongentensumum",num,,ordinal,nine hundredth,E,early,nongentensumus
 26888,nonne,,adv,,,"not? (interog, expects the answer ""Yes"")",B,,nonne
 26889,nonnemo,nonneminis,n,m/f,3rd decl.,"some persons, a few",D,,nonnemo
 26890,nonnihil,,n,n,indecl.,certain amount,D,,nonnihil
@@ -26937,7 +26937,7 @@ id,headword,parts,pos,gender,note,glosses,freq_code,age,head_key
 26936,novella,novellae,n,f,1st decl.,news (literary kind),E,scholar,nouella
 26937,novellus,"novella, novellum",adj,,,"young, tender",D,,nouellus
 26938,novello,"novellare, novellavi, novellatus",v,,"1st conj., intrans.",plant nurseries,F,,nouello
-26939,novem,,num,,,nine,B,,nouem
+26939,novem,"nonus, noveni, novies",num,,,nine,B,,nouem
 26940,November,Novembris,n,m,3rd decl.,"November; (9th month before Caesar, 11th after); abb. Nov.",E,,nouember
 26941,November,"Novembris, Novembre",adj,,,November (month/mensis understood); abb. Nov.; of/pertaining to November,C,,nouember
 26942,novenarius,"novenaria, novenarium",adj,,,"ninefold, consisting of nine; having crosssection of 9 square feet, 3 by 3 feet",E,late,nouenarius
@@ -27406,19 +27406,19 @@ id,headword,parts,pos,gender,note,glosses,freq_code,age,head_key
 27405,octachordos,"octachorde, octachordon",adj,,,octachord; 8-stringed,F,,octachordos
 27406,octaedros,octaedri,n,m/f,2nd decl.,octahedron,F,medieval,octaedros
 27407,Octavius,Octavii,n,m,2nd decl.,Octavius; name of Roman gens,D,,octauius
-27408,octavodecem,,num,,,eighteen,E,later,octauodecem
-27409,octingent,,num,,,eight hundred,B,,octingent
-27410,octingentensim,,num,,,eight hundredth,E,early,octingentensim
-27411,octingentensum,,num,,,eight hundredth,E,early,octingentensum
+27408,octavodecem,"octavodecimus, octavodeni, octavidecies",num,,,eighteen,E,later,octauodecem
+27409,octingenti,"octingentae, octingenta, octingentesimus, octingeni, octingenties",num,,,eight hundred,B,,octingenti
+27410,octingentensimus,"octingentensima, octingentensimum",num,,ordinal,eight hundredth,E,early,octingentensimus
+27411,octingentensumus,"octingentensuma, octingentensumum",num,,ordinal,eight hundredth,E,early,octingentensumus
 27412,octipes,gen. octipedis,adj,,one termination,having eight feet,E,,octipes
-27413,octo,,num,,,eight,A,,octo
+27413,octo,"octavus, octoni, octies",num,,,eight,A,,octo
 27414,October,Octobris,n,m,3rd decl.,"October; (8th month before Caesar, 10 th after); abb. Oct.",C,,october
 27415,October,"Octobris, Octobre",adj,,,October (month/mensis understood); abb. Oct.; of/pertaining to October,C,,october
 27416,octodecim,,num,,,eighteen,D,,octodecim
 27417,octogenarius,"octogenaria, octogenarium",adj,,,consisting of eighty,E,,octogenarius
 27418,octogensim,,num,,,eightieth,E,early,octogensim
 27419,octogensum,,num,,,eightieth,E,early,octogensum
-27420,octoginta,,num,,,eighty,B,,octoginta
+27420,octoginta,"octogesimus, octogeni, octogies",num,,,eighty,B,,octoginta
 27421,octoiugis,octoiuge,adj,,,yoked eight together,E,,octoiugis
 27422,octonarius,"octonaria, octonarium",adj,,,consisting of eight together,E,,octonarius
 27423,octophoron,octophori,n,n,2nd decl.,litter carried,E,,octophoron
@@ -31261,7 +31261,7 @@ id,headword,parts,pos,gender,note,glosses,freq_code,age,head_key
 31260,quadragensim,,num,,,fortieth,E,early,quadragensim
 31261,quadragensum,,num,,,fortieth,E,early,quadragensum
 31262,quadragesima,quadragesimae,n,f,1st decl.,Lent; Christian fast of forty days,E,later,quadragesima
-31263,quadraginta,,num,,,forty,B,,quadraginta
+31263,quadraginta,"quadragesimus, quadrageni, quadragies",num,,,forty,B,,quadraginta
 31264,quadrangulum,quadranguli,n,n,2nd decl.,"quadrangle, plane figure having four sides",E,late,quadrangulum
 31265,quadrangulus,"quadrangula, quadrangulum",adj,,,"quadrangular, having four sides",D,,quadrangulus
 31266,quadrangulatus,"quadrangulata, quadrangulatum",adj,,,"quadrangular, having four sides",D,late,quadrangulatus
@@ -31292,9 +31292,9 @@ id,headword,parts,pos,gender,note,glosses,freq_code,age,head_key
 31291,quadrimulus,"quadrimula, quadrimulum",adj,,,four-years-old (Plautus; of quadrimus),F,early,quadrimulus
 31292,quadrin,,num,,,four each/apiece/times/fold (how many each),E,early,quadrin
 31293,quadringenarius,"quadringenaria, quadringenarium",adj,,,of four hundred each,E,,quadringenarius
-31294,quadringent,,num,,,four hundred,B,,quadringent
-31295,quadringentensim,,num,,,four hundredth,E,early,quadringentensim
-31296,quadringentensum,,num,,,four hundredth,E,early,quadringentensum
+31294,quadringenti,"quadringentae, quadringenta, quadringentesimus, quadringeni, quadringenties",num,,,four hundred,B,,quadringenti
+31295,quadringentensimus,"quadringentensima, quadringentensimum",num,,ordinal,four hundredth,E,early,quadringentensimus
+31296,quadringentensumus,"quadringentensuma, quadringentensumum",num,,ordinal,four hundredth,E,early,quadringentensumus
 31297,quadripertitus,"quadripertita, quadripertitum",adj,,,"divided into four parts, quadripartite, fourfold",C,,quadripertitus
 31298,quadriplex,gen. quadriplicis,adj,,one termination,fourfold; having four parts/aspects; four times as much; multiplied by four,C,,quadriplex
 31299,quadriporticus,quadriporticus,n,m/f,4th decl.,cloister,E,medieval,quadriporticus
@@ -31379,7 +31379,7 @@ id,headword,parts,pos,gender,note,glosses,freq_code,age,head_key
 31378,quapropter,,adv,,,"wherefore, why, for what?",B,,quapropter
 31379,quaqua,,adv,,,wherever; in every place/point at/through which; [~ versus => on all sides],C,,quaqua
 31380,quare,,adv,,,"in what way? how? by which means, whereby; why; wherefore, therefore, hence",A,,quare
-31381,quartadecem,,num,,,fourteen,E,,quartadecem
+31381,quartadecem,"quartadecimus, quartadeni, quartadecies",num,,,fourteen,E,,quartadecem
 31382,quartadecimamus,quartadecimami,n,m,2nd decl.,man of fourteenth legion; heretic celebrating Easter 14th day of 1st moon,D,,quartadecimamus
 31383,quartadecimanus,quartadecimani,n,m,2nd decl.,14th legion soldier; (see also quartadecuman-),F,,quartadecimanus
 31384,quartadecumamus,quartadecumami,n,m,2nd decl.,man of fourteenth legion; heretic celebrating Easter 14th day of 1st moon,D,,quartadecumamus
@@ -31405,12 +31405,12 @@ id,headword,parts,pos,gender,note,glosses,freq_code,age,head_key
 31404,quatinus,,adv,,,"how far/long?, to what point; to what extent; where; while, so far as; since",E,,quatinus
 31405,quatriduum,quatridui,n,n,2nd decl.,"period of four days; [~o => in the four days from now, within four day of]",B,,quatriduum
 31406,quattor,,num,,,four,E,,quattor
-31407,quattuor,,num,,,four,A,,quattuor
-31408,quattuordecim,,num,,,fourteen; (the 14 front theater rows reserved for equestrian order),C,,quattuordecim
+31407,quattuor,"quartus, quaterni",num,,,four,A,,quattuor
+31408,quattuordecim,quatterdecies,num,,,fourteen; (the 14 front theater rows reserved for equestrian order),C,,quattuordecim
 31409,quattuorvir,quattuorviri,n,m,2nd decl.,body of four men/officials (pl.); board of chief magistrates,D,,quattuoruir
 31410,quattuorviratus,quattuorviratus,n,m,4th decl.,quattuorvir's office,E,,quattuoruiratus
 31411,quatuor,,num,,,four,D,,quatuor
-31412,quatuordecim,,num,,,fourteen,D,,quatuordecim
+31412,quatuordecim,quaterdecies,num,,,fourteen,D,,quatuordecim
 31413,que,,conj,,,and; (while properly attached as enclitic sometimes copyists make mistakes),E,medieval,que
 31414,queo,"quire, quivi, quitum",v,,irregular (like eo),be able,B,,queo
 31415,quemadmodum,,adv,,,"in what way, how; as, just as; to the extent that",B,,quemadmodum
@@ -31450,22 +31450,22 @@ id,headword,parts,pos,gender,note,glosses,freq_code,age,head_key
 31449,Quinctius,"Quinctia, Quinctium",adj,,,Quinctian; of Quinctius gens,C,,quinctius
 31450,Quinctilis,Quinctile,adj,,,July (month/mensis); abb. Quin.?; renamed Julius in 44 BC; in 5th place,D,,quinctilis
 31451,quincunx,quincuncis,n,m,3rd decl.,"quincunx, the five on dice; 5/12, esp. of an as = 5 unciae",D,,quincunx
-31452,quindecim,,num,,,fifteen,C,,quindecim
+31452,quindecim,"quindecimus, quindeci, quindecies",num,,,fifteen,C,,quindecim
 31453,quindecimprimus,quindecimprimi,n,m,2nd decl.,fifteen senators (pl.) of a municipium,E,,quindecimprimus
 31454,quindecimvir,quindecimviri,n,m,2nd decl.,one of board of fifteen magistrates,E,,quindecimuir
 31455,quindecimviralis,quindecimvirale,adj,,,of the quindecimviri (board of fifteen magistrates),E,,quindecimuiralis
-31456,quingent,,num,,,five hundred,B,,quingent
-31457,quingentensim,,num,,,five hundredth,E,early,quingentensim
-31458,quingentensum,,num,,,five hundredth,E,early,quingentensum
+31456,quingenti,"quingentae, quingenta, quingentesimus, quingeni, quingenties",num,,,five hundred,B,,quingenti
+31457,quingentensimus,"quingentensima, quingentensimum",num,,ordinal,five hundredth,E,early,quingentensimus
+31458,quingentensumus,"quingentensuma, quingentensumum",num,,ordinal,five hundredth,E,early,quingentensumus
 31459,quinimmo,,adv,,,"indeed, in fact; but truly; but/and more/furthermore",C,,quinimmo
 31460,quinquagenarius,quinquagenarii,n,m,2nd decl.,"captain of 50 men (Israelite), officer commanding 50 men",E,,quinquagenarius
 31461,quinquagenarius,"quinquagenaria, quinquagenarium",adj,,,containing/consisting of 50; from 50 digit sheet; 50 digit square; 50 years old,D,,quinquagenarius
 31462,quinquagensim,,num,,,fiftieth,E,early,quinquagensim
 31463,quinquagensum,,num,,,fiftieth,E,early,quinquagensum
-31464,quinquaginta,,num,,,fifty,B,,quinquaginta
+31464,quinquaginta,"quinquagesimus, quinquageni, quinquagies",num,,,fifty,B,,quinquaginta
 31465,quinquangulus,"quinquangula, quinquangulum",adj,,,five-cornered,F,,quinquangulus
 31466,Quinquatrus,Quinquatrus,n,f,4th decl.,Minerva festival,F,,quinquatrus
-31467,quinque,,num,,,five,A,,quinque
+31467,quinque,"quintus, quini, quinquies",num,,,five,A,,quinque
 31468,Quinquegentianus,Quinquegentiani,n,n,2nd decl.,Five_Nations; (league of desert people against Romans - 3rd century Mauretania),F,late,quinquegentianus
 31469,quinquennis,quinquenne,adj,,,five years old; lasting five years; occurring once every five years,C,,quinquennis
 31470,quinquennalis,quinquennale,adj,,,occurring every five years; lasting for five years; (officials/offices),C,,quinquennalis
@@ -31480,7 +31480,7 @@ id,headword,parts,pos,gender,note,glosses,freq_code,age,head_key
 31479,quinquiplico,"quinquiplicare, quinquiplicavi, quinquiplicatus",v,,1st conj.,multiply by five,E,,quinquiplico
 31480,Quint,,adj,,indecl.,July (month/mensis understood); abb. Quint.??; renamed to Julius in 44 BC,D,,quint
 31481,Quintus,Quinti,n,m,2nd decl.,Quintus (Roman praenomen); (abb. Q.),D,,quintus
-31482,quintadecem,,num,,,fifteen,E,medieval,quintadecem
+31482,quintadecem,"quintadecimus, quintadeni, quintadecies",num,,,fifteen,E,medieval,quintadecem
 31483,quintadecimanus,quintadecimani,n,m,2nd decl.,soldiers (pl.) of the fifteenth legion,E,,quintadecimanus
 31484,quintadecumanus,quintadecumani,n,m,2nd decl.,soldiers of the fifteenth legion,F,,quintadecumanus
 31485,quintana,quintanae,n,f,1st decl.,road (w/via) in a Roman camp between fifth and sixth maniples (used as market),E,,quintana
@@ -33206,7 +33206,7 @@ id,headword,parts,pos,gender,note,glosses,freq_code,age,head_key
 33205,sedatus,"sedata, sedatum",adj,,,"calm, untroubled; quiet",D,,sedatus
 33206,sedatio,sedationis,n,f,3rd decl.,calming,D,,sedatio
 33207,sedda,seddae,n,f,1st decl.,"seat (usu. no back/arms), stool, chair; chair of magistrate/office/teacher; sedan/carrying chair; toilet seat, stool; work-stool; coach/wagon seat; saddle",B,archaic,sedda
-33208,sedecim,,num,,,sixteen,D,,sedecim
+33208,sedecim,sedecies,num,,,sixteen,D,,sedecim
 33209,sedecula,sedeculae,n,f,1st decl.,"low seat, stool",E,,sedecula
 33210,sedentarius,"sedentaria, sedentarium",adj,,,sitting; sedentary,D,,sedentarius
 33211,sedes,sedis,n,f,3rd decl.,"seat; home, residence; settlement, habitation; chair",A,,sedes
@@ -33440,7 +33440,7 @@ id,headword,parts,pos,gender,note,glosses,freq_code,age,head_key
 33439,sepono,"seponere, seposui, sepositus",v,,3rd conj.,put away from one; disregard; isolate; reserve,D,,sepono
 33440,sepositus,"seposita, sepositum",adj,,,remote; distinct,D,,sepositus
 33441,Sept,,adj,,indecl.,September (month/mensis understood); abb. Sept.,D,,sept
-33442,septem,,num,,,seven,A,,septem
+33442,septem,"septimus, septeni, septies",num,,,seven,A,,septem
 33443,September,Septembris,n,m,3rd decl.,"September; (7th month before Caesar, 9th after); abb. Sept.",C,,september
 33444,September,"Septembris, Septembre",adj,,,September (month/mensis understood); abb. Sept.; of/pertaining to September,C,,september
 33445,septemdecim,,num,,,seventeen,E,,septemdecim
@@ -33473,13 +33473,13 @@ id,headword,parts,pos,gender,note,glosses,freq_code,age,head_key
 33472,septimanus,"septimana, septimanum",adj,,,of the seventh,E,,septimanus
 33473,septimplex,gen. septimplicis,adj,,one termination,"sevenfold; of/having seven (layers/mouths, shield w/7 layers, river w/7 mouths)",F,later,septimplex
 33474,septimpliciter,,adv,,,sevenfold; seven times; in a sevenfold manner,F,later,septimpliciter
-33475,septingent,,num,,,seven hundred,B,,septingent
-33476,septingentensim,,num,,,seven hundredth,E,early,septingentensim
-33477,septingentensum,,num,,,seven hundredth,E,early,septingentensum
+33475,septingenti,"septingentae, septingenta, septingentesimus, septingeni, septingenties",num,,,seven hundred,B,,septingenti
+33476,septingentensimus,"septingentensima, septingentensimum",num,,ordinal,seven hundredth,E,early,septingentensimus
+33477,septingentensumus,"septingentensuma, septingentensumum",num,,ordinal,seven hundredth,E,early,septingentensumus
 33478,septuagenarius,"septuagenaria, septuagenarium",adj,,,of seventy (70); septuagenarian,E,,septuagenarius
 33479,septuagensim,,num,,,seventieth,E,early,septuagensim
 33480,septuagensum,,num,,,seventieth,E,early,septuagensum
-33481,septuaginta,,num,,,seventy,B,,septuaginta
+33481,septuaginta,"septuagesimus, septuageni, septuagies",num,,,seventy,B,,septuaginta
 33482,septuennis,septuenne,adj,,,of seven years,E,,septuennis
 33483,septum,,num,,,seven; (primarily used in compound words),E,,septum
 33484,septunx,septuncis,n,m,3rd decl.,seven-twelfths,E,,septunx
@@ -33589,17 +33589,17 @@ id,headword,parts,pos,gender,note,glosses,freq_code,age,head_key
 33588,servulus,servuli,n,m,2nd decl.,young slave,E,,seruulus
 33589,sescenaris,sescenare,adj,,,year and a half old,E,,sescenaris
 33590,sescenarius,"sescenaria, sescenarium",adj,,,consisting of six hundred; (cohort is six centuries),E,,sescenarius
-33591,sescent,,num,,,six hundred,B,,sescent
-33592,sescentensim,,num,,,six hundredth,E,early,sescentensim
-33593,sescentensum,,num,,,six hundredth,E,early,sescentensum
+33591,sescenti,"sescentae, sescenta, sescentesimus, sesceni, sexcenties",num,,,six hundred,B,,sescenti
+33592,sescentensimus,"sescentensima, sescentensimum",num,,ordinal,six hundredth,E,early,sescentensimus
+33593,sescentensumus,"sescentensuma, sescentensumum",num,,ordinal,six hundredth,E,early,sescentensumus
 33594,sescuncia,sescunciae,n,f,1st decl.,one-eighth of whole; one-and-half unciae,E,,sescuncia
 33595,seselis,seselis,n,f,3rd decl.,"plant, hartwort",E,,seselis
-33596,sesqualterus,"sesqualtera, sesqualterum",adj,,,one-and-a-half times as much; in ratio of 3 to 2,E,later,sesqualterus
+33596,sesqualter,"sesqualtera, sesqualterum, gen. -ius",adj,,,one-and-a-half times as much; in ratio of 3 to 2,E,later,sesqualter
 33597,sesquaquartnarius,"sesquaquartnaria, sesquaquartnarium",adj,,,one-and-a-fourth; ratio of 5 to 4,F,medieval,sesquaquartnarius
 33598,sesque,,adv,,,one and a half times/more; more by half,E,,sesque
-33599,sesquealterus,"sesquealtera, sesquealterum",adj,,,one-and-a-half times as much; in ratio of 3 to 2,E,,sesquealterus
+33599,sesquealter,"sesquealtera, sesquealterum, gen. -ius",adj,,,one-and-a-half times as much; in ratio of 3 to 2,E,,sesquealter
 33600,sesqui,,adv,,,one and a half times/more; more by half,E,,sesqui
-33601,sesquialterus,"sesquialtera, sesquialterum",adj,,,one-and-a-half times as much; in ratio of 3 to 2,E,,sesquialterus
+33601,sesquialter,"sesquialtera, sesquialterum, gen. -ius",adj,,,one-and-a-half times as much; in ratio of 3 to 2,E,,sesquialter
 33602,sesquidecimus,"sesquidecima, sesquidecimum",adj,,,with 11/10; with eleven-tenths,E,later,sesquidecimus
 33603,sesquihora,sesquihorae,n,f,1st decl.,hour and a half,E,,sesquihora
 33604,sesquimellesimus,"sesquimellesima, sesquimellesimum",adj,,,1500th; fifteen-hundredth,E,medieval,sesquimellesimus
@@ -33623,7 +33623,7 @@ id,headword,parts,pos,gender,note,glosses,freq_code,age,head_key
 33622,sessito,"sessitare, sessitavi, sessitatus",v,,"1st conj., intrans.",sit for long,F,,sessito
 33623,sessiuncula,sessiunculae,n,f,1st decl.,little company or assembly,E,,sessiuncula
 33624,sessorium,sessorii,n,n,2nd decl.,"chair; residence, dwelling, habitation",D,,sessorium
-33625,sesterti,,num,,,two and a half (2 1/2),D,,sesterti
+33625,sestertii,"sestertiae, sestertia",num,,,two and a half (2 1/2),D,,sestertii
 33626,sestertium,sestertii,n,n,2nd decl.,1000 sestertii; two and a half feet; (measure of depth/width),D,,sestertium
 33627,sestertius,sestertii,n,m,2nd decl.,"sesterce; [semis-tertius => 2 1/2 assses, small silver coin]",D,,sestertius
 33628,set,,conj,,,"but, but also; yet; however, but in fact/truth; not to mention; yes but",B,,set
@@ -33641,21 +33641,21 @@ id,headword,parts,pos,gender,note,glosses,freq_code,age,head_key
 33640,sevoco,"sevocare, sevocavi, sevocatus",v,,1st conj.,call aside; remove; separate,D,,seuoco
 33641,Sex,,n,m,indecl.,Sextus (Roman praenomen); (abb. Sex.),D,,sex
 33642,sexus,sexus,n,m,4th decl.,sex; (male or female); (also for plants); sexual organs,A,,sexus
-33643,sex,,num,,,six,A,,sex
+33643,sex,"sextus, seni, sexies",num,,,six,A,,sex
 33644,sexagenarius,"sexagenaria, sexagenarium",adj,,,containing sixty; sixty years old,E,,sexagenarius
 33645,sexagensim,,num,,,sixtieth,E,early,sexagensim
 33646,sexagensum,,num,,,sixtieth,E,early,sexagensum
 33647,sexagesimalis,sexagesimale,adj,,,"sexagesimal (math.), proceeding by 60's; based on 60 (parts as seconds/minutes)",E,scholar,sexagesimalis
-33648,sexaginta,,num,,,sixty,B,,sexaginta
+33648,sexaginta,"sexagesimus, sexageni, sexagies",num,,,sixty,B,,sexaginta
 33649,sexangulus,"sexangula, sexangulum",adj,,,"six-cornered, hexagonal",D,,sexangulus
 33650,sexcenarius,"sexcenaria, sexcenarium",adj,,,consisting of six hundred; (cohort is six centuries),E,,sexcenarius
 33651,sexennis,sexenne,adj,,,six years old,D,,sexennis
 33652,sexprimus,sexprimi,n,m,2nd decl.,town magistrate; member of council of six provincial officials,D,,sexprimus
-33653,sexqualterus,"sexqualtera, sexqualterum",adj,,,one-and-a-half times as much; in ratio of 3 to 2,E,medieval,sexqualterus
+33653,sexqualter,"sexqualtera, sexqualterum, gen. -ius",adj,,,one-and-a-half times as much; in ratio of 3 to 2,E,medieval,sexqualter
 33654,sexquaquartnarius,"sexquaquartnaria, sexquaquartnarium",adj,,,one-and-a-fourth; ratio of 5 to 4,F,medieval,sexquaquartnarius
 33655,sexquartano,"sexquartanare, sexquartanavi, sexquartanatus",v,,"1st conj., trans.",increase by a quarter,F,medieval,sexquartano
 33656,sexquetertius,"sexquetertia, sexquetertium",adj,,,containing 4/3 of anything,E,medieval,sexquetertius
-33657,sexquialterus,"sexquialtera, sexquialterum",adj,,,one-and-a-half times as much; in ratio of 3 to 2,F,medieval,sexquialterus
+33657,sexquialter,"sexquialtera, sexquialterum, gen. -ius",adj,,,one-and-a-half times as much; in ratio of 3 to 2,F,medieval,sexquialter
 33658,sexquintano,"sexquintanare, sexquintanavi, sexquintanatus",v,,"1st conj., trans.",increase by a fifth,F,medieval,sexquintano
 33659,sexquinterno,"sexquinternare, sexquinternavi, sexquinternatus",v,,"1st conj., trans.",increase by a fifth,F,medieval,sexquinterno
 33660,sexquiquartus,"sexquiquarta, sexquiquartum",adj,,,one-and-a-fourth; ratio of 5 to 4,F,medieval,sexquiquartus
@@ -36051,7 +36051,7 @@ id,headword,parts,pos,gender,note,glosses,freq_code,age,head_key
 36050,toxicomania,toxicomaniae,n,f,1st decl.,addiction,E,scholar,toxicomania
 36051,toxicomaniacus,toxicomaniaci,n,m,2nd decl.,drug addict,E,scholar,toxicomaniacus
 36052,tr,,n,m,indecl.,tribune; abb. tr.; [tr. pl./tr. mil. => of the people/of the soldiers],D,,tr
-36053,tr,,num,,,three,A,,tr
+36053,tres,"tria, tertius, terni, ter",num,,,three,A,,tres
 36054,traba,trabae,n,f,1st decl.,"wood-beam, timber; tree-trunk; ship; table",E,medieval,traba
 36055,trabalis,trabale,adj,,,of or used for wooden beams,D,,trabalis
 36056,trabea,trabeae,n,f,1st decl.,white state mantle/horiz scarlet stripes; short purple dress equites uniform,D,,trabea
@@ -36232,11 +36232,11 @@ id,headword,parts,pos,gender,note,glosses,freq_code,age,head_key
 36231,traversarius,"traversaria, traversarium",adj,,,transverse; lying across/from side to side,E,,trauersarius
 36232,Trax,Tracis,n,m,3rd decl.,"Thracian; gladiator with saber and short shield, gladiator",D,,trax
 36233,trebuchettum,trebuchetti,n,n,2nd decl.,trebuchet; siege engine,E,medieval,trebuchettum
-36234,trecent,,num,,,three hundred; (used to denote a large number),B,,trecent
-36235,trecentensim,,num,,,three hundredth,E,early,trecentensim
-36236,trecentensum,,num,,,three hundredth,E,early,trecentensum
+36234,trecenti,"trecentae, trecenta, trecentesimus, treceni, trecenties",num,,,three hundred; (used to denote a large number),B,,trecenti
+36235,trecentensimus,"trecentensima, trecentensimum",num,,ordinal,three hundredth,E,early,trecentensimus
+36236,trecentensumus,"trecentensuma, trecentensumum",num,,ordinal,three hundredth,E,early,trecentensumus
 36237,trechedipnum,trechedipni,n,n,2nd decl.,light garment worn at table,E,,trechedipnum
-36238,tredecim,,num,,,thirteen,D,,tredecim
+36238,tredecim,terdecies,num,,,thirteen,D,,tredecim
 36239,tremo,"tremere, tremui",v,,3rd conj.,"tremble, shake, shudder at",B,,tremo
 36240,tremebundus,"tremebunda, tremebundum",adj,,,trembling,D,,tremebundus
 36241,tremefacio,"tremefacere, tremefeci, tremefactus",v,,"3rd conj. (-io), trans.",cause to tremble,D,,tremefacio
@@ -36337,7 +36337,7 @@ id,headword,parts,pos,gender,note,glosses,freq_code,age,head_key
 36336,trigen,,num,,,thirtieth,E,late,trigen
 36337,trigensim,,num,,,thirtieth,E,late,trigensim
 36338,trigesim,,num,,,thirty,E,,trigesim
-36339,triginta,,num,,,thirty,B,,triginta
+36339,triginta,"tricesimus, triceni, tricies",num,,,thirty,B,,triginta
 36340,triglyphus,triglyphi,n,m,2nd decl.,triglyph; block w/3 vertical groves repeated at intervals in Doric frieze,F,,triglyphus
 36341,trigonus,trigoni,n,m,2nd decl.,soothing pill; (triangular),F,late,trigonus
 36342,trigonum,trigoni,n,n,2nd decl.,triangle; three sided figure; triangular pill/tablet; 3 player ball game,C,,trigonum
@@ -36690,7 +36690,7 @@ id,headword,parts,pos,gender,note,glosses,freq_code,age,head_key
 36689,umidulus,"umidula, umidulum",adj,,,somewhat moist,D,,umidulus
 36690,umor,umoris,n,m,3rd decl.,"moisture, liquid",D,,umor
 36691,umquam,,adv,,,"ever, at any time",A,,umquam
-36692,un,,num,,,one,A,,un
+36692,unus,"una, unum, primus, singuli, semel",num,,,one,A,,unus
 36693,unus,"una, unum, gen. -ius",adj,,,"alone, a single/sole; some, some one; only (pl.); one set of (denoting entity)",E,,unus
 36694,una,,adv,,,"together, together with; at the same time; along with",B,,una
 36695,unanimus,"unanima, unanimum",adj,,,acting in accord; sharing a single purpose; harmonious (L+S); unanimous,C,,unanimus
@@ -36716,23 +36716,23 @@ id,headword,parts,pos,gender,note,glosses,freq_code,age,head_key
 36715,unda,undae,n,f,1st decl.,wave,A,,unda
 36716,undo,"undare, undavi, undatus",v,,"1st conj., intrans.","surge/flood/rise in waves; gush/well up; run, stream; billow; undulate; waver",B,,undo
 36717,unde,,adv,,,"from where, whence, from what or which place; from which; from whom",A,,unde
-36718,undecim,,num,,,eleven,A,,undecim
+36718,undecim,"undecimus, undeni, undecies",num,,,eleven,A,,undecim
 36719,undecum,,num,,,eleven,C,early,undecum
 36720,undecumque,,adv,,,from/in whatever/every direction; from any point/source/side; in every respect,C,,undecumque
-36721,undenonaginta,,num,,,eighty-nine,F,,undenonaginta
-36722,undeoctoginta,,num,,,seventy-nine,F,,undeoctoginta
-36723,undequadraginta,,num,,,thirty-nine,F,,undequadraginta
-36724,undequinquaginta,,num,,,forty-nine,F,,undequinquaginta
-36725,undesexaginta,,num,,,fifty-nine,F,,undesexaginta
+36721,undenonaginta,"undenonagesimus, undenonageni, undenonagies",num,,,eighty-nine,F,,undenonaginta
+36722,undeoctoginta,"undeoctogesimus, undeoctogeni, undeoctogies",num,,,seventy-nine,F,,undeoctoginta
+36723,undequadraginta,"undequadragesimus, undequadrageni, undequadragies",num,,,thirty-nine,F,,undequadraginta
+36724,undequinquaginta,"undequinquagesimus, undequinquageni, undequinquagies",num,,,forty-nine,F,,undequinquaginta
+36725,undesexaginta,"undesexagesimus, undesexageni, undesexagies",num,,,fifty-nine,F,,undesexaginta
 36726,undetricensim,,num,,,twenty ninth,E,early,undetricensim
 36727,undetricensum,,num,,,twenty ninth,E,early,undetricensum
-36728,undetriginta,,num,,,twenty nine,E,,undetriginta
+36728,undetriginta,"undetricesimus, undetriceni, undetricies",num,,,twenty nine,E,,undetriginta
 36729,undevicensim,,num,,,nineteenth,E,early,undeuicensim
 36730,undevicensum,,num,,,nineteenth,E,early,undeuicensum
 36731,undevicesimanus,undevicesimani,n,m,2nd decl.,19th legion soldier,E,,undeuicesimanus
 36732,undevigensim,,num,,,nineteenth,F,early,undeuigensim
 36733,undevigensum,,num,,,nineteenth,F,early,undeuigensum
-36734,undeviginti,,num,,,nineteen,D,,undeuiginti
+36734,undeviginti,"undevicesimus, undeviceni, undevicies",num,,,nineteen,D,,undeuiginti
 36735,undique,,adv,,,"from every side/direction/place/part/source; on all/both sides/surfaces; everywhere; completely; allover; from every point of view, in all respects",B,,undique
 36736,undiquesecus,,adv,,,"from every side/direction/place/part/source; on all/both sides/surfaces; everywhere; completely; allover; from every point of view, in all respects",C,medieval,undiquesecus
 36737,undisonus,"undisona, undisonum",adj,,,resounding with waves,E,,undisonus
@@ -36855,7 +36855,7 @@ id,headword,parts,pos,gender,note,glosses,freq_code,age,head_key
 36854,uterus,uteri,n,m,2nd decl.,"womb; belly, abdomen",D,,uterus
 36855,uterum,uteri,n,n,2nd decl.,"womb; belly, abdomen",D,,uterum
 36856,uter,utris,n,m,3rd decl.,skin; wine/water skin; bag/bottle made of skin/hide; (inflated for flotation),D,,uter
-36857,uterus,"utra, utrum",adj,,,"which (of two), whichever, no matter which; one, either, one or other; (w/que) each/either (of two); both (separately); each side (pl.), each set",A,,uterus
+36857,uter,"utra, utrum, gen. -ius",adj,,,"which (of two), whichever, no matter which; one, either, one or other; (w/que) each/either (of two); both (separately); each side (pl.), each set",A,,uter
 36858,uti,,conj,,,"in order that; that, so that; as, when; [ut primum => as soon as]",A,,uti
 36859,utibilis,utibile,adj,,,useful; serviceable,E,early,utibilis
 36860,Utica,Uticae,n,f,1st decl.,Utica; (town in Africa west of Carthage),D,,utica
@@ -37425,7 +37425,7 @@ id,headword,parts,pos,gender,note,glosses,freq_code,age,head_key
 37424,vigilantia,vigilantiae,n,f,1st decl.,"vigilance, alertness; wakefulness, condition of not sleeping",D,,uigilantia
 37425,vigilax,gen. vigilacis,adj,,one termination,watchful,E,,uigilax
 37426,vigilia,vigiliae,n,f,1st decl.,"watch (fourth part of the night), vigil, wakefulness",B,,uigilia
-37427,viginti,,num,,,twenty,A,,uiginti
+37427,viginti,"vicesimus, viceni, vicies",num,,,twenty,A,,uiginti
 37428,vigintisexvir,vigintisexviri,n,m,2nd decl.,member of board of twenty six at Rome to fill boards of minor magistrates,E,classical,uigintisexuir
 37429,vigintivir,vigintiviri,n,m,2nd decl.,member of commission of twenty (by Caesar 59 BC)/(municipal administration),E,classical,uigintiuir
 37430,vigintiviratus,vigintivirati,n,m,2nd decl.,rank/office of a member of commission of twenty (municipal administrators),F,classical,uigintiuiratus

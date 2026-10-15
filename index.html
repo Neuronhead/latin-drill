@@ -3505,17 +3505,58 @@ function searchPick(i){
   try { h.e.go(); } catch (err) { console.warn('search navigation failed:', err); }
 }
 
-// Drill items whose headword is this dictionary headword (for "Practise this word").
-function dictDrillMatches(headword){
-  const head = sNorm(headword).replace(/j/g, 'i');
+// Drill items that practise this dictionary word (for "Practise this word").
+//  - any drill whose headword is the dictionary headword (vocabulary, declensions, demonstratives)
+//  - verb drills, whose label is the infinitive: matched to the dictionary's first principal part,
+//    with the English meaning as a tie-break (esse = "to be" is sum, not edo "eat")
+//  - agreement phrases containing a 1st/2nd-declension form of the word (puellam -> puella)
+const DICT_12_ENDINGS = ['a', 'ae', 'am', 'arum', 'as', 'is', 'us', 'um', 'i', 'o', 'os', 'orum', 'e'];
+
+function dictKey(t){ return sNorm(t).replace(/j/g, 'i').replace(/v/g, 'u'); }
+
+function dictParts(d){
+  return String(d.parts || '').split(',').map(p => p.trim())
+    .filter(p => p && p !== '-' && !/^gen\.\s*-/.test(p))
+    .map(p => dictKey(p.replace(/^gen\.\s*/, '')));
+}
+
+// Stem for recognising 1st/2nd-declension forms, or '' if the word doesn't decline that way.
+function dictStem12(d, parts){
+  if (d.pos === 'n' && /^(1st|2nd) decl/.test(d.note || '') && parts[0])
+    return parts[0].replace(/(ae|i)$/, '');
+  if (d.pos === 'adj' && parts.length >= 2 && /a$/.test(parts[0]) && /um$/.test(parts[1]))
+    return parts[0].slice(0, -1);
+  return '';
+}
+
+function dictMeaningAgrees(d, drillMeaning){
+  const words = normEng(String(drillMeaning || '').replace(/["()]/g, ' ')).split(' ').filter(w => w.length >= 2);
+  if (!words.length) return true;
+  const g = ' ' + String(d.glosses || '').toLowerCase().replace(/[^a-z]+/g, ' ') + ' ';
+  return words.some(w => g.includes(' ' + w + ' '));
+}
+
+function dictDrillMatches(d){
+  const head = dictKey(d.headword);
   if (!head) return [];
+  const parts = dictParts(d);
+  const stem = dictStem12(d, parts);
+  const isForm = w => w === head || (!!stem && w.startsWith(stem) && DICT_12_ENDINGS.includes(w.slice(stem.length)));
   const out = [], seen = new Set();
   buildSearchIndex().forEach(e => {
     if (e.rank === 3) return;                           // section headings, not words
-    const first = sNorm(e.main.split(' — ')[0].split('/')[0].split(',')[0]).replace(/j/g, 'i');
-    if (first !== head) return;
     const label = e.meta.split(' · ')[0];
     if (seen.has(label)) return;
+    const [disp, meaning] = e.main.split(' — ');
+    let hit;
+    if (label === SEARCH_TAB_NAME.agree) {
+      hit = !!stem && disp.split(/\s+/).map(dictKey).some(isForm);   // only 1st/2nd-declension nouns/adjectives
+    } else {
+      const first = dictKey(disp.split('/')[0].split(',')[0]);
+      hit = first === head
+         || (label === SEARCH_TAB_NAME.verb && d.pos === 'v' && first === parts[0] && dictMeaningAgrees(d, meaning));
+    }
+    if (!hit) return;
     seen.add(label);
     out.push({ label, go: e.go });
   });
@@ -3526,7 +3567,7 @@ let dictPractise = [];
 
 function dictOpen(d){
   const glosses = dictGlossList(d);
-  dictPractise = dictDrillMatches(d.headword);
+  dictPractise = dictDrillMatches(d);
   const extra = [d.freq_code && 'ABCDEF'.includes(d.freq_code) ? ({ A: 'very frequent', B: 'frequent', C: 'common', D: 'less common', E: 'uncommon', F: 'very rare' })[d.freq_code] : '',
                  d.age].filter(Boolean).join(' · ');
   let html = '<div class="dict-head" id="dictHead">' + searchEsc(d.headword) + '</div>';
