@@ -400,10 +400,12 @@
 </div>
 
 <div class="panel" id="panel-verb">
+  <div id="verbModes" class="selector-group" style="margin-bottom:10px"></div>
   <div id="verbSelectors"></div>
-  <div class="panel-subtitle">1st&ndash;4th Conjugation &mdash; Present, Imperfect &amp; Future Active Indicative, Imperative</div>
+  <div class="panel-subtitle" id="verbSubtitle">Active indicative &mdash; present system</div>
   <div class="word-display" id="verbDisplay"></div>
   <div class="meaning" id="verbMeaning"></div>
+  <div id="verbNote" style="display:none; background:#fff8e8; border:1px solid #c9a96e; border-radius:4px; padding:10px 14px; margin-bottom:12px; font-size:0.88rem; color:#333; line-height:1.5;"></div>
   <table id="verbTable"></table>
   <div class="buttons">
     <button class="primary"   id="checkVerbBtn" onclick="checkVerb()">Check Answers</button>
@@ -707,6 +709,83 @@
     </ul>
   </div>
 
+  <div class="agree-section" id="ref-perfect">
+    <div class="agree-section-title">The perfect active system</div>
+    <p class="ref-intro">Three more tenses &mdash; <b>perfect, pluperfect, future perfect</b> &mdash; all built the same way in every conjugation: <b>perfect stem + endings</b>. They look at an action as <b>completed</b>.</p>
+
+    <div class="agree-subsection">
+      <div class="agree-subsection-title">Principal parts and the perfect stem</div>
+      <p class="ref-intro" data-ref-topic="Principal parts" data-ref-gloss="laudō, laudāre, laudāvī, laudātum: present, infinitive, perfect, perfect passive participle" data-ref-keys="principal parts, four principal parts, third principal part, fourth principal part, perfect passive participle">
+        A verb's four principal parts: <b>1</b> present (<i>laud&#333;</i>, I praise) &middot; <b>2</b> infinitive (<i>laud&#257;re</i>, to praise) &middot; <b>3</b> perfect (<i>laud&#257;v&#299;</i>, I praised / have praised) &middot; <b>4</b> perfect passive participle (<i>laud&#257;tum</i>, praised). Parts 3 and 4 follow no single rule, so learn all four with each verb.</p>
+      <div class="ref-wrap">
+        <table class="ref-table" data-ref-topic="Perfect stem = 3rd principal part minus -ī" data-ref-gloss="laudāvī → laudāv-, ēgī → ēg-, fuī → fu-" data-ref-keys="perfect stem, stem, drop i">
+          <tr><th>Principal parts</th><th>Perfect stem</th></tr>
+          <tr><td><i>laud&#333;, laud&#257;re, laud&#257;v&#299;, laud&#257;tum</i></td><td><i>laud&#257;v-</i></td></tr>
+          <tr><td><i>mone&#333;, mon&#275;re, monu&#299;, monitum</i></td><td><i>monu-</i></td></tr>
+          <tr><td><i>ag&#333;, agere, &#275;g&#299;, &#257;ctum</i></td><td><i>&#275;g-</i></td></tr>
+          <tr><td><i>capi&#333;, capere, c&#275;p&#299;, captum</i></td><td><i>c&#275;p-</i></td></tr>
+          <tr><td><i>audi&#333;, aud&#299;re, aud&#299;v&#299;, aud&#299;tum</i></td><td><i>aud&#299;v-</i></td></tr>
+          <tr><td><i>sum, esse, fu&#299;, fut&#363;rum</i></td><td><i>fu-</i></td></tr>
+          <tr><td><i>possum, posse, potu&#299;, &mdash;</i></td><td><i>potu-</i></td></tr>
+        </table>
+      </div>
+      <p class="ref-intro">Rule: <b>drop the final -&#299; of the 3rd principal part</b>. Some verbs have no 4th part (<i>possum</i>); some give a future participle instead (<i>sum &rarr; fut&#363;rum</i>, about to be).</p>
+    </div>
+
+    <div class="agree-subsection">
+      <div class="agree-subsection-title">Endings of the three perfect-system tenses</div>
+      <div class="ref-wrap">
+        <table class="ref-table ref-wide" data-ref-topic="Perfect, pluperfect, future perfect endings" data-ref-gloss="-ī, -istī, -it · -eram · -erō … -erint" data-ref-keys="perfect endings, pluperfect endings, future perfect endings, isti, erunt, eram, ero, erint">
+          <tr><th>Person</th><th>Perfect</th><th>Pluperfect</th><th>Future perfect</th></tr>
+          <tr><td class="label">I</td><td><i>laud&#257;v-<b>&#299;</b></i></td><td><i>laud&#257;v-<b>eram</b></i></td><td><i>laud&#257;v-<b>er&#333;</b></i></td></tr>
+          <tr><td class="label">you</td><td><i>laud&#257;v-<b>ist&#299;</b></i></td><td><i>laud&#257;v-<b>er&#257;s</b></i></td><td><i>laud&#257;v-<b>eris</b></i></td></tr>
+          <tr><td class="label">he/she/it</td><td><i>laud&#257;v-<b>it</b></i></td><td><i>laud&#257;v-<b>erat</b></i></td><td><i>laud&#257;v-<b>erit</b></i></td></tr>
+          <tr><td class="label">we</td><td><i>laud&#257;v-<b>imus</b></i></td><td><i>laud&#257;v-<b>er&#257;mus</b></i></td><td><i>laud&#257;v-<b>erimus</b></i></td></tr>
+          <tr><td class="label">you (pl.)</td><td><i>laud&#257;v-<b>istis</b></i></td><td><i>laud&#257;v-<b>er&#257;tis</b></i></td><td><i>laud&#257;v-<b>eritis</b></i></td></tr>
+          <tr><td class="label">they</td><td><i>laud&#257;v-<b>&#275;runt</b></i> (or <i>-&#275;re</i>)</td><td><i>laud&#257;v-<b>erant</b></i></td><td><i>laud&#257;v-<b>erint</b></i></td></tr>
+        </table>
+      </div>
+      <ul class="ref-list">
+        <li data-ref-topic="Pluperfect = perfect stem + eram" data-ref-gloss="the imperfect of sum on the perfect stem" data-ref-keys="pluperfect, eram, past perfect, had">
+          <b>Pluperfect</b> = perfect stem + the imperfect of <i>sum</i> (<i>eram, er&#257;s, erat</i> &hellip;): <i>fueram, &#275;geram, c&#275;peram</i>.</li>
+        <li data-ref-topic="Future perfect = perfect stem + erō, but -erint" data-ref-gloss="the future of sum on the perfect stem, except 3rd pl. -erint" data-ref-keys="future perfect, ero, erint, will have">
+          <b>Future perfect</b> = perfect stem + the future of <i>sum</i> (<i>er&#333;, eris, erit</i> &hellip;), <b>except</b> the 3rd plural: <i>-erint</i>, not <i>-erunt</i>.</li>
+        <li data-ref-topic="-ērunt, -erant, -erint: three 'they' endings" data-ref-gloss="perfect -ērunt · pluperfect -erant · future perfect -erint" data-ref-keys="erunt, erant, erint, they endings">
+          <b>Three look-alike "they" forms:</b> <i>laud&#257;v<b>&#275;runt</b></i> (they praised, perfect) &middot; <i>laud&#257;v<b>erant</b></i> (they had praised) &middot; <i>laud&#257;v<b>erint</b></i> (they will have praised). The perfect also has a short alternative, <i>laud&#257;v&#275;re</i>, mostly in poetry.</li>
+      </ul>
+    </div>
+
+    <div class="agree-subsection">
+      <div class="agree-subsection-title">What the tenses mean</div>
+      <div class="ref-wrap">
+        <table class="ref-table" data-ref-topic="Perfect system meanings: had, has/have, will have" data-ref-gloss="pluperfect = had done · perfect = did / has done · future perfect = will have done" data-ref-keys="meaning, translation, had, has, have, will have, completed action">
+          <tr><th>Tense</th><th>English</th><th>Looks at</th></tr>
+          <tr><td class="label">Pluperfect</td><td><i>&#275;gerat</i> &mdash; he <b>had</b> done</td><td>completed before some past moment</td></tr>
+          <tr><td class="label">Perfect</td><td><i>&#275;git</i> &mdash; he <b>did</b> / he <b>has</b> done</td><td>completed, seen from now</td></tr>
+          <tr><td class="label">Future perfect</td><td><i>&#275;gerit</i> &mdash; he <b>will have</b> done</td><td>completed before some future moment</td></tr>
+        </table>
+      </div>
+      <ul class="ref-list">
+        <li data-ref-topic="Imperfect vs perfect" data-ref-gloss="was doing / used to do vs did / has done" data-ref-keys="imperfect or perfect, difference, ongoing, completed, simple past">
+          <b>Imperfect vs perfect.</b> The imperfect shows an action as <b>ongoing or repeated</b>: <i>scr&#299;b&#275;bat</i>, he was writing / kept writing / used to write. The perfect shows it as <b>done</b>: <i>scr&#299;psit</i>, he wrote (once) or he has written (and the letter now exists). Choose "has" when the result still matters now, the simple past otherwise.</li>
+      </ul>
+    </div>
+
+    <div class="agree-subsection">
+      <div class="agree-subsection-title">Synopsis</div>
+      <p class="ref-intro" data-ref-topic="Synopsis" data-ref-gloss="one person and number through all six tenses" data-ref-keys="synopsis, six tenses, conjugate">
+        A <b>synopsis</b> tests a whole verb quickly: one person and number through all six indicative tenses, in the order present, future, imperfect, perfect, future perfect, pluperfect. Example, <i>laud&#333;</i> in the 1st person plural:</p>
+      <div class="ref-wrap">
+        <table class="ref-table ref-wide">
+          <tr><th>Pres.</th><th>Fut.</th><th>Imperf.</th><th>Perf.</th><th>Fut. perf.</th><th>Pluperf.</th></tr>
+          <tr><td><i>laud&#257;mus</i></td><td><i>laud&#257;bimus</i></td><td><i>laud&#257;b&#257;mus</i></td><td><i>laud&#257;vimus</i></td><td><i>laud&#257;verimus</i></td><td><i>laud&#257;ver&#257;mus</i></td></tr>
+          <tr><td>we praise</td><td>we will praise</td><td>we were praising</td><td>we praised, have praised</td><td>we will have praised</td><td>we had praised</td></tr>
+        </table>
+      </div>
+      <p class="ref-intro">Practise it in Verb Conjugations &rarr; Tenses &rarr; <b>Synopsis</b>.</p>
+    </div>
+  </div>
+
   <div class="agree-section" id="ref-notes">
     <div class="agree-section-title">Other notes</div>
     <p class="ref-intro">Smaller points from questions so far. New topics get added here or as new sections.</p>
@@ -986,6 +1065,7 @@ async function loadDrillData() {
     // Continue to initialise with fallback data
     buildDeclSelectors();
     buildVerbSelectors();
+    buildVerbModes(); showVerbNote(0);
     verbTenses = buildVerbTenses(verbs[0]);
     buildDeclTable();
     buildDemSelectors();
@@ -1064,6 +1144,8 @@ async function loadDrillData() {
     meaning: d.content.meaning,
     conj:    d.content.conjugation_class,
     forms:   d.content.forms,
+    note:    d.content.note || null,
+    pp:      d.content.principal_parts || null,
     // legacy flat keys for fallback compatibility
     pres:    d.content.forms.present,
     fut:     d.content.forms.future,
@@ -1093,6 +1175,7 @@ async function loadDrillData() {
   buildVerbSelectors();
 
   // Initialise drills
+  buildVerbModes(); showVerbNote(0);
   verbTenses = buildVerbTenses(verbs[0]);
   buildDeclTable();
   buildDemSelectors();
@@ -1950,14 +2033,76 @@ const ALL_PERSONS=[{label:'1st',idx:0},{label:'2nd',idx:1},{label:'3rd',idx:2}];
 // Tenses built dynamically per verb — see buildVerbTenses()
 let currentVerb=0, verbPersons=shuffle(ALL_PERSONS), verbTenses=[];
 
+// Which tenses the drill shows. 'synopsis' = one person/number through all six indicative tenses.
+const VERB_MODES = [
+  ['present',  'Present system', 'Active indicative \u2014 present system: present, future, imperfect; imperative'],
+  ['perfect',  'Perfect system', 'Active indicative \u2014 perfect system: perfect, pluperfect, future perfect'],
+  ['all',      'All tenses',     'Active indicative \u2014 all six tenses and the imperative'],
+  ['synopsis', 'Synopsis',       'Synopsis \u2014 one person and number through all six tenses'],
+];
+const VERB_TENSE_DEFS = {
+  present:    {label:'Present',        key:'pres',  imperative:false},
+  future:     {label:'Future',         key:'fut',   imperative:false},
+  imperfect:  {label:'Imperfect',      key:'impf',  imperative:false},
+  imperative: {label:'Imperative',     key:'imp',   imperative:true},
+  perfect:    {label:'Perfect',        key:'perf',  imperative:false},
+  futperfect: {label:'Future Perfect', key:'fperf', imperative:false},
+  pluperfect: {label:'Pluperfect',     key:'plup',  imperative:false},
+};
+const VERB_SYN_PERSON = [['I','we'],['you (sg.)','you (pl.)'],['he/she/it','they']];
+let verbMode = 'present', verbSyn = {pi:2, num:'s'};
+try { const m = localStorage.getItem('verbMode'); if (VERB_MODES.some(x => x[0] === m)) verbMode = m; } catch (e) {}
+
+function randomVerbSyn(){ return { pi: Math.floor(Math.random()*3), num: Math.random() < 0.5 ? 's' : 'p' }; }
+
 function buildVerbTenses(verb) {
   const forms = verb.forms || {};
-  const tenses = [];
-  if (forms.present)    tenses.push({label:'Present',   key:'pres', imperative:false});
-  if (forms.future)     tenses.push({label:'Future',    key:'fut',  imperative:false});
-  if (forms.imperfect)  tenses.push({label:'Imperfect', key:'impf', imperative:false});
-  if (forms.imperative) tenses.push({label:'Imperative',key:'imp',  imperative:true});
-  return shuffle(tenses);
+  const pick = keys => keys.filter(k => forms[k]).map(k => VERB_TENSE_DEFS[k]);
+  const presentSys = ['present','future','imperfect','imperative'];
+  const perfectSys = ['perfect','pluperfect','futperfect'];
+  if (verbMode === 'synopsis') return pick(['present','future','imperfect','perfect','futperfect','pluperfect']);
+  if (verbMode === 'perfect')  return shuffle(pick(perfectSys));
+  if (verbMode === 'all')      return shuffle(pick(presentSys)).concat(shuffle(pick(perfectSys)));
+  return shuffle(pick(presentSys));
+}
+
+function verbModeSuffix(){ return verbMode === 'present' ? '' : ' (' + VERB_MODES.find(x => x[0] === verbMode)[1].toLowerCase() + ')'; }
+
+function buildVerbModes(){
+  const box = document.getElementById('verbModes');
+  if (!box) return;
+  box.innerHTML = '<div class="selector-label">Tenses</div>';
+  const s = document.createElement('div'); s.className = 'selector';
+  VERB_MODES.forEach(([key, label]) => {
+    const b = document.createElement('button');
+    b.className = 'sel-btn' + (key === verbMode ? ' active' : '');
+    b.textContent = label; b.dataset.mode = key;
+    b.onclick = () => setVerbMode(key);
+    s.appendChild(b);
+  });
+  box.appendChild(s);
+  const sub = document.getElementById('verbSubtitle');
+  if (sub) sub.textContent = VERB_MODES.find(x => x[0] === verbMode)[2];
+}
+
+function showVerbNote(idx){
+  const vNote=document.getElementById('verbNote'), v=verbs[idx];
+  if(!vNote || !v) return;
+  if(v.note){ vNote.textContent=v.note; vNote.style.display='block'; } else { vNote.textContent=''; vNote.style.display='none'; }
+}
+
+function setVerbMode(mode){
+  verbMode = mode;
+  try { localStorage.setItem('verbMode', mode); } catch (e) {}
+  buildVerbModes();
+  if (!verbs.length) return;
+  masteryReset('verbScore');
+  verbPersons = shuffle(ALL_PERSONS);
+  verbSyn = randomVerbSyn();
+  verbTenses = buildVerbTenses(verbs[currentVerb]);
+  liveReset('verb');
+  buildVerbTable(); document.getElementById('verbScore').textContent = '';
+  document.getElementById('undoVerbBtn').style.display = 'none'; verbSnapshot = null;
 }
 
 function setVerb(idx){
@@ -1969,7 +2114,10 @@ function setVerb(idx){
   });
   document.getElementById('verbDisplay').textContent=verbs[idx].display;
   document.getElementById('verbMeaning').textContent=verbs[idx].meaning+' — '+verbs[idx].conj;
+  showVerbNote(idx);
+  buildVerbModes();
   verbPersons=shuffle(ALL_PERSONS);
+  verbSyn=randomVerbSyn();
   verbTenses=buildVerbTenses(verbs[idx]);
   liveReset('verb');
   buildVerbTable(); document.getElementById('verbScore').textContent='';
@@ -1978,6 +2126,30 @@ function setVerb(idx){
 function buildVerbTable(){
   if(!verbs.length) return;
   const table=document.getElementById('verbTable'); table.innerHTML='';
+  if(!verbTenses.length){
+    table.innerHTML='<tbody><tr><td class="label" style="text-align:center;white-space:normal;padding:14px">No forms for these tenses are loaded for this verb yet.</td></tr></tbody>';
+    return;
+  }
+  if(verbMode==='synopsis'){
+    const thead=document.createElement('thead'),hr=document.createElement('tr');
+    ['Tense','Form'].forEach(h=>{const th=document.createElement('th');th.textContent=h;hr.appendChild(th);});
+    thead.appendChild(hr); table.appendChild(thead);
+    const tbody=document.createElement('tbody');
+    const sr=document.createElement('tr'),st=document.createElement('td');
+    st.className='section';st.colSpan=2;
+    st.textContent=['1st','2nd','3rd'][verbSyn.pi]+' person '+(verbSyn.num==='s'?'singular':'plural')+' ('+VERB_SYN_PERSON[verbSyn.pi][verbSyn.num==='s'?0:1]+')';
+    sr.appendChild(st);tbody.appendChild(sr);
+    verbTenses.forEach(t=>{
+      const tr=document.createElement('tr');
+      const td0=document.createElement('td');td0.className='label';td0.textContent=t.label;tr.appendChild(td0);
+      const td=document.createElement('td'),inp=document.createElement('input');
+      inp.type='text';inp.autocomplete='off';inp.spellcheck=false;
+      inp.dataset.tense=t.key;inp.dataset.num=verbSyn.num;inp.dataset.person=verbSyn.pi;
+      td.appendChild(inp);tr.appendChild(td);tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    return;
+  }
   const thead=document.createElement('thead'),hr=document.createElement('tr');
   ['Person / Form','Singular','Plural'].forEach(h=>{const th=document.createElement('th');th.textContent=h;hr.appendChild(th);});
   thead.appendChild(hr); table.appendChild(thead);
@@ -2023,7 +2195,7 @@ function getVerbAnswer(tense,num,pi){
   if(tense==='imp'){
     return num==='s' ? v.imp[0] : v.imp[1];
   }
-  const keyMap = {pres:'present', fut:'future', impf:'imperfect'};
+  const keyMap = {pres:'present', fut:'future', impf:'imperfect', perf:'perfect', plup:'pluperfect', fperf:'futperfect'};
   const arr = v.forms ? v.forms[keyMap[tense]] : (tense==='pres' ? v.pres : v.fut);
   if(!arr) return '';
   return num==='s' ? arr[pi] : arr[pi+3];
@@ -2032,7 +2204,7 @@ function getVerbAnswer(tense,num,pi){
 function checkVerb(){
   if(document.getElementById('liveVerb').checked){
     const c=liveFinish('verb', inp=>checkVerbCell(inp, true));
-    recordRun('verb', 'verbScore', 'verb', 'verbs', verbs[currentVerb].display, c.green, c.total, c.errors, c.revealed);
+    recordRun('verb', 'verbScore', 'verb', 'verbs', verbs[currentVerb].display + verbModeSuffix(), c.green, c.total, c.errors, c.revealed);
     return;
   }
   const inputs=document.querySelectorAll('#verbTable input');
@@ -2040,13 +2212,13 @@ function checkVerb(){
   inputs.forEach(inp=>{
     const ans=getVerbAnswer(inp.dataset.tense,inp.dataset.num,parseInt(inp.dataset.person));
     inp.classList.remove('correct','wrong','corrected'); total++;
-    if(norm(inp.value)===norm(ans)){inp.classList.add('correct');correct++;}
-    else{inp.classList.add('wrong');inp.title='Expected: '+ans;}
+    if(demOk(inp.value, ans)){inp.classList.add('correct');correct++;}      // a|b alternatives (laudaverunt|laudavere)
+    else{inp.classList.add('wrong');inp.title='Expected: '+demShow(ans);}
   });
   const s=document.getElementById('verbScore');
   s.style.color=correct===total?'green':'red';
   s.textContent=correct===total?'Optime! '+correct+'/'+total+' — perfect.':correct+'/'+total+' — hover red cells to see the expected answer.';
-  recordRun('verb', 'verbScore', 'verb', 'verbs', verbs[currentVerb].display, correct, total, total-correct, null);
+  recordRun('verb', 'verbScore', 'verb', 'verbs', verbs[currentVerb].display + verbModeSuffix(), correct, total, total-correct, null);
 }
 
 function checkVerbCell(inp, finalSweep){
@@ -2054,9 +2226,9 @@ function checkVerbCell(inp, finalSweep){
   if(!inp.value && !finalSweep && !liveAttempted('verb', inp)){
     inp.classList.remove('correct','wrong','corrected'); inp.title=''; return;
   }
-  const ok=norm(inp.value)===norm(ans);
+  const ok=demOk(inp.value, ans);
   liveMark('verb', inp, ok);
-  inp.title = ok ? '' : 'Expected: '+ans;
+  inp.title = ok ? '' : 'Expected: '+demShow(ans);
 }
 
 document.getElementById('verbTable').addEventListener('focusout', e=>{
@@ -2071,7 +2243,7 @@ function revealVerb(){
   verbSnapshot.liveMap = {...liveAttempts.verb};
   const live=document.getElementById('liveVerb').checked;
   document.querySelectorAll('#verbTable input').forEach(inp=>{
-    inp.value=getVerbAnswer(inp.dataset.tense,inp.dataset.num,parseInt(inp.dataset.person));
+    inp.value=demFirst(getVerbAnswer(inp.dataset.tense,inp.dataset.num,parseInt(inp.dataset.person)));
     inp.title='';
     if(live){
       liveReveal('verb', inp);
@@ -2090,6 +2262,7 @@ function resetVerb(silent){
     verbSnapshot.liveMap = {...liveAttempts.verb};
   }
   verbPersons=shuffle(ALL_PERSONS);
+  verbSyn=randomVerbSyn();
   verbTenses=buildVerbTenses(verbs[currentVerb]);
   liveReset('verb');
   buildVerbTable(); document.getElementById('verbScore').textContent='';
