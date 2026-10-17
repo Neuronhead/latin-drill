@@ -298,7 +298,7 @@
 <div class="tabs">
   <div class="tab active" onclick="switchTab('decl')">1st &amp; 2nd Declension</div>
   <div class="tab"        onclick="switchTab('decl3')">3rd Declension</div>
-  <div class="tab"        onclick="switchTab('dem')">Demonstratives</div>
+  <div class="tab"        onclick="switchTab('dem')">Pronouns</div>
   <div class="tab"        onclick="switchTab('verb')">Verb Conjugations</div>
   <div class="tab"        onclick="switchTab('agree')">Adjective/Noun Agreement</div>
   <div class="tab"        onclick="switchTab('vocab')">Vocabulary</div>
@@ -371,7 +371,7 @@
 <!-- ── VERB PANEL ────────────────────────────────────────────── -->
 <div class="panel" id="panel-dem">
   <div id="demSelectors"></div>
-  <div class="panel-subtitle">Demonstrative Pronouns &amp; Adjectives</div>
+  <div class="panel-subtitle">Personal &amp; Demonstrative Pronouns</div>
   <div class="word-display" id="demDisplay"></div>
   <div class="meaning" id="demMeaning"></div>
   <div id="demNote" style="display:none; background:#fff8e8; border:1px solid #c9a96e; border-radius:4px; padding:10px 14px; margin-bottom:12px; font-size:0.88rem; color:#333; line-height:1.5;"></div>
@@ -646,6 +646,64 @@
         <b>Future uses <i>-ia- / -i&#275;-</i></b>, like <i>ag&#333;</i>: <i>audiam, audi&#275;s, audiet</i>. Watch <i>audiet</i> (he <b>will</b> hear) against <i>audit</i> (he hears), and <i>capiet</i> against <i>capit</i>.</li>
       <li data-ref-topic="Short imperatives: dic, duc, fac, fer" data-ref-gloss="dīc, dūc, fac, fer (plurals dīcite, dūcite, facite, ferte)" data-ref-keys="irregular imperatives, dic, duc, fac, fer, imperative">
         <b>Four short imperatives</b> drop the final <i>-e</i> in the singular: <i>d&#299;c</i> (say), <i>d&#363;c</i> (lead), <i>fac</i> (do, make), <i>fer</i> (bring). Plurals: <i>d&#299;cite, d&#363;cite, facite</i>, and <i>ferte</i>.</li>
+    </ul>
+  </div>
+
+  <div class="agree-section" id="ref-pronouns">
+    <div class="agree-section-title">Personal pronouns: ego, t&#363;, is</div>
+    <p class="ref-intro">A pronoun stands in for a noun and takes whatever case that noun would have. 1st person = the speaker (<i>ego, n&#333;s</i>); 2nd = the person spoken to (<i>t&#363;, v&#333;s</i>); 3rd = the person or thing spoken about (<i>is, ea, id</i>).</p>
+    <div class="ref-wrap">
+      <table class="ref-table" data-ref-topic="ego and tu declension" data-ref-gloss="ego, mei, mihi, me · tu, tui, tibi, te · nos, vos" data-ref-keys="ego, tu, nos, vos, mihi, tibi, nobis, vobis, nostrum, vestrum, first person, second person">
+        <tr><th>Case</th><th>I</th><th>we</th><th>you (sg.)</th><th>you (pl.)</th></tr>
+        <tr><td class="label">Nom.</td><td><i>ego</i></td><td><i>n&#333;s</i></td><td><i>t&#363;</i></td><td><i>v&#333;s</i></td></tr>
+        <tr><td class="label">Gen.</td><td><i>me&#299;</i></td><td><i>nostrum / nostr&#299;</i></td><td><i>tu&#299;</i></td><td><i>vestrum / vestr&#299;</i></td></tr>
+        <tr><td class="label">Dat.</td><td><i>mihi</i></td><td><i>n&#333;b&#299;s</i></td><td><i>tibi</i></td><td><i>v&#333;b&#299;s</i></td></tr>
+        <tr><td class="label">Acc.</td><td><i>m&#275;</i></td><td><i>n&#333;s</i></td><td><i>t&#275;</i></td><td><i>v&#333;s</i></td></tr>
+        <tr><td class="label">Abl.</td><td><i>m&#275;</i></td><td><i>n&#333;b&#299;s</i></td><td><i>t&#275;</i></td><td><i>v&#333;b&#299;s</i></td></tr>
+      </table>
+    </div>
+    <div class="ref-wrap">
+      <table class="ref-table ref-wide" data-ref-topic="is, ea, id declension" data-ref-gloss="is, ea, id · eius · ei · eum, eam, id · eo, ea, eo" data-ref-keys="is ea id, eius, eorum, earum, eum, eam, third person">
+        <tr><th>Case</th><th>Masc. sg.</th><th>Fem. sg.</th><th>Neut. sg.</th><th>Masc. pl.</th><th>Fem. pl.</th><th>Neut. pl.</th></tr>
+        <tr><td class="label">Nom.</td><td><i>is</i></td><td><i>ea</i></td><td><i>id</i></td><td><i>e&#299; / i&#299;</i></td><td><i>eae</i></td><td><i>ea</i></td></tr>
+        <tr><td class="label">Gen.</td><td><i>eius</i></td><td><i>eius</i></td><td><i>eius</i></td><td><i>e&#333;rum</i></td><td><i>e&#257;rum</i></td><td><i>e&#333;rum</i></td></tr>
+        <tr><td class="label">Dat.</td><td><i>e&#299;</i></td><td><i>e&#299;</i></td><td><i>e&#299;</i></td><td><i>e&#299;s</i></td><td><i>e&#299;s</i></td><td><i>e&#299;s</i></td></tr>
+        <tr><td class="label">Acc.</td><td><i>eum</i></td><td><i>eam</i></td><td><i>id</i></td><td><i>e&#333;s</i></td><td><i>e&#257;s</i></td><td><i>ea</i></td></tr>
+        <tr><td class="label">Abl.</td><td><i>e&#333;</i></td><td><i>e&#257;</i></td><td><i>e&#333;</i></td><td><i>e&#299;s</i></td><td><i>e&#299;s</i></td><td><i>e&#299;s</i></td></tr>
+      </table>
+    </div>
+    <ul class="ref-list">
+      <li data-ref-topic="Subject pronouns only for emphasis" data-ref-gloss="the verb ending already gives the subject" data-ref-keys="nominative pronoun, emphasis, ego tu subject">
+        <b>Subject pronouns are for emphasis.</b> The verb ending already says who: <i>lab&#333;r&#333;</i> = I work. <i>Ego</i> or <i>t&#363;</i> appears only when the subject is stressed or contrasted: <i>Ego lab&#333;r&#333;, t&#363; dorm&#299;s.</i> <b>I</b> am working, <b>you</b> are asleep.</li>
+      <li data-ref-topic="cum attached: mecum, tecum, nobiscum, vobiscum" data-ref-gloss="with me, with you, with us, with you (pl.)" data-ref-keys="mecum, tecum, nobiscum, vobiscum, cum suffix">
+        <b><i>Cum</i> goes on the end</b> of a personal pronoun: <i>m&#275;cum</i> (with me), <i>t&#275;cum</i> (with you), <i>n&#333;b&#299;scum</i> (with us), <i>v&#333;b&#299;scum</i> (with you all).</li>
+      <li data-ref-topic="my, your, our: meus, tuus, noster, vester" data-ref-gloss="possessive adjectives, not the genitives mei, tui, nostrum" data-ref-keys="possessive, possessives, meus, tuus, noster, vester, my, your, our">
+        <b>"My, your, our" are adjectives</b>, not the genitives of <i>ego/t&#363;</i>: <i>meus, tuus, noster, vester</i>, agreeing with the thing owned. <i>Fr&#257;ter meus</i> = my brother (never <i>fr&#257;ter me&#299;</i>).</li>
+      <li data-ref-topic="his, her, its, their: eius, eorum, earum" data-ref-gloss="genitives of is; they do not agree with the thing owned" data-ref-keys="eius, eorum, earum, his, her, its, their">
+        <b>"His, her, its, their" are genitives of <i>is</i></b> and never change to agree: <i>f&#299;lia eius</i> = his/her daughter, <i>f&#299;li&#257;s eius</i> = his/her daughters, <i>libr&#299; e&#333;rum</i> = their books (men or mixed), <i>libr&#299; e&#257;rum</i> = their books (women).</li>
+      <li data-ref-topic="Latin leaves out possessives" data-ref-gloss="supply his/her/my in English" data-ref-keys="omitted possessive, supply possessive">
+        <b>Latin often leaves possessives out</b> unless they are needed for emphasis or clarity; English usually supplies them: <i>M&#257;trem amat.</i> He loves <b>his</b> mother.</li>
+      <li data-ref-topic="is as a demonstrative: this, that" data-ref-gloss="ea puella = that girl; eam video = I see her" data-ref-keys="is demonstrative, this that">
+        <b><i>Is</i> as "this / that".</b> Standing alone it is a pronoun (<i>eam vide&#333;</i>, I see <b>her</b>). Directly with a noun it agrees and means this/that, weaker than <i>hic</i> or <i>ille</i>: <i>eam puellam vide&#333;</i>, I see <b>that</b> girl.</li>
+    </ul>
+  </div>
+
+  <div class="agree-section" id="ref-idem">
+    <div class="agree-section-title">&#298;dem, eadem, idem (the same)</div>
+    <ul class="ref-list">
+      <li data-ref-topic="idem = is + -dem" data-ref-gloss="eiusdem, eidem, eundem, eandem, eorundem, earundem" data-ref-keys="idem, eadem, eundem, eandem, eorundem, earundem, the same">
+        <b>Build it from <i>is</i> + <i>-dem</i>:</b> <i>eiusdem, e&#299;dem, e&#333;dem, eaedem, e&#333;sdem</i>. Three adjustments: masc. nom. <i>&#299;dem</i> (not <i>*isdem</i>), neut. nom./acc. <i>idem</i> (not <i>*iddem</i>), and <b>-m becomes -n</b> before <i>-dem</i>: <i>eundem, eandem, e&#333;rundem, e&#257;rundem</i>.</li>
+      <li>Like other demonstratives it works alone or with a noun: <i>e&#333;sdem libr&#333;s legimus</i>, we read <b>the same</b> books.</li>
+    </ul>
+  </div>
+
+  <div class="agree-section" id="ref-ch11-words">
+    <div class="agree-section-title">Tricky words: n&#275;m&#333;, autem</div>
+    <ul class="ref-list">
+      <li data-ref-topic="nemo borrows forms from nullus" data-ref-gloss="nemo, nullius, nemini, neminem, nullo/nulla" data-ref-keys="nemo, nullius, nemini, neminem, no one, nobody, suppletion">
+        <b><i>N&#275;m&#333;</i> (no one) borrows from <i>n&#363;llus</i>.</b> Singular only: <i>n&#275;m&#333;, n&#363;ll&#299;us, n&#275;min&#299;, n&#275;minem, n&#363;ll&#333;</i> (or <i>n&#363;ll&#257;</i>). Filling gaps in one word with forms of another is called suppletion, as in English go / went.</li>
+      <li data-ref-topic="autem: however or moreover" data-ref-gloss="postpositive; contrast = however, support = moreover" data-ref-keys="autem, however, moreover, postpositive">
+        <b><i>Autem</i> = however <em>or</em> moreover.</b> It never comes first in its clause. Choose <b>however</b> when the new statement cuts against what came before, <b>moreover</b> when it adds to it.</li>
     </ul>
   </div>
 
@@ -1554,6 +1612,11 @@ function demAnswer(inp){
   return inp.dataset.gi==='noun'?raw:raw[parseInt(inp.dataset.gi)];
 }
 
+// An answer may list alternatives as "a|b" (nostrum|nostri): any one is correct.
+function demOk(val, ans){ return String(ans).split('|').some(a => norm(val)===norm(a)); }
+function demShow(ans){ return String(ans).split('|').join(' or '); }
+function demFirst(ans){ return String(ans).split('|')[0]; }
+
 function checkDem(){
   if(document.getElementById('liveDem').checked){
     const c=liveFinish('dem', inp=>checkDemCell(inp, true));
@@ -1565,8 +1628,8 @@ function checkDem(){
   inputs.forEach(inp=>{
     const ans=demAnswer(inp);
     inp.classList.remove('correct','wrong','corrected'); total++;
-    if(norm(inp.value)===norm(ans)){inp.classList.add('correct');correct++;}
-    else{inp.classList.add('wrong');inp.title='Expected: '+ans;}
+    if(demOk(inp.value, ans)){inp.classList.add('correct');correct++;}
+    else{inp.classList.add('wrong');inp.title='Expected: '+demShow(ans);}
   });
   const s=document.getElementById('demScore');
   s.style.color=correct===total?'green':'red';
@@ -1579,9 +1642,9 @@ function checkDemCell(inp, finalSweep){
   if(!inp.value && !finalSweep && !liveAttempted('dem', inp)){
     inp.classList.remove('correct','wrong','corrected'); inp.title=''; return;
   }
-  const ok=norm(inp.value)===norm(ans);
+  const ok=demOk(inp.value, ans);
   liveMark('dem', inp, ok);
-  inp.title = ok ? '' : 'Expected: '+ans;
+  inp.title = ok ? '' : 'Expected: '+demShow(ans);
 }
 
 document.getElementById('demTable').addEventListener('focusout', e=>{
@@ -1596,7 +1659,7 @@ function revealDem(){
   demSnapshot.liveMap = {...liveAttempts.dem};
   const live=document.getElementById('liveDem').checked;
   document.querySelectorAll('#demTable input').forEach(inp=>{
-    inp.value=demAnswer(inp);
+    inp.value=demFirst(demAnswer(inp));
     inp.title='';
     if(live){
       liveReveal('dem', inp);
@@ -2691,7 +2754,7 @@ let vocabChapter = null;
 let vocabDirection = 'la2en';   // 'la2en' = Latin given; 'en2la' = English given
 let vocabSnapshot = null;
 
-const POS_LABEL = { m:'m.', f:'f.', n:'n.', adj:'adj.', prep:'prep.', verb:'verb', adv:'adv.', conj:'conj.' };
+const POS_LABEL = { m:'m.', f:'f.', n:'n.', 'm/f':'m./f.', adj:'adj.', prep:'prep.', verb:'verb', adv:'adv.', conj:'conj.', pron:'pron.' };
 
 function normEng(v){
   return (v||'').toLowerCase().trim()
@@ -3062,6 +3125,7 @@ const GENDER_ACCEPT = {
   m:['m','masc','masculine'], f:['f','fem','feminine'], n:['n','neut','neuter'],
   adj:['adj','adjective'], prep:['prep','preposition'], verb:['v','verb'],
   adv:['adv','adverb'], conj:['conj','conjunction'],
+  'm/f':['m/f','f/m','mf','m or f','f or m','common','c'], pron:['pron','pronoun'],
 };
 
 function vocabFieldCorrect(inp){
@@ -3389,7 +3453,7 @@ function switchTab(tab){
 const SEARCH_TABS = [
   ['decl',  '1st & 2nd Declension',     ['declension', 'adjectives', 'nouns']],
   ['decl3', '3rd Declension',           ['declension', 'nouns']],
-  ['dem',   'Demonstratives',           ['demonstrative pronouns', 'pronouns']],
+  ['dem',   'Pronouns',                 ['demonstratives', 'demonstrative pronouns', 'personal pronouns', 'pronouns']],
   ['verb',  'Verb Conjugations',        ['verbs', 'conjugation']],
   ['agree', 'Adjective/Noun Agreement', ['agreement']],
   ['vocab', 'Vocabulary',               ['vocab', 'vocabula']],
@@ -3403,7 +3467,7 @@ function sNorm(x){ return norm(String(x == null ? '' : x)).replace(/\s+/g, ' ');
 function searchFlatten(o, out){
   out = out || [];
   if (o == null) return out;
-  if (typeof o === 'string') { if (o.trim()) out.push(o); }
+  if (typeof o === 'string') { o.split('|').forEach(x => { if (x.trim()) out.push(x.trim()); }); }
   else if (Array.isArray(o)) o.forEach(x => searchFlatten(x, out));
   else if (typeof o === 'object') Object.values(o).forEach(x => searchFlatten(x, out));
   return out;
