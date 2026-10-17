@@ -729,7 +729,7 @@
           <tr><td><i>possum, posse, potu&#299;, &mdash;</i></td><td><i>potu-</i></td></tr>
         </table>
       </div>
-      <p class="ref-intro">Rule: <b>drop the final -&#299; of the 3rd principal part</b>. Some verbs have no 4th part (<i>possum</i>); some give a future participle instead (<i>sum &rarr; fut&#363;rum</i>, about to be).</p>
+      <p class="ref-intro">Rule: <b>drop the final -&#299; of the 3rd principal part</b>. Some verbs have no 4th part (<i>possum</i>); some give a future participle instead (<i>sum &rarr; fut&#363;rum</i>, about to be). Practise them in Verb Conjugations &rarr; Tenses &rarr; <b>Principal parts</b>.</p>
     </div>
 
     <div class="agree-subsection">
@@ -2039,6 +2039,7 @@ const VERB_MODES = [
   ['perfect',  'Perfect system', 'Active indicative \u2014 perfect system: perfect, pluperfect, future perfect'],
   ['all',      'All tenses',     'Active indicative \u2014 all six tenses and the imperative'],
   ['synopsis', 'Synopsis',       'Synopsis \u2014 one person and number through all six tenses'],
+  ['pp',       'Principal parts','Principal parts \u2014 the infinitive is given: supply the 1st, 3rd and 4th parts'],
 ];
 const VERB_TENSE_DEFS = {
   present:    {label:'Present',        key:'pres',  imperative:false},
@@ -2060,6 +2061,7 @@ function buildVerbTenses(verb) {
   const pick = keys => keys.filter(k => forms[k]).map(k => VERB_TENSE_DEFS[k]);
   const presentSys = ['present','future','imperfect','imperative'];
   const perfectSys = ['perfect','pluperfect','futperfect'];
+  if (verbMode === 'pp')       return (verb.pp && verb.pp[2]) ? [{label:'Principal parts', key:'pp', imperative:false}] : [];
   if (verbMode === 'synopsis') return pick(['present','future','imperfect','perfect','futperfect','pluperfect']);
   if (verbMode === 'perfect')  return shuffle(pick(perfectSys));
   if (verbMode === 'all')      return shuffle(pick(presentSys)).concat(shuffle(pick(perfectSys)));
@@ -2088,13 +2090,15 @@ function buildVerbModes(){
 function showVerbNote(idx){
   const vNote=document.getElementById('verbNote'), v=verbs[idx];
   if(!vNote || !v) return;
-  if(v.note){ vNote.textContent=v.note; vNote.style.display='block'; } else { vNote.textContent=''; vNote.style.display='none'; }
+  // Notes can name perfect forms (cecidi, amisi), so show them only where they cannot give answers away.
+  if(v.note && verbMode==='present'){ vNote.textContent=v.note; vNote.style.display='block'; } else { vNote.textContent=''; vNote.style.display='none'; }
 }
 
 function setVerbMode(mode){
   verbMode = mode;
   try { localStorage.setItem('verbMode', mode); } catch (e) {}
   buildVerbModes();
+  showVerbNote(currentVerb);
   if (!verbs.length) return;
   masteryReset('verbScore');
   verbPersons = shuffle(ALL_PERSONS);
@@ -2128,6 +2132,31 @@ function buildVerbTable(){
   const table=document.getElementById('verbTable'); table.innerHTML='';
   if(!verbTenses.length){
     table.innerHTML='<tbody><tr><td class="label" style="text-align:center;white-space:normal;padding:14px">No forms for these tenses are loaded for this verb yet.</td></tr></tbody>';
+    return;
+  }
+  if(verbMode==='pp'){
+    // Principal parts: part 2 (the infinitive, also the drill's heading) is shown; parts 1, 3, 4 are typed.
+    const v=verbs[currentVerb];
+    const thead=document.createElement('thead'),hr=document.createElement('tr');
+    ['Principal part','Form'].forEach(h=>{const th=document.createElement('th');th.textContent=h;hr.appendChild(th);});
+    thead.appendChild(hr); table.appendChild(thead);
+    const tbody=document.createElement('tbody');
+    const PP_LABELS=['1st \u2014 present (I \u2026)','2nd \u2014 infinitive (to \u2026)','3rd \u2014 perfect (I have \u2026)','4th \u2014 perfect passive participle'];
+    PP_LABELS.forEach((lab,i)=>{
+      const tr=document.createElement('tr');
+      const td0=document.createElement('td');td0.className='label';td0.textContent=lab;tr.appendChild(td0);
+      const td=document.createElement('td');
+      if(i===1){ td.textContent=v.pp[1]; td.style.fontWeight='bold'; td.style.color='#8b2e0f'; }
+      else if(i===3 && !v.pp[3]){ td.textContent='\u2014 none \u2014'; td.style.color='#888'; }
+      else {
+        const inp=document.createElement('input');
+        inp.type='text';inp.autocomplete='off';inp.spellcheck=false;
+        inp.dataset.tense='pp';inp.dataset.num='s';inp.dataset.person=i;
+        td.appendChild(inp);
+      }
+      tr.appendChild(td);tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
     return;
   }
   if(verbMode==='synopsis'){
@@ -2192,6 +2221,7 @@ function buildVerbTable(){
 
 function getVerbAnswer(tense,num,pi){
   const v = verbs[currentVerb];
+  if(tense==='pp') return (v.pp && v.pp[pi]) || '';
   if(tense==='imp'){
     return num==='s' ? v.imp[0] : v.imp[1];
   }
