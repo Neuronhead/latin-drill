@@ -27,6 +27,9 @@
   /* ── Dictionary (search results group + entry pop-up) ── */
   .search-group { padding: 6px 12px 4px; font-size: 0.7rem; font-weight: bold; letter-spacing: 0.06em; text-transform: uppercase; color: #8b2e0f; background: #f5edd6; border-top: 1px solid #e3d3ad; border-bottom: 1px solid #f0e6d0; font-family: Tahoma, Arial, sans-serif; }
   .search-group span { font-weight: normal; text-transform: none; letter-spacing: 0; color: #888; }
+  .search-pattern { padding: 6px 12px; font-size: 0.75rem; color: #555; background: #fbf7ec; border-bottom: 1px solid #f0e6d0; font-family: Tahoma, Arial, sans-serif; }
+  .search-pattern.bad { color: #b00020; background: #fdecee; }
+  .search-pattern code { font-family: Menlo, Consolas, monospace; color: #8b2e0f; }
   .search-pending { padding: 8px 12px; font-size: 0.8rem; color: #999; font-style: italic; font-family: Tahoma, Arial, sans-serif; }
   #dictOverlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 300; align-items: center; justify-content: center; }
   #dictOverlay.open { display: flex; }
@@ -296,7 +299,8 @@
 <div id="searchWrap">
   <input type="search" id="appSearch" autocomplete="off" spellcheck="false"
          placeholder="Search words, forms, meanings or sections&hellip;"
-         aria-label="Search the drills" aria-controls="searchResults" aria-expanded="false">
+         aria-label="Search the drills" aria-controls="searchResults" aria-expanded="false"
+         title="Plain text, wildcards (* = any letters, ? = one letter, e.g. *erint) or a regular expression between slashes, e.g. /^re/">
   <div id="searchResults" role="listbox"></div>
 </div>
 
@@ -810,6 +814,8 @@
         <b>3rd-conjugation future looks like a 2nd-conjugation present.</b> <i>D&#363;cet</i> = he <b>will</b> lead (future: <i>-am, -&#275;s, -et</i>). The present is <i>d&#363;cit</i>. Compare <i>monet</i> (2nd conj.), which is present.</li>
       <li data-ref-topic="Hic vs hīc" data-ref-gloss="hic = this (pronoun) · hīc = here (adverb)" data-ref-keys="hic, here">
         <b><i>Hic</i> vs <i>h&#299;c</i>.</b> <i>Hic</i> = this man (pronoun). <i>H&#299;c</i> = here (adverb). Macrons settle it.</li>
+      <li data-ref-topic="Searching with wildcards and regex" data-ref-gloss="*erint · am?vi · /^re/" data-ref-keys="regex, regular expression, wildcard, wildcards, pattern, search">
+        <b>Pattern searches</b> (search box, drill items only): <code>*</code> = any letters, <code>?</code> = one letter, matched against the whole word &mdash; <code>*erint</code> finds every <i>-erint</i> form, <code>am?vi</code> finds <i>amavi</i>. For a regular expression, put it between slashes: <code>/^re/</code> (starts with <i>re-</i>), <code>/(erunt|erant|erint)$/</code>, <code>/^[^aeiou]+a$/</code>. Macrons are ignored and capitals don&rsquo;t matter.</li>
       <li data-ref-topic="Commands (imperative)" data-ref-gloss="opta! (sg.) · optate! (pl.)" data-ref-keys="imperative, command, commands">
         <b>Commands:</b> singular imperative <i>Opt&#257;!</i>, plural <i>Opt&#257;te!</i> (<i>Opt&#257; mihi fort&#363;nam</i>, wish me luck).</li>
     </ul>
@@ -4022,8 +4028,55 @@ function buildSearchIndex(){
   return E;
 }
 
+// ── Pattern searches (drill items only; the dictionary is not searched) ──
+//   /regex/  — a JavaScript regular expression (closing slash optional while typing), case-insensitive
+//   * and ?  — wildcards matched against the whole key: * = any letters, ? = one letter
+// Keys are stored without macrons, so macrons are stripped from the pattern too.
+const SEARCH_PATTERN_LIMIT = 50;
+let searchPatternInfo = null;   // { kind, src, error, total } for the current query, or null
+
+function searchPattern(query){
+  const q = String(query || '').trim();
+  const plain = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  if (q.length > 1 && q[0] === '/') {
+    let body = q.slice(1);
+    if (body.length > 1 && body.endsWith('/') && !body.endsWith('\\/')) body = body.slice(0, -1);
+    body = plain(body);
+    try { return { kind: 'regex', src: body, re: new RegExp(body, 'i') }; }
+    catch (err) { return { kind: 'regex', src: body, error: String(err.message || err).replace(/^Invalid regular expression: (\/.*\/[a-z]*: )?/, '') }; }
+  }
+  if (/[*?]/.test(q)) {
+    const n = sNorm(q);
+    const src = '^' + n.split('').map(c => c === '*' ? '.*' : c === '?' ? '.' : c.replace(/[.^$+()[\]{}|\\]/g, '\\$&')).join('') + '$';
+    return { kind: 'wildcard', src: n, re: new RegExp(src, 'i') };
+  }
+  return null;
+}
+
+function searchRunPattern(p){
+  if (p.error) { searchPatternInfo = Object.assign({ total: 0 }, p); return []; }
+  const out = [];
+  buildSearchIndex().forEach(e => {
+    let best = 0, hit = null;
+    e.keys.forEach(k => {
+      if (!k.t) return;
+      const m = k.t.match(p.re);
+      if (!m) return;
+      const sc = (m[0] === k.t ? 100 : m.index === 0 ? 70 : 50) * k.w;
+      if (sc > best) { best = sc; hit = k; }
+    });
+    if (best > 0) out.push({ e, score: best - e.rank * 0.01, hit });
+  });
+  out.sort((a, b) => b.score - a.score || a.e.main.localeCompare(b.e.main));
+  searchPatternInfo = Object.assign({ total: out.length }, p);
+  return out.slice(0, SEARCH_PATTERN_LIMIT);
+}
+
 // Score: exact > starts with > a word starts with > contains, times the key's weight.
 function searchRun(query){
+  const pat = searchPattern(query);
+  if (pat) return searchRunPattern(pat);
+  searchPatternInfo = null;
   const qn = sNorm(query), qe = normEng(query);
   if (!qn) return [];
   const out = [];
@@ -4065,6 +4118,7 @@ function dictSchedule(query){
   const q = dictQuery(query);
   const seq = ++dictSeq;
   dictHits = [];
+  if (searchPattern(query)) { dictState = 'pattern'; return; }   // wildcard / regex: drill items only for now
   if (q.length < 2) { dictState = 'idle'; return; }
   dictState = 'loading';
   dictTimer = setTimeout(async () => {
@@ -4108,13 +4162,22 @@ function searchRender(){
   const q = input.value.trim();
   if (!q) { box.classList.remove('open'); input.setAttribute('aria-expanded', 'false'); return; }
   let html = '';
+  const pi = searchPatternInfo;
+  if (pi) {
+    const label = pi.kind === 'regex' ? 'Regex' : 'Wildcard';
+    html += pi.error
+      ? '<div class="search-pattern bad">' + label + ' <code>' + searchEsc(pi.src) + '</code> isn’t valid: ' + searchEsc(pi.error) + '</div>'
+      : '<div class="search-pattern">' + label + ' <code>' + searchEsc(pi.src) + '</code> · '
+        + (pi.total === 1 ? '1 match' : pi.total + ' matches')
+        + (pi.total > searchHits.length ? ' (showing the first ' + searchHits.length + ')' : '') + '</div>';
+  }
   if (searchHits.length) {
     html += searchHits.map((h, i) => {
       const parts = h.e.main.split(' — ');
       const main = '<b>' + searchEsc(parts[0]) + '</b>' + (parts.length > 1 ? ' — ' + searchEsc(parts.slice(1).join(' — ')) : '');
       const head = sNorm(parts[0]);
       let why = '';
-      if (h.hit && h.hit.t !== head && h.hit.w < 1)
+      if (h.hit && h.hit.t !== head && (h.hit.w < 1 || pi))
         why = ' · ' + (h.hit.kind === 'eng' ? 'meaning' : 'form') + ': ' + searchEsc(h.hit.raw);
       return '<div class="search-item' + (i === searchActive ? ' active' : '') + '" role="option" data-i="' + i + '">'
            + '<div class="search-main">' + main + '</div><div class="search-meta">' + searchEsc(h.e.meta) + why + '</div></div>';
@@ -4133,6 +4196,8 @@ function searchRender(){
   } else if (dictState === 'loading' && dictQuery(q).length >= 2) {
     html += '<div class="search-pending">Searching the dictionary…</div>';
   }
+  if (pi && !pi.error && !searchHits.length) html += '<div class="search-empty">No drill items match.</div>';
+  if (pi) html += '<div class="search-pending">Pattern searches cover the drill items only, not the general dictionary.</div>';
   if (!html) {
     html = '<div class="search-empty">No matches for “' + searchEsc(q) + '”'
          + (dictState === 'error' ? ' (dictionary unavailable)' : '') + '</div>';
