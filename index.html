@@ -70,6 +70,18 @@
   input.wrong { background: #f8d7da; border-color: red; color: red; }
   input.corrected { background: #fff3cd; border-color: #b8860b; color: #8a6d00; font-weight: bold; }
 
+  /* Verb Conjugations — Recognise mode (dropdowns instead of typed answers) */
+  #verbTable select { padding: 4px; font-size: 0.85rem; border: 2px solid #c9a96e; border-radius: 3px; font-family: Tahoma, Arial, sans-serif; background: #fffdf5; max-width: 100%; }
+  #verbTable select:focus { outline: none; border-color: #8b2e0f; background: white; }
+  #verbTable select.correct { background: #d4edda; border-color: green; color: green; font-weight: bold; }
+  #verbTable select.wrong { background: #f8d7da; border-color: red; color: red; }
+  #verbTable select.corrected { background: #fff3cd; border-color: #b8860b; color: #8a6d00; font-weight: bold; }
+  #verbTable .rec-form { font-size: 1.02rem; color: #8b2e0f; }
+  #verbTable .rec-fields { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+  #verbTable .rec-fields select.rec-eng { flex-basis: 100%; }
+  #verbTable .rec-note { font-size: 0.8rem; color: #555; margin-top: 4px; text-align: left; }
+  #verbTable .rec-note:empty { display: none; }
+
   /* Vocabulary drill */
   /* The global input rule adds padding+border on top of its width, so an input
      overflows its cell. Scope border-box to this table so the Gender/Type box
@@ -1297,7 +1309,7 @@ let agreeSnapshot = {};
 
 function takeSnapshot(selector) {
   const snap = {};
-  document.querySelectorAll(selector + ' input').forEach(inp => {
+  document.querySelectorAll(selector + ' input, ' + selector + ' select').forEach(inp => {
     // Build a stable key from data attributes so snapshot survives shuffling
     const key = JSON.stringify(inp.dataset);
     snap[key] = { value: inp.value, classes: [...inp.classList] };
@@ -1307,7 +1319,7 @@ function takeSnapshot(selector) {
 
 function applySnapshot(selector, snap, scoreId) {
   if (!snap) return;
-  document.querySelectorAll(selector + ' input').forEach(inp => {
+  document.querySelectorAll(selector + ' input, ' + selector + ' select').forEach(inp => {
     const key = JSON.stringify(inp.dataset);
     if (snap[key] !== undefined) {
       inp.value = snap[key].value;
@@ -1329,7 +1341,7 @@ const LIVE_CFG = {
   decl:  { inputs: ()=>[...document.querySelectorAll('#declTable input')], scoreId:'declScore' },
   dem:   { inputs: ()=>[...document.querySelectorAll('#demTable input')], scoreId:'demScore' },
   acro:  { inputs: ()=>[...document.querySelectorAll('#acroTable input')].filter(i=>i.dataset.optional!=='1'||i.value.trim()!==''), scoreId:'acroScore' },
-  verb:  { inputs: ()=>[...document.querySelectorAll('#verbTable input')], scoreId:'verbScore' },
+  verb:  { inputs: ()=>[...document.querySelectorAll('#verbTable input, #verbTable select')], scoreId:'verbScore' },
   q1:    { inputs: ()=>['q1a','q1b','q1c'].map(id=>document.getElementById(id)), scoreId:'q1Score' },
   q2std: { inputs: ()=>['q2case','q2gender','q2number'].map(id=>document.getElementById(id)), scoreId:'q2Score' },
   q2ex:  { inputs: ()=>['q2excase','q2exgender','q2exnumber'].map(id=>document.getElementById(id)), scoreId:'q2ExScore' },
@@ -2040,6 +2052,7 @@ const VERB_MODES = [
   ['all',      'All tenses',     'Active indicative \u2014 all six tenses and the imperative'],
   ['synopsis', 'Synopsis',       'Synopsis \u2014 one person and number through all six tenses'],
   ['pp',       'Principal parts','Principal parts \u2014 the infinitive is given: supply the 1st, 3rd and 4th parts'],
+  ['recognise','Recognise',      'Recognise \u2014 name the tense, person and number of each form, then choose its English'],
 ];
 const VERB_TENSE_DEFS = {
   present:    {label:'Present',        key:'pres',  imperative:false},
@@ -2063,6 +2076,7 @@ function buildVerbTenses(verb) {
   const perfectSys = ['perfect','pluperfect','futperfect'];
   if (verbMode === 'pp')       return (verb.pp && verb.pp[2]) ? [{label:'Principal parts', key:'pp', imperative:false}] : [];
   if (verbMode === 'synopsis') return pick(['present','future','imperfect','perfect','futperfect','pluperfect']);
+  if (verbMode === 'recognise') return pick(REC_TENSES).length ? [{label:'Recognise', key:'rec', imperative:false}] : [];
   if (verbMode === 'perfect')  return shuffle(pick(perfectSys));
   if (verbMode === 'all')      return shuffle(pick(presentSys)).concat(shuffle(pick(perfectSys)));
   return shuffle(pick(presentSys));
@@ -2087,6 +2101,166 @@ function buildVerbModes(){
   if (sub) sub.textContent = VERB_MODES.find(x => x[0] === verbMode)[2];
 }
 
+// ── RECOGNISE MODE ──
+// Shows REC_COUNT forms of the current verb; the student names tense, person and
+// number and picks the English. A form can belong to more than one tense (venit =
+// present or perfect), so every reading found in the verb's own data is accepted.
+const REC_TENSES = ['present','future','imperfect','perfect','futperfect','pluperfect'];   // Wheelock's synopsis order
+const REC_COUNT = 10, REC_PERFECT_SHARE = 6;   // 6 perfect-system forms + 4 present-system forms per run
+const REC_PERSON_LABEL = ['1st','2nd','3rd'];
+const REC_SUBJ = [['I','we'],['you','you (pl.)'],['he/she/it','they']];
+// English verb parts: base | 3rd sg. present | past | past participle | -ing.
+// Page-only data; a verb missing here simply gets no English question.
+const REC_ENGLISH = {
+  amare:'love|loves|loved|loved|loving', laudare:'praise|praises|praised|praised|praising',
+  portare:'carry|carries|carried|carried|carrying', dare:'give|gives|gave|given|giving',
+  monere:'warn|warns|warned|warned|warning', videre:'see|sees|saw|seen|seeing',
+  habere:'have|has|had|had|having', cenare:'dine|dines|dined|dined|dining',
+  culpare:'blame|blames|blamed|blamed|blaming', manere:'remain|remains|remained|remained|remaining',
+  superare:'overcome|overcomes|overcame|overcome|overcoming', agere:'drive|drives|drove|driven|driving',
+  ducere:'lead|leads|led|led|leading', discere:'learn|learns|learned|learned|learning',
+  gerere:'manage|manages|managed|managed|managing', scribere:'write|writes|wrote|written|writing',
+  trahere:'drag|drags|dragged|dragged|dragging', vincere:'conquer|conquers|conquered|conquered|conquering',
+  demonstrare:'point out|points out|pointed out|pointed out|pointing out', docere:'teach|teaches|taught|taught|teaching',
+  audire:'hear|hears|heard|heard|hearing', venire:'come|comes|came|come|coming',
+  invenire:'find|finds|found|found|finding', sentire:'feel|feels|felt|felt|feeling',
+  capere:'take|takes|took|taken|taking', facere:'make|makes|made|made|making',
+  fugere:'flee|flees|fled|fled|fleeing', vivere:'live|lives|lived|lived|living',
+  dicere:'say|says|said|said|saying', ferre:'bring|brings|brought|brought|bringing',
+  amittere:'lose|loses|lost|lost|losing', cadere:'fall|falls|fell|fallen|falling',
+  creare:'create|creates|created|created|creating',
+};
+let verbRec = [];   // the current run's questions
+
+function recSlot(pi, num){ return num === 's' ? pi : pi + 3; }
+
+// English for one tense / person / number, or null if the verb has no English entry.
+function recEnglish(verb, tense, pi, num){
+  const subj = REC_SUBJ[pi][num === 's' ? 0 : 1];
+  const sg3 = (pi === 2 && num === 's');
+  const was = (num === 's' && pi !== 1) ? 'was' : 'were';
+  const have = sg3 ? 'has' : 'have';
+  if (verb.display === 'esse' || verb.display === 'posse') {
+    const able = verb.display === 'posse' ? ' able' : '';
+    const am = num === 'p' || pi === 1 ? 'are' : (pi === 0 ? 'am' : 'is');
+    return subj + ' ' + ({
+      present: am + able, future: 'will be' + able, imperfect: was + able,
+      perfect: have + ' been' + able, pluperfect: 'had been' + able, futperfect: 'will have been' + able,
+    })[tense];
+  }
+  const e = REC_ENGLISH[verb.display];
+  if (!e) return null;
+  const [base, s3, past, part, ing] = e.split('|');
+  return subj + ' ' + ({
+    present: sg3 ? s3 : base, future: 'will ' + base, imperfect: was + ' ' + ing,
+    perfect: past + ', ' + have + ' ' + part, pluperfect: 'had ' + part, futperfect: 'will have ' + part,
+  })[tense];
+}
+
+// Every tense/person/number in this verb's data whose form (or alternative) matches.
+function recReadings(verb, form){
+  const out = [], f = norm(form), forms = verb.forms || {};
+  REC_TENSES.forEach(t => (forms[t] || []).forEach((cell, slot) => {
+    if (String(cell).split('|').some(a => norm(a) === f))
+      out.push({ t, pi: slot % 3, num: slot < 3 ? 's' : 'p' });
+  }));
+  return out;
+}
+
+function makeRecQuestions(verb){
+  const forms = verb.forms || {};
+  const avail = REC_TENSES.filter(t => forms[t]);
+  const pool = { pres: [], perf: [] };
+  avail.forEach(t => forms[t].forEach((cell, slot) => {
+    const alts = String(cell).split('|');
+    const form = (alts.length > 1 && Math.random() < 0.2) ? alts[1] : alts[0];   // the rarer -ēre ending now and then
+    (['perfect','pluperfect','futperfect'].includes(t) ? pool.perf : pool.pres).push(form);
+  }));
+  const seen = new Set(), chosen = [];
+  const take = (list, n) => { for (const f of shuffle(list)) { if (n <= 0) break; if (!seen.has(norm(f))) { seen.add(norm(f)); chosen.push(f); n--; } } };
+  take(pool.perf, REC_PERFECT_SHARE);
+  take(pool.pres, REC_COUNT - chosen.length);
+  take(pool.perf.concat(pool.pres), REC_COUNT - chosen.length);   // top up if one system is short
+  return shuffle(chosen).map(form => {
+    const readings = recReadings(verb, form);
+    const r0 = readings[0];
+    let eng = null;
+    if (recEnglish(verb, r0.t, r0.pi, r0.num) !== null) {
+      const right = [...new Set(readings.map(r => recEnglish(verb, r.t, r.pi, r.num)))];
+      const others = shuffle(avail.filter(t => !readings.some(r => r.t === t)))
+        .map(t => recEnglish(verb, t, r0.pi, r0.num)).filter(x => !right.includes(x));
+      eng = { right, options: shuffle(right.concat(others.slice(0, Math.max(0, 4 - right.length)))) };
+    }
+    return { form, readings, eng, isInf: norm(form) === norm(verb.display) };
+  });
+}
+
+// Grade one dropdown: is its value consistent with some reading of the form?
+function recCheck(sel){
+  const q = verbRec[+sel.dataset.q];
+  if (!q) return { ok:false, expected:'' };
+  const field = sel.dataset.field, v = sel.value;
+  if (field === 'eng') return { ok: q.eng.right.includes(v), expected: q.eng.right.join(' or ') };
+  const vals = [...new Set(q.readings.map(r => field === 'tense' ? r.t : field === 'person' ? String(r.pi) : r.num))];
+  const show = x => field === 'tense' ? VERB_TENSE_DEFS[x].label : field === 'person' ? REC_PERSON_LABEL[+x] : (x === 's' ? 'Singular' : 'Plural');
+  return { ok: vals.includes(v), expected: vals.map(show).join(' or ') };
+}
+function recFirst(sel){
+  const q = verbRec[+sel.dataset.q], r = q.readings[0], f = sel.dataset.field;
+  return f === 'tense' ? r.t : f === 'person' ? String(r.pi) : f === 'number' ? r.num : q.eng.right[0];
+}
+
+// Note under a question once it is fully right (or revealed): other readings, infinitive look-alike.
+function recNote(qi){
+  const box = document.getElementById('recNote' + qi), q = verbRec[qi];
+  if (!box || !q) return;
+  const sels = [...document.querySelectorAll('#verbTable select[data-q="' + qi + '"]')];
+  const done = sels.every(s => s.classList.contains('correct') || s.classList.contains('corrected'));
+  if (!done) { box.textContent = ''; return; }
+  const parts = [];
+  if (q.readings.length > 1)
+    parts.push('This form has ' + q.readings.length + ' readings: ' + q.readings.map(r => VERB_TENSE_DEFS[r.t].label.toLowerCase() + ' ' + REC_PERSON_LABEL[r.pi] + ' ' + (r.num === 's' ? 'sg.' : 'pl.')).join(' or ') + ' — context decides.');
+  if (q.isInf) parts.push('It is also spelled like the infinitive (' + verbs[currentVerb].display + ').');
+  box.textContent = parts.join(' ');
+}
+
+function buildRecTable(table){
+  const thead = document.createElement('thead'), hr = document.createElement('tr');
+  ['Form','Tense · person · number · English'].forEach(h => { const th = document.createElement('th'); th.textContent = h; hr.appendChild(th); });
+  thead.appendChild(hr); table.appendChild(thead);
+  const tbody = document.createElement('tbody');
+  const mk = (qi, field, prompt, opts) => {
+    const s = document.createElement('select');
+    s.dataset.q = qi; s.dataset.field = field;
+    if (field === 'eng') s.className = 'rec-eng';
+    s.setAttribute('aria-label', prompt.replace('…', '') + ' for question ' + (qi + 1));
+    const o0 = document.createElement('option'); o0.value = ''; o0.textContent = prompt; s.appendChild(o0);
+    opts.forEach(([val, text]) => { const o = document.createElement('option'); o.value = val; o.textContent = text; s.appendChild(o); });
+    return s;
+  };
+  const tenseOpts = REC_TENSES.map(t => [t, VERB_TENSE_DEFS[t].label]);
+  verbRec.forEach((q, qi) => {
+    const tr = document.createElement('tr');
+    const td0 = document.createElement('td'); td0.className = 'label';
+    td0.innerHTML = (qi + 1) + '. <span class="rec-form"></span>';
+    td0.querySelector('.rec-form').textContent = q.form;
+    tr.appendChild(td0);
+    const td = document.createElement('td');
+    const box = document.createElement('div'); box.className = 'rec-fields';
+    box.appendChild(mk(qi, 'tense', 'Tense…', tenseOpts));
+    box.appendChild(mk(qi, 'person', 'Person…', REC_PERSON_LABEL.map((l, i) => [String(i), l])));
+    box.appendChild(mk(qi, 'number', 'Number…', [['s','Singular'],['p','Plural']]));
+    if (q.eng) box.appendChild(mk(qi, 'eng', 'English…', q.eng.options.map(x => [x, x])));
+    td.appendChild(box);
+    const note = document.createElement('div'); note.className = 'rec-note'; note.id = 'recNote' + qi;
+    td.appendChild(note);
+    tr.appendChild(td); tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+}
+
+function newVerbRec(){ verbRec = (verbMode === 'recognise' && verbs.length && verbTenses.length) ? makeRecQuestions(verbs[currentVerb]) : []; }
+
 function showVerbNote(idx){
   const vNote=document.getElementById('verbNote'), v=verbs[idx];
   if(!vNote || !v) return;
@@ -2104,6 +2278,7 @@ function setVerbMode(mode){
   verbPersons = shuffle(ALL_PERSONS);
   verbSyn = randomVerbSyn();
   verbTenses = buildVerbTenses(verbs[currentVerb]);
+  newVerbRec();
   liveReset('verb');
   buildVerbTable(); document.getElementById('verbScore').textContent = '';
   document.getElementById('undoVerbBtn').style.display = 'none'; verbSnapshot = null;
@@ -2123,6 +2298,7 @@ function setVerb(idx){
   verbPersons=shuffle(ALL_PERSONS);
   verbSyn=randomVerbSyn();
   verbTenses=buildVerbTenses(verbs[idx]);
+  newVerbRec();
   liveReset('verb');
   buildVerbTable(); document.getElementById('verbScore').textContent='';
 }
@@ -2132,6 +2308,11 @@ function buildVerbTable(){
   const table=document.getElementById('verbTable'); table.innerHTML='';
   if(!verbTenses.length){
     table.innerHTML='<tbody><tr><td class="label" style="text-align:center;white-space:normal;padding:14px">No forms for these tenses are loaded for this verb yet.</td></tr></tbody>';
+    return;
+  }
+  if(verbMode==='recognise'){
+    if(!verbRec.length) newVerbRec();
+    buildRecTable(table);
     return;
   }
   if(verbMode==='pp'){
@@ -2237,14 +2418,21 @@ function checkVerb(){
     recordRun('verb', 'verbScore', 'verb', 'verbs', verbs[currentVerb].display + verbModeSuffix(), c.green, c.total, c.errors, c.revealed);
     return;
   }
-  const inputs=document.querySelectorAll('#verbTable input');
+  const inputs=LIVE_CFG.verb.inputs();
   let correct=0,total=0;
   inputs.forEach(inp=>{
-    const ans=getVerbAnswer(inp.dataset.tense,inp.dataset.num,parseInt(inp.dataset.person));
     inp.classList.remove('correct','wrong','corrected'); total++;
+    if(inp.tagName==='SELECT'){
+      const r=recCheck(inp);
+      if(r.ok){inp.classList.add('correct');correct++;inp.title='';}
+      else{inp.classList.add('wrong');inp.title='Expected: '+r.expected;}
+      return;
+    }
+    const ans=getVerbAnswer(inp.dataset.tense,inp.dataset.num,parseInt(inp.dataset.person));
     if(demOk(inp.value, ans)){inp.classList.add('correct');correct++;}      // a|b alternatives (laudaverunt|laudavere)
     else{inp.classList.add('wrong');inp.title='Expected: '+demShow(ans);}
   });
+  verbRec.forEach((q,qi)=>recNote(qi));
   const s=document.getElementById('verbScore');
   s.style.color=correct===total?'green':'red';
   s.textContent=correct===total?'Optime! '+correct+'/'+total+' — perfect.':correct+'/'+total+' — hover red cells to see the expected answer.';
@@ -2252,6 +2440,16 @@ function checkVerb(){
 }
 
 function checkVerbCell(inp, finalSweep){
+  if(inp.tagName==='SELECT'){
+    if(!inp.value && !finalSweep && !liveAttempted('verb', inp)){
+      inp.classList.remove('correct','wrong','corrected'); inp.title=''; return;
+    }
+    const r=recCheck(inp);
+    liveMark('verb', inp, r.ok);
+    inp.title = r.ok ? '' : 'Expected: '+r.expected;
+    recNote(+inp.dataset.q);
+    return;
+  }
   const ans=getVerbAnswer(inp.dataset.tense,inp.dataset.num,parseInt(inp.dataset.person));
   if(!inp.value && !finalSweep && !liveAttempted('verb', inp)){
     inp.classList.remove('correct','wrong','corrected'); inp.title=''; return;
@@ -2267,13 +2465,21 @@ document.getElementById('verbTable').addEventListener('focusout', e=>{
     liveScoreLine('verb');
   }
 });
+// Dropdowns (Recognise mode) are checked as soon as a choice is made.
+document.getElementById('verbTable').addEventListener('change', e=>{
+  if(e.target.tagName==='SELECT' && document.getElementById('liveVerb').checked){
+    checkVerbCell(e.target);
+    liveScoreLine('verb');
+  }
+});
 
 function revealVerb(){
   verbSnapshot = takeSnapshot('#verbTable');
   verbSnapshot.liveMap = {...liveAttempts.verb};
+  verbSnapshot.rec = verbRec;
   const live=document.getElementById('liveVerb').checked;
-  document.querySelectorAll('#verbTable input').forEach(inp=>{
-    inp.value=demFirst(getVerbAnswer(inp.dataset.tense,inp.dataset.num,parseInt(inp.dataset.person)));
+  LIVE_CFG.verb.inputs().forEach(inp=>{
+    inp.value = inp.tagName==='SELECT' ? recFirst(inp) : demFirst(getVerbAnswer(inp.dataset.tense,inp.dataset.num,parseInt(inp.dataset.person)));
     inp.title='';
     if(live){
       liveReveal('verb', inp);
@@ -2281,6 +2487,7 @@ function revealVerb(){
       inp.classList.remove('wrong','corrected');inp.classList.add('correct');
     }
   });
+  verbRec.forEach((q,qi)=>recNote(qi));
   if(live) liveScoreLine('verb');
   else document.getElementById('verbScore').textContent='';
   document.getElementById('undoVerbBtn').style.display='inline-block';
@@ -2290,10 +2497,12 @@ function resetVerb(silent){
   if(!silent){
     verbSnapshot = takeSnapshot('#verbTable');
     verbSnapshot.liveMap = {...liveAttempts.verb};
+    verbSnapshot.rec = verbRec;
   }
   verbPersons=shuffle(ALL_PERSONS);
   verbSyn=randomVerbSyn();
   verbTenses=buildVerbTenses(verbs[currentVerb]);
+  newVerbRec();
   liveReset('verb');
   buildVerbTable(); document.getElementById('verbScore').textContent='';
   if(!silent) document.getElementById('undoVerbBtn').style.display='inline-block';
@@ -2304,8 +2513,10 @@ function undoVerb(){
   if(!verbSnapshot) return;
   verbPersons=shuffle(ALL_PERSONS);
   verbTenses=buildVerbTenses(verbs[currentVerb]);
+  if(verbSnapshot.rec) verbRec = verbSnapshot.rec;
   buildVerbTable();
   applySnapshot('#verbTable', verbSnapshot, 'verbScore');
+  verbRec.forEach((q,qi)=>recNote(qi));
   liveAttempts.verb = verbSnapshot.liveMap ? {...verbSnapshot.liveMap} : {};
   if(document.getElementById('liveVerb').checked) liveScoreLine('verb');
   document.getElementById('undoVerbBtn').style.display='none';
