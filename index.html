@@ -11,6 +11,7 @@
 
   /* ── Search ───────────────────────────────────────── */
   #searchWrap { position: relative; max-width: 480px; margin: 0 auto 16px; }
+  #searchLabel { display: block; text-align: center; font-size: 0.72rem; font-weight: bold; letter-spacing: 0.07em; text-transform: uppercase; color: #8b2e0f; margin-bottom: 5px; font-family: Tahoma, Arial, sans-serif; }
   #appSearch { width: 100%; box-sizing: border-box; padding: 9px 12px; font-family: Tahoma, Arial, sans-serif; font-size: 0.95rem; border: 2px solid #c9a96e; border-radius: 4px; background: #fffdf7; color: #333; }
   #appSearch:focus { outline: none; border-color: #8b2e0f; }
   #searchResults { display: none; position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 150; background: white; border: 2px solid #c9a96e; border-radius: 4px; box-shadow: 0 6px 18px rgba(0,0,0,0.12); max-height: 60vh; overflow-y: auto; text-align: left; }
@@ -297,8 +298,9 @@
 <p class="sub">Fill in all forms, then click Check Answers. Clear &amp; Shuffle randomises the order.</p>
 
 <div id="searchWrap">
+  <label id="searchLabel" for="appSearch">Search Everything</label>
   <input type="search" id="appSearch" autocomplete="off" spellcheck="false"
-         placeholder="Search words, forms, meanings&hellip; or /regex/"
+         placeholder="Words, forms, meanings or /regex/ &middot; mouse over for help"
          aria-label="Search the drills" aria-controls="searchResults" aria-expanded="false"
          title="Plain text, wildcards (* = any letters, ? = one letter, e.g. *erint) or a regular expression between slashes, e.g. /^re/">
   <div id="searchResults" role="listbox"></div>
@@ -4329,6 +4331,7 @@ document.addEventListener('keydown', e => {
 
 (function initSearch(){
   const input = document.getElementById('appSearch');
+  try { if (window.matchMedia && window.matchMedia('(hover: none)').matches) input.placeholder = 'Words, forms, meanings or /regex/'; } catch (e) {}
   const box = document.getElementById('searchResults');
   const refresh = () => {
     searchHits = searchRun(input.value);
