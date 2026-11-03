@@ -817,7 +817,7 @@
       <li data-ref-topic="Hic vs hīc" data-ref-gloss="hic = this (pronoun) · hīc = here (adverb)" data-ref-keys="hic, here">
         <b><i>Hic</i> vs <i>h&#299;c</i>.</b> <i>Hic</i> = this man (pronoun). <i>H&#299;c</i> = here (adverb). Macrons settle it.</li>
       <li data-ref-topic="Searching with wildcards and regex" data-ref-gloss="*erint · am?vi · /^re/" data-ref-keys="regex, regular expression, wildcard, wildcards, pattern, search">
-        <b>Pattern searches</b> (search box, drill items only): <code>*</code> = any letters, <code>?</code> = one letter, matched against the whole word &mdash; <code>*erint</code> finds every <i>-erint</i> form, <code>am?vi</code> finds <i>amavi</i>. For a regular expression, put it between slashes: <code>/^re/</code> (starts with <i>re-</i>), <code>/(erunt|erant|erint)$/</code>, <code>/^[^aeiou]+a$/</code>. Macrons are ignored and capitals don&rsquo;t matter.</li>
+        <b>Pattern searches</b> (search box): <code>*</code> = any letters, <code>?</code> = one letter, matched against the whole word &mdash; <code>*erint</code> finds every <i>-erint</i> form, <code>am?vi</code> finds <i>amavi</i>. For a regular expression, put it between slashes: <code>/^re/</code> (starts with <i>re-</i>), <code>/(erunt|erant|erint)$/</code>, <code>/^[^aeiou]+a$/</code>. Macrons are ignored and capitals don&rsquo;t matter. The general dictionary is searched too: its Latin side holds only dictionary forms (headword and principal parts, so <code>*erint</code> finds nothing there), and its English side is matched one sense at a time.</li>
       <li data-ref-topic="Commands (imperative)" data-ref-gloss="opta! (sg.) · optate! (pl.)" data-ref-keys="imperative, command, commands">
         <b>Commands:</b> singular imperative <i>Opt&#257;!</i>, plural <i>Opt&#257;te!</i> (<i>Opt&#257; mihi fort&#363;nam</i>, wish me luck).</li>
     </ul>
@@ -4108,8 +4108,25 @@ function searchEsc(t){ return String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;',
 // ── Dictionary results (Whitaker's Words, table "dictionary", via dict_search) ──
 // Drill results render instantly; dictionary results are fetched after a short pause
 // and appended under their own heading. Stale responses are ignored.
-let dictHits = [], dictState = 'idle', dictSeq = 0, dictTimer = null;
-const DICT_LIMIT = 8;
+let dictHits = [], dictState = 'idle', dictSeq = 0, dictTimer = null, dictErr = '';
+const DICT_LIMIT = 8, DICT_PATTERN_LIMIT = 20;
+
+// Turn the page's (JavaScript) pattern into PostgreSQL's dialect for dict_pattern:
+// \b / \B (word boundary) are \y / \Y there. For the Latin side the dictionary spells
+// j as i and v as u, so unescaped j/v letters in the pattern are changed to match.
+function dictPgPattern(src, latin){
+  let out = '';
+  for (let i = 0; i < src.length; i++) {
+    const c = src[i];
+    if (c === '\\' && i + 1 < src.length) {
+      const n = src[++i];
+      out += n === 'b' ? '\\y' : n === 'B' ? '\\Y' : '\\' + n;
+      continue;
+    }
+    out += !latin ? c : (c === 'j' || c === 'J') ? 'i' : (c === 'v' || c === 'V') ? 'u' : c;
+  }
+  return out;
+}
 const DICT_POS = { n: 'noun', v: 'verb', adj: 'adjective', adv: 'adverb', prep: 'preposition',
                    conj: 'conjunction', pron: 'pronoun', num: 'numeral', interj: 'interjection' };
 
@@ -4120,12 +4137,16 @@ function dictSchedule(query){
   const q = dictQuery(query);
   const seq = ++dictSeq;
   dictHits = [];
-  if (searchPattern(query)) { dictState = 'pattern'; return; }   // wildcard / regex: drill items only for now
-  if (q.length < 2) { dictState = 'idle'; return; }
+  const pat = searchPattern(query);
+  dictErr = '';
+  if (pat && pat.error) { dictState = 'idle'; return; }          // the drill side already reports the bad pattern
+  if (!pat && q.length < 2) { dictState = 'idle'; return; }
   dictState = 'loading';
   dictTimer = setTimeout(async () => {
     try {
-      const { data, error } = await supa.rpc('dict_search', { q, lim: DICT_LIMIT });
+      const { data, error } = pat
+        ? await supa.rpc('dict_pattern', { lat_re: dictPgPattern(pat.re.source, true), eng_re: dictPgPattern(pat.re.source, false), lim: DICT_PATTERN_LIMIT })
+        : await supa.rpc('dict_search', { q, lim: DICT_LIMIT });
       if (seq !== dictSeq) return;                       // a newer query has started
       if (error) throw error;
       dictHits = data || [];
@@ -4133,7 +4154,7 @@ function dictSchedule(query){
     } catch (err) {
       if (seq !== dictSeq) return;
       console.warn('dictionary search failed:', err);
-      dictHits = []; dictState = 'error';
+      dictHits = []; dictState = 'error'; dictErr = (err && err.message) || '';
     }
     const inp = document.getElementById('appSearch');
     if (inp.value.trim() && document.activeElement === inp) {
@@ -4186,7 +4207,8 @@ function searchRender(){
     }).join('');
   }
   if (dictHits.length) {
-    html += '<div class="search-group">General dictionary <span>· Whitaker’s Words</span></div>';
+    html += '<div class="search-group">General dictionary <span>· Whitaker’s Words'
+         + (pi && dictHits.length >= DICT_PATTERN_LIMIT ? ' · first ' + DICT_PATTERN_LIMIT + ' matches' : '') + '</span></div>';
     html += dictHits.map((d, j) => {
       const i = searchHits.length + j;
       const head = '<b>' + searchEsc(d.headword) + '</b>' + (d.parts ? ', ' + searchEsc(d.parts) : '');
@@ -4195,11 +4217,14 @@ function searchRender(){
            + '<div class="search-main">' + head + ' — ' + searchEsc(gloss) + '</div>'
            + '<div class="search-meta">Dictionary · ' + searchEsc(dictTypeLine(d)) + '</div></div>';
     }).join('');
-  } else if (dictState === 'loading' && dictQuery(q).length >= 2) {
+  } else if (dictState === 'loading' && (pi || dictQuery(q).length >= 2)) {
     html += '<div class="search-pending">Searching the dictionary…</div>';
   }
   if (pi && !pi.error && !searchHits.length) html += '<div class="search-empty">No drill items match.</div>';
-  if (pi) html += '<div class="search-pending">Pattern searches cover the drill items only, not the general dictionary.</div>';
+  if (pi && !pi.error && dictState === 'done' && !dictHits.length) html += '<div class="search-pending">No dictionary entries match.</div>';
+  if (pi && !pi.error && dictState === 'error')
+    html += '<div class="search-pending">The dictionary couldn’t run this pattern'
+         + (/timeout/i.test(dictErr) ? ' (it took too long — try a simpler one)' : /regular expression/i.test(dictErr) ? ' (' + searchEsc(dictErr.replace(/^.*?invalid regular expression:\s*/i, '')) + ')' : '') + '.</div>';
   if (!html) {
     html = '<div class="search-empty">No matches for “' + searchEsc(q) + '”'
          + (dictState === 'error' ? ' (dictionary unavailable)' : '') + '</div>';
